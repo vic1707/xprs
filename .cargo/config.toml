@@ -1,0 +1,25 @@
+[build]
+rustflags = [
+  ## Warning ##
+  "-Wclippy::pedantic",
+  "-Wclippy::restriction",
+  "-Wclippy::nursery",
+  # "-Wclippy::cargo",
+  ## Allowed ##
+  "-Aclippy::blanket_clippy_restriction_lints", # allow `clippy::restriction` to be used globally
+  "-Aclippy::implicit_return",                  # convenience
+  "-Aclippy::question_mark_used",               # convenience
+  "-Aclippy::separated_literal_suffix",         # prefer using underscores
+  "-Aclippy::single_call_fn",                   # function only called once
+  "-Aclippy::single_char_lifetime_names",       # common practice to use 'a, to remove ?
+  "-Aclippy::pub-with-shorthand",               # export of `yeet!` macro is problematic with this lint
+  ## Must remove ##
+  "-Aclippy::missing_docs_in_private_items",
+  "-Aclippy::missing-errors-doc",
+  "-Aclippy::mod_module_files",
+  "-Aclippy::panic",
+  "-Aclippy::print_stdout",
+  "-Aclippy::print_stderr",
+  "-Aclippy::use_debug",
+  "-Adead_code",
+]
