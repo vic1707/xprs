@@ -6,6 +6,7 @@ rustflags = [
   "-Wclippy::nursery",
   # "-Wclippy::cargo",
   ## Allowed ##
+  "-Aclippy::arithmetic-side-effects",          # position advancement in `Iterator::next`
   "-Aclippy::blanket_clippy_restriction_lints", # allow `clippy::restriction` to be used globally
   "-Aclippy::implicit_return",                  # convenience
   "-Aclippy::question_mark_used",               # convenience
@@ -20,6 +21,7 @@ rustflags = [
   "-Aclippy::panic",
   "-Aclippy::print_stdout",
   "-Aclippy::print_stderr",
+  "-Aclippy::undocumented-unsafe-blocks",
   "-Aclippy::use_debug",
   "-Adead_code",
 ]
