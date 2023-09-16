@@ -7,3 +7,7 @@ edition = "2021"
 
 [dependencies]
 thiserror = "1.0.48"
+
+[[bin]]
+name = "repl"
+path = "src/bin/repl.rs"
