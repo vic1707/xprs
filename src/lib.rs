@@ -1,6 +1,7 @@
 /* Clippy config */
 #![allow(clippy::pub_use)]
 /* Modules */
+mod element;
 mod lexer;
 mod token;
 mod trust_me;
