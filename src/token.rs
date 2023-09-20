@@ -4,23 +4,20 @@
 use core::f64;
 
 #[derive(Debug, PartialEq, PartialOrd)]
-#[non_exhaustive]
-pub enum Token<'a> {
-    Number(f64),
-    Operator(Operator),
-    /// Left parenthesis.
-    LParen,
-    /// Right parenthesis.
-    RParen,
-    /// Identifiers
-    Identifier(Identifier<'a>),
-}
-
-#[derive(Debug, PartialEq, PartialOrd)]
 pub enum Identifier<'a> {
     Function(fn(f64) -> f64),
     Constant(f64),
     Variable(&'a str),
+}
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum Operator {
+    // Factorial,
+    Plus,
+    Minus,
+    Times,
+    Divide,
+    Power,
+    Modulo,
 }
 
 impl<'a> From<&'a str> for Identifier<'a> {
@@ -64,13 +61,19 @@ impl<'a> From<&'a str> for Identifier<'a> {
     }
 }
 
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
-pub enum Operator {
-    // Factorial,
-    Plus,
-    Minus,
-    Times,
-    Divide,
-    Power,
-    Modulo,
+impl TryFrom<u8> for Operator {
+    type Error = &'static str;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            // b'!' => Ok(Self::Factorial),
+            b'+' => Ok(Self::Plus),
+            b'-' => Ok(Self::Minus),
+            b'*' => Ok(Self::Times),
+            b'/' => Ok(Self::Divide),
+            b'^' => Ok(Self::Power),
+            b'%' => Ok(Self::Modulo),
+            _ => Err("Operator not found"),
+        }
+    }
 }

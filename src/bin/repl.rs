@@ -3,7 +3,7 @@
 use std::error::Error;
 use std::io::{self, Write};
 /* Crate imports */
-use xprs::{Lexer, Parser};
+use xprs::Parser;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut input = String::new();
@@ -18,7 +18,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         match &input {
             line if line.trim() == "exit" => break,
             line => {
-                let ast = Parser::new(Lexer::new(line)).parse();
+                let ast = Parser::new(line).parse();
                 println!("AST: {ast:?}");
             },
         }

@@ -1,31 +1,40 @@
 /* Built-in imports */
-use core::iter::Peekable;
+use core::str;
 /* Crate imports */
-use crate::element::{BinOp, FunctionCall, UnOp};
-use crate::token::{Identifier, Operator};
-use crate::yeet::yeet;
-use crate::{Element, Lexer, Token};
+use crate::{
+    element::{BinOp, FunctionCall, UnOp},
+    token::{Identifier, Operator},
+    trust_me::trust_me,
+    yeet::yeet,
+    Element,
+};
 /* Constants */
 pub const NO_PERCEDENCE: usize = 0;
 
 pub struct Parser<'a> {
-    lexer: Peekable<Lexer<'a>>,
+    input: &'a [u8],
+    cursor: usize,
 }
 
 impl<'a> Parser<'a> {
     #[inline]
     #[must_use]
-    pub fn new(lexer: Lexer<'a>) -> Self {
-        Parser {
-            lexer: lexer.peekable(),
+    pub const fn new(input: &'a str) -> Self {
+        Self {
+            input: input.as_bytes(),
+            cursor: 0,
         }
     }
 
     #[inline]
     pub fn parse(&mut self) -> Result<Element<'a>, &'static str> {
         let root = self.element(NO_PERCEDENCE)?;
-        if let Some(tok) = self.lexer.next() {
-            println!("[END] Unexpected token: {tok:?}");
+        if let Some(tok) = self.current() {
+            println!(
+                "[END] Unexpected token at position {}: {:?}",
+                self.cursor,
+                char::from(*tok)
+            );
             yeet!("Expected EOF");
         }
         Ok(root)
@@ -35,64 +44,106 @@ impl<'a> Parser<'a> {
         &mut self,
         precedence: usize,
     ) -> Result<Element<'a>, &'static str> {
-        let curr = self.lexer.next().ok_or("Unexpected EOF")??;
-        let mut el = self.atom(curr)?;
+        let mut el = self.atom()?;
+        self.strip_whitespaces();
 
-        #[allow(clippy::ref_patterns)]
-        while let Some(Ok(Token::Operator(op))) =
-            self.lexer.next_if(|tok|
-                matches!(tok, &Ok(Token::Operator(ref op)) if BinOp::precedence(op) > precedence)
-            )
+        while let Some(op) =
+            self.current().and_then(|&ch| Operator::try_from(ch).ok())
         {
+            self.strip_whitespaces();
             let current_precedence = BinOp::precedence(&op);
             if current_precedence <= precedence {
                 break;
             }
+            self.cursor += 1;
             let rhs = self.element(current_precedence)?;
             el = Element::BinOp(Box::new(BinOp::new(op, el, rhs)));
         }
+
         Ok(el)
     }
 
-    fn atom(&mut self, token: Token<'a>) -> Result<Element<'a>, &'static str> {
-        let atom = match token {
-            Token::Identifier(Identifier::Constant(val)) => {
-                Element::Number(val)
+    fn atom(&mut self) -> Result<Element<'a>, &'static str> {
+        self.strip_whitespaces();
+        let atom = match *(self.current().ok_or("Unexpected EOF")?) {
+            /* Number */
+            b'0'..=b'9' | b'.' => Element::Number(self.parse_number()?),
+            /* Unary expression */
+            op @ (b'+' | b'-') => {
+                self.cursor += 1;
+                let operator = Operator::try_from(op)?;
+                let operand = self.element(UnOp::PRECEDENCE)?;
+                Element::UnOp(Box::new(UnOp::new(operator, operand)))
             },
-            Token::Identifier(Identifier::Variable(var)) => {
-                Element::Variable(var)
-            },
-            Token::Number(val) => Element::Number(val),
             /* Parenthesis */
-            Token::LParen => {
+            b'(' => {
+                self.cursor += 1;
                 let el = self.element(NO_PERCEDENCE)?;
-                if self.lexer.next() != Some(Ok(Token::RParen)) {
+                if self.current() != Some(&b')') {
                     yeet!("Expected ')'");
                 }
+                self.cursor += 1;
                 el
             },
-            /* Unary */
-            Token::Operator(op @ (Operator::Minus | Operator::Plus)) => {
-                Element::UnOp(Box::new(UnOp::new(
-                    op,
-                    self.element(UnOp::PRECEDENCE)?,
-                )))
+            /* Identifier */
+            b'a'..=b'z' => match self.parse_identifier()? {
+                Identifier::Constant(val) => Element::Number(val),
+                Identifier::Variable(var) => Element::Variable(var),
+                Identifier::Function(func) if Some(&b'(') == self.current() => {
+                    let el = self.element(FunctionCall::PRECEDENCE)?;
+                    Element::Function(Box::new(FunctionCall::new(func, el)))
+                },
+                Identifier::Function(_) => yeet!("Expected '('"),
             },
-            /* Function */
-            Token::Identifier(Identifier::Function(func))
-                if self.lexer.peek() == Some(&Ok(Token::LParen)) =>
-            {
-                let el = self.element(FunctionCall::PRECEDENCE)?;
-                Element::Function(Box::new(FunctionCall::new(func, el)))
-            },
-            /* Errors */
-            Token::Identifier(Identifier::Function(_)) => yeet!("Expected '('"),
-            tok @ (Token::Operator(_) | Token::RParen) => {
-                println!("Unexpected token: {tok:?}");
+            tok => {
+                println!("Unexpected token: {:?}", char::from(tok));
                 yeet!("Unexpected Token")
             },
         };
 
         Ok(atom)
+    }
+
+    fn parse_identifier(&mut self) -> Result<Identifier<'a>, &'static str> {
+        let start = self.cursor;
+        self.next_while(u8::is_ascii_lowercase);
+        let end = self.cursor;
+
+        let ident = trust_me! { str::from_utf8_unchecked(self.input.get(start..end).ok_or("Unreachable")?) };
+
+        Ok(ident.into())
+    }
+}
+
+impl Parser<'_> {
+    #[inline]
+    fn next_while(&mut self, predicate: fn(&u8) -> bool) {
+        while self.current().is_some_and(predicate) {
+            self.cursor += 1;
+        }
+    }
+
+    #[inline]
+    fn strip_whitespaces(&mut self) {
+        self.next_while(u8::is_ascii_whitespace);
+    }
+
+    #[inline]
+    fn current(&self) -> Option<&u8> {
+        self.input.get(self.cursor)
+    }
+
+    fn parse_number(&mut self) -> Result<f64, &'static str> {
+        let start = self.cursor;
+        self.next_while(|&ch| matches!(ch, b'0'..=b'9' | b'.' | b'e' | b'E'));
+        let end = self.cursor;
+
+        let ident = self.input.get(start..end).ok_or("Unreachable")?;
+
+        let num = trust_me!(str::from_utf8_unchecked(ident))
+            .parse()
+            .map_err(|_err| "Failed to parse number")?;
+
+        Ok(num)
     }
 }
