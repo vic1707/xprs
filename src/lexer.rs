@@ -2,7 +2,7 @@
 use core::str;
 /* Crate imports */
 use crate::{
-    token::{Constant, Function, Operator, Token},
+    token::{Operator, Token},
     trust_me::trust_me,
 };
 
@@ -84,17 +84,10 @@ impl<'a> Iterator for Lexer<'a> {
                 let indent =
                     trust_me! { str::from_utf8_unchecked(indent_bytes) };
 
-                let tok = Function::try_from(indent)
-                    .map(Token::Function)
-                    .or_else(|_| {
-                        Constant::try_from(indent).map(Token::Constant)
-                    })
-                    // if failed return a variable in ok variant, don't care about the error
-                    .unwrap_or(Token::Variable(indent));
                 // early return is necessary here so we don't
                 // advance past the last character of the
                 // current identifier
-                return Some(Ok(tok));
+                return Some(Ok(Token::Identifier(indent.into())));
             },
             _ => return Some(Err("Illegal character")),
         };
