@@ -1,5 +1,3 @@
-/* Clippy config */
-#![allow(clippy::pub_use)]
 /* Built-in imports */
 use core::f64;
 
@@ -8,16 +6,6 @@ pub enum Identifier<'a> {
     Function(fn(f64) -> f64),
     Constant(f64),
     Variable(&'a str),
-}
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
-pub enum Operator {
-    // Factorial,
-    Plus,
-    Minus,
-    Times,
-    Divide,
-    Power,
-    Modulo,
 }
 
 impl<'a> From<&'a str> for Identifier<'a> {
@@ -57,23 +45,6 @@ impl<'a> From<&'a str> for Identifier<'a> {
             "trunc" => Identifier::Function(f64::trunc),
             /* Variables */
             _ => Identifier::Variable(value),
-        }
-    }
-}
-
-impl TryFrom<u8> for Operator {
-    type Error = &'static str;
-
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
-        match value {
-            // b'!' => Ok(Self::Factorial),
-            b'+' => Ok(Self::Plus),
-            b'-' => Ok(Self::Minus),
-            b'*' => Ok(Self::Times),
-            b'/' => Ok(Self::Divide),
-            b'^' => Ok(Self::Power),
-            b'%' => Ok(Self::Modulo),
-            _ => Err("Operator not found"),
         }
     }
 }
