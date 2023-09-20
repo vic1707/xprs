@@ -2,11 +2,10 @@
 use core::str;
 /* Crate imports */
 use crate::{
-    element::{BinOp, FunctionCall, UnOp},
+    element::{BinOp, Element, FunctionCall, UnOp},
     token::{Identifier, Operator},
     trust_me::trust_me,
     yeet::yeet,
-    Element,
 };
 /* Constants */
 pub const NO_PERCEDENCE: usize = 0;

@@ -7,5 +7,4 @@ mod token;
 mod trust_me;
 mod yeet;
 /* Exports */
-pub use element::Element;
 pub use parser::Parser;
