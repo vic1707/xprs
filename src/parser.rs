@@ -28,12 +28,8 @@ impl<'a> Parser<'a> {
     #[inline]
     pub fn parse(&mut self) -> Result<Element<'a>, &'static str> {
         let root = self.element(NO_PERCEDENCE)?;
-        if let Some(tok) = self.current() {
-            println!(
-                "[END] Unexpected token at position {}: {:?}",
-                self.cursor,
-                char::from(*tok)
-            );
+        if let Some(tok) = self.next() {
+            println!("[END] Unexpected token: {:?}", char::from(*tok));
             yeet!("Expected EOF");
         }
         Ok(root)
@@ -44,12 +40,10 @@ impl<'a> Parser<'a> {
         precedence: usize,
     ) -> Result<Element<'a>, &'static str> {
         let mut el = self.atom()?;
-        self.strip_whitespaces();
 
         while let Some(op) =
-            self.current().and_then(|&ch| Operator::try_from(ch).ok())
+            self.next().and_then(|&ch| Operator::try_from(ch).ok())
         {
-            self.strip_whitespaces();
             let current_precedence = BinOp::precedence(&op);
             if current_precedence <= precedence {
                 break;
@@ -63,8 +57,7 @@ impl<'a> Parser<'a> {
     }
 
     fn atom(&mut self) -> Result<Element<'a>, &'static str> {
-        self.strip_whitespaces();
-        let atom = match *(self.current().ok_or("Unexpected EOF")?) {
+        let atom = match *(self.next().ok_or("Unexpected EOF")?) {
             /* Number */
             b'0'..=b'9' | b'.' => Element::Number(self.parse_number()?),
             /* Unary expression */
@@ -78,7 +71,7 @@ impl<'a> Parser<'a> {
             b'(' => {
                 self.cursor += 1;
                 let el = self.element(NO_PERCEDENCE)?;
-                if self.current() != Some(&b')') {
+                if self.next() != Some(&b')') {
                     yeet!("Expected ')'");
                 }
                 self.cursor += 1;
@@ -88,7 +81,7 @@ impl<'a> Parser<'a> {
             b'a'..=b'z' => match self.parse_identifier()? {
                 Identifier::Constant(val) => Element::Number(val),
                 Identifier::Variable(var) => Element::Variable(var),
-                Identifier::Function(func) if Some(&b'(') == self.current() => {
+                Identifier::Function(func) if Some(&b'(') == self.next() => {
                     let el = self.element(FunctionCall::PRECEDENCE)?;
                     Element::Function(Box::new(FunctionCall::new(func, el)))
                 },
@@ -105,7 +98,7 @@ impl<'a> Parser<'a> {
 
     fn parse_identifier(&mut self) -> Result<Identifier<'a>, &'static str> {
         let start = self.cursor;
-        self.next_while(u8::is_ascii_lowercase);
+        self.skip_while(u8::is_ascii_lowercase);
         let end = self.cursor;
 
         let ident = trust_me! { str::from_utf8_unchecked(self.input.get(start..end).ok_or("Unreachable")?) };
@@ -116,15 +109,10 @@ impl<'a> Parser<'a> {
 
 impl Parser<'_> {
     #[inline]
-    fn next_while(&mut self, predicate: fn(&u8) -> bool) {
+    fn skip_while(&mut self, predicate: fn(&u8) -> bool) {
         while self.current().is_some_and(predicate) {
             self.cursor += 1;
         }
-    }
-
-    #[inline]
-    fn strip_whitespaces(&mut self) {
-        self.next_while(u8::is_ascii_whitespace);
     }
 
     #[inline]
@@ -132,9 +120,14 @@ impl Parser<'_> {
         self.input.get(self.cursor)
     }
 
+    fn next(&mut self) -> Option<&u8> {
+        self.skip_while(u8::is_ascii_whitespace);
+        self.current()
+    }
+
     fn parse_number(&mut self) -> Result<f64, &'static str> {
         let start = self.cursor;
-        self.next_while(|&ch| matches!(ch, b'0'..=b'9' | b'.' | b'e' | b'E'));
+        self.skip_while(|&ch| matches!(ch, b'0'..=b'9' | b'.' | b'e' | b'E'));
         let end = self.cursor;
 
         let ident = self.input.get(start..end).ok_or("Unreachable")?;
