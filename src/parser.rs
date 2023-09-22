@@ -41,14 +41,8 @@ impl<'a> Parser<'a> {
     ) -> Result<Element<'a>, &'static str> {
         let mut el = self.atom()?;
 
-        while let Some(op) =
-            self.next().and_then(|&ch| Operator::try_from(ch).ok())
-        {
+        while let Some(op) = self.get_operator(&el, precedence) {
             let current_precedence = BinOp::precedence(&op);
-            if current_precedence <= precedence {
-                break;
-            }
-            self.cursor += 1;
             let rhs = self.element(current_precedence)?;
             el = Element::BinOp(Box::new(BinOp::new(op, el, rhs)));
         }
@@ -137,5 +131,36 @@ impl Parser<'_> {
             .map_err(|_err| "Failed to parse number")?;
 
         Ok(num)
+    }
+
+    fn get_operator(
+        &mut self,
+        current_atom: &Element<'_>,
+        precedence: usize,
+    ) -> Option<Operator> {
+        let current_byte = *self.next()?;
+        // check for binary operator
+        if let Ok(op) = Operator::try_from(current_byte) {
+            if BinOp::precedence(&op) <= precedence {
+                return None;
+            }
+            self.cursor += 1;
+            return Some(op);
+        }
+        // check for implicit multiplication
+        if BinOp::precedence(&Operator::Times) > precedence {
+            return match current_byte {
+                // if it's an identifier or an opening parenthesis
+                // we can consider its an implicit multiplication
+                b'a'..=b'z' | b'(' => Some(Operator::Times),
+                // if it's a number implicit multiplication is
+                // only possible if previous atom isn't a number
+                b'0'..=b'9' if !matches!(*current_atom, Element::Number(_)) => {
+                    Some(Operator::Times)
+                },
+                _ => None,
+            };
+        }
+        None
     }
 }
