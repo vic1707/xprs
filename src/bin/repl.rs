@@ -19,7 +19,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             line if line.trim() == "exit" => break,
             line => {
                 let ast = Parser::new(line).parse();
-                println!("AST: {ast:?}");
+                println!("AST: {ast:#?}");
             },
         }
         input.clear();
