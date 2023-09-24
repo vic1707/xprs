@@ -17,9 +17,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         io::stdin().read_line(&mut input)?;
         match &input {
             line if line.trim() == "exit" => break,
-            line => {
-                let ast = Parser::new(line).parse();
-                println!("AST: {ast:#?}");
+            line => match Parser::new(line).parse() {
+                Ok(ast) => println!("{ast:#?}",),
+                Err(err) => println!("{:?}", miette::Report::new(err)),
             },
         }
         input.clear();
