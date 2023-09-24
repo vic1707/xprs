@@ -4,8 +4,7 @@ use core::str;
 use crate::{
     element::{BinOp, Element, FunctionCall, UnOp},
     token::{Identifier, Operator},
-    trust_me::trust_me,
-    yeet::yeet,
+    macros::{trust_me, yeet},
 };
 /* Constants */
 pub const NO_PERCEDENCE: usize = 0;
