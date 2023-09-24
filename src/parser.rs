@@ -71,7 +71,7 @@ impl<'a> Parser<'a> {
                 el
             },
             /* Identifier */
-            b'a'..=b'z' => match self.parse_identifier()? {
+            b'a'..=b'z' => match self.parse_identifier() {
                 Identifier::Constant(val) => Element::Number(val),
                 Identifier::Variable(var) => Element::Variable(var),
                 Identifier::Function(func) if Some(&b'(') == self.next() => {
@@ -89,16 +89,19 @@ impl<'a> Parser<'a> {
         Ok(atom)
     }
 
-    fn parse_identifier(&mut self) -> Result<Identifier<'a>, &'static str> {
+    fn parse_identifier(&mut self) -> Identifier<'a> {
+        self.take_while(u8::is_ascii_lowercase).into()
+    }
+
+    #[inline]
+    fn take_while(&mut self, predicate: fn(&u8) -> bool) -> &'a str {
         let start = self.cursor;
-        self.skip_while(u8::is_ascii_lowercase);
+        self.skip_while(predicate);
         let end = self.cursor;
-
-        let ident = trust_me!(str::from_utf8_unchecked(
-            self.input.get(start..end).ok_or("Unreachable")?
-        ));
-
-        Ok(ident.into())
+        trust_me!(
+            #[allow(clippy::indexing_slicing)]
+            str::from_utf8_unchecked(&self.input[start..end])
+        )
     }
 }
 
@@ -121,15 +124,10 @@ impl Parser<'_> {
     }
 
     fn parse_number(&mut self) -> Result<f64, &'static str> {
-        let start = self.cursor;
-        self.skip_while(|&ch| matches!(ch, b'0'..=b'9' | b'.' | b'e' | b'E'));
-        let end = self.cursor;
+        let ident = self
+            .take_while(|&ch| matches!(ch, b'0'..=b'9' | b'.' | b'e' | b'E'));
 
-        let ident = self.input.get(start..end).ok_or("Unreachable")?;
-
-        let num = trust_me!(str::from_utf8_unchecked(ident))
-            .parse()
-            .map_err(|_err| "Failed to parse number")?;
+        let num = ident.parse().map_err(|_err| "Failed to parse number")?;
 
         Ok(num)
     }
