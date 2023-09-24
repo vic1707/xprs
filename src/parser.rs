@@ -163,3 +163,28 @@ impl Parser<'_> {
         None
     }
 }
+
+#[allow(clippy::error_impl_error)]
+#[derive(Debug, Eq, PartialEq, thiserror::Error, Diagnostic)]
+#[error("{kind}")]
+pub struct Error {
+    kind: ErrorKind,
+    #[label("here")]
+    span: SourceSpan,
+    #[source_code]
+    src: String,
+}
+
+#[derive(Debug, Eq, PartialEq, thiserror::Error, Diagnostic)]
+pub enum ErrorKind {
+    #[error("Unexpected end of expression")]
+    UnexpectedEndOfExpression,
+    #[error("Unexpected token: `{0}`")]
+    UnexpectedToken(char),
+    #[error("Malforned number: `{0}`")]
+    MalformedNumber(String),
+    #[error("Illegal character: `{0}`")]
+    IllegalCharacter(char),
+    #[error("Expected token: `{0}`")]
+    ExpectedToken(char),
+}
