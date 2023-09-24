@@ -194,7 +194,7 @@ fn get_valid_test_cases<'a>() -> Vec<(&'static str, Element<'a>)> {
                         Element::Number(2.0),
                         Element::Number(2.0),
                     ))),
-                    Element::Number(1.0_f64),
+                    Element::Number(1.0),
                 ))),
             ))),
         ),
