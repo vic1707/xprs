@@ -95,7 +95,7 @@ impl<'a> Parser<'a> {
         self.skip_while(u8::is_ascii_lowercase);
         let end = self.cursor;
 
-        let ident = trust_me! { str::from_utf8_unchecked(self.input.get(start..end).ok_or("Unreachable")?) };
+        let ident = trust_me!(str::from_utf8_unchecked(self.input.get(start..end).ok_or("Unreachable")?));
 
         Ok(ident.into())
     }
