@@ -1,3 +1,5 @@
+/* Clippy Config */
+#![allow(clippy::std_instead_of_core)]
 /* Built-in imports */
 use core::str;
 /* Crate imports */
@@ -6,6 +8,8 @@ use crate::{
     macros::{trust_me, yeet},
     token::{Identifier, Operator},
 };
+/* Dependencies imports */
+use miette::{Diagnostic, SourceSpan};
 /* Constants */
 pub const NO_PERCEDENCE: usize = 0;
 
@@ -25,19 +29,19 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
-    pub fn parse(&mut self) -> Result<Element<'a>, &'static str> {
+    pub fn parse(&mut self) -> Result<Element<'a>, Error> {
         let root = self.element(NO_PERCEDENCE)?;
-        if let Some(tok) = self.next() {
-            println!("[END] Unexpected token: {:?}", char::from(*tok));
-            yeet!("Expected EOF");
+        if let Some(&tok) = self.next() {
+            yeet!(Error {
+                kind: ErrorKind::UnexpectedToken(char::from(tok)),
+                span: self.cursor.into(),
+                src: trust_me!(str::from_utf8_unchecked(self.input)).to_owned(),
+            });
         }
         Ok(root)
     }
 
-    fn element(
-        &mut self,
-        precedence: usize,
-    ) -> Result<Element<'a>, &'static str> {
+    fn element(&mut self, precedence: usize) -> Result<Element<'a>, Error> {
         let mut el = self.atom()?;
 
         while let Some(op) = self.get_operator(&el, precedence) {
@@ -49,14 +53,28 @@ impl<'a> Parser<'a> {
         Ok(el)
     }
 
-    fn atom(&mut self) -> Result<Element<'a>, &'static str> {
-        let atom = match *(self.next().ok_or("Unexpected EOF")?) {
+    fn atom(&mut self) -> Result<Element<'a>, Error> {
+        self.skip_while(u8::is_ascii_whitespace);
+        let next = self.current().ok_or_else(|| {
+            Error {
+                kind: ErrorKind::UnexpectedEndOfExpression,
+                // -1 because we want to point to the last character (currently pointing to `None`)
+                span: (self.cursor - 1).into(),
+                src: trust_me!(str::from_utf8_unchecked(self.input)).to_owned(),
+            }
+        })?;
+        let atom = match *next {
             /* Number */
             b'0'..=b'9' | b'.' => Element::Number(self.parse_number()?),
             /* Unary expression */
             op @ (b'+' | b'-') => {
                 self.cursor += 1;
-                let operator = Operator::try_from(op)?;
+                #[allow(clippy::unreachable)]
+                let operator = match op {
+                    b'+' => Operator::Plus,
+                    b'-' => Operator::Minus,
+                    _ => unreachable!(),
+                };
                 let operand = self.element(UnOp::PRECEDENCE)?;
                 Element::UnOp(Box::new(UnOp::new(operator, operand)))
             },
@@ -65,7 +83,14 @@ impl<'a> Parser<'a> {
                 self.cursor += 1;
                 let el = self.element(NO_PERCEDENCE)?;
                 if self.next() != Some(&b')') {
-                    yeet!("Expected ')'");
+                    yeet!(Error {
+                        kind: ErrorKind::ExpectedToken(')'),
+                        // -1 because we want to point to where the `)` should be
+                        // not where the next token is
+                        span: (self.cursor - 1).into(),
+                        src: trust_me!(str::from_utf8_unchecked(self.input))
+                            .to_owned(),
+                    });
                 }
                 self.cursor += 1;
                 el
@@ -78,11 +103,20 @@ impl<'a> Parser<'a> {
                     let el = self.element(FunctionCall::PRECEDENCE)?;
                     Element::Function(Box::new(FunctionCall::new(func, el)))
                 },
-                Identifier::Function(_) => yeet!("Expected '('"),
+                Identifier::Function(_) => yeet!(Error {
+                    kind: ErrorKind::ExpectedToken('('),
+                    span: self.cursor.into(),
+                    src: trust_me!(str::from_utf8_unchecked(self.input))
+                        .to_owned(),
+                }),
             },
             tok => {
-                println!("Unexpected token: {:?}", char::from(tok));
-                yeet!("Unexpected Token")
+                yeet!(Error {
+                    kind: ErrorKind::IllegalCharacter(char::from(tok)),
+                    span: self.cursor.into(),
+                    src: trust_me!(str::from_utf8_unchecked(self.input))
+                        .to_owned(),
+                });
             },
         };
 
@@ -123,11 +157,16 @@ impl Parser<'_> {
         self.current()
     }
 
-    fn parse_number(&mut self) -> Result<f64, &'static str> {
+    fn parse_number(&mut self) -> Result<f64, Error> {
+        let begin = self.cursor;
         let ident = self
             .take_while(|&ch| matches!(ch, b'0'..=b'9' | b'.' | b'e' | b'E'));
 
-        let num = ident.parse().map_err(|_err| "Failed to parse number")?;
+        let num = ident.parse().map_err(|_err| Error {
+            kind: ErrorKind::MalformedNumber(ident.to_owned()),
+            span: (begin..self.cursor).into(),
+            src: trust_me!(str::from_utf8_unchecked(self.input)).to_owned(),
+        })?;
 
         Ok(num)
     }
@@ -162,4 +201,29 @@ impl Parser<'_> {
         }
         None
     }
+}
+
+#[allow(clippy::error_impl_error)]
+#[derive(Debug, Eq, PartialEq, thiserror::Error, Diagnostic)]
+#[error("{kind}")]
+pub struct Error {
+    kind: ErrorKind,
+    #[label("here")]
+    span: SourceSpan,
+    #[source_code]
+    src: String,
+}
+
+#[derive(Debug, Eq, PartialEq, thiserror::Error, Diagnostic)]
+pub enum ErrorKind {
+    #[error("Unexpected end of expression")]
+    UnexpectedEndOfExpression,
+    #[error("Unexpected token: `{0}`")]
+    UnexpectedToken(char),
+    #[error("Malforned number: `{0}`")]
+    MalformedNumber(String),
+    #[error("Illegal character: `{0}`")]
+    IllegalCharacter(char),
+    #[error("Expected token: `{0}`")]
+    ExpectedToken(char),
 }
