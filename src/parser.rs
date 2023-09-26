@@ -54,15 +54,14 @@ impl<'a> Parser<'a> {
     }
 
     fn atom(&mut self) -> Result<Element<'a>, Error> {
-        self.skip_while(u8::is_ascii_whitespace);
-        let next = self.current().ok_or_else(|| {
-            Error {
+        let Some(next) = self.next() else {
+            yeet!(Error {
                 kind: ErrorKind::UnexpectedEndOfExpression,
                 // -1 because we want to point to the last character (currently pointing to `None`)
                 span: (self.cursor - 1).into(),
                 src: trust_me!(str::from_utf8_unchecked(self.input)).to_owned(),
-            }
-        })?;
+            });
+        };
         let atom = match *next {
             /* Number */
             b'0'..=b'9' | b'.' => Element::Number(self.parse_number()?),
