@@ -215,6 +215,7 @@ pub struct Error {
 }
 
 #[derive(Debug, Eq, PartialEq, thiserror::Error, Diagnostic)]
+#[non_exhaustive]
 pub enum ErrorKind {
     #[error("Unexpected end of expression")]
     UnexpectedEndOfExpression,
