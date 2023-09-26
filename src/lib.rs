@@ -10,4 +10,4 @@ mod token;
 #[cfg(test)]
 mod tests;
 /* Exports */
-pub use parser::Parser;
+pub use parser::{Error, ErrorKind, Parser};
