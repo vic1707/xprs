@@ -44,9 +44,10 @@ impl<'a> Parser<'a> {
     fn element(&mut self, precedence: usize) -> Result<Element<'a>, Error> {
         let mut el = self.atom()?;
 
-        while let Some(op) = self.get_operator(&el, precedence) {
-            let current_precedence = BinOp::precedence(&op);
-            let rhs = self.element(current_precedence)?;
+        while let Some((op, op_precedence)) =
+            self.get_operator_infos(&el, precedence)
+        {
+            let rhs = self.element(op_precedence)?;
             el = Element::BinOp(Box::new(BinOp::new(op, el, rhs)));
         }
 
@@ -170,35 +171,38 @@ impl Parser<'_> {
         Ok(num)
     }
 
-    fn get_operator(
+    fn get_operator_infos(
         &mut self,
         current_atom: &Element<'_>,
         precedence: usize,
-    ) -> Option<Operator> {
+    ) -> Option<(Operator, usize)> {
         let current_byte = *self.next()?;
         // check for binary operator
         if let Ok(op) = Operator::try_from(current_byte) {
-            if BinOp::precedence(&op) <= precedence {
+            let op_p = BinOp::precedence(&op);
+            if op_p <= precedence {
                 return None;
             }
             self.cursor += 1;
-            return Some(op);
+            return Some((op, op_p));
         }
-        // check for implicit multiplication
-        if BinOp::precedence(&Operator::Times) > precedence {
-            return match current_byte {
-                // if it's an identifier or an opening parenthesis
-                // we can consider its an implicit multiplication
-                b'a'..=b'z' | b'(' => Some(Operator::Times),
-                // if it's a number implicit multiplication is
-                // only possible if previous atom isn't a number
-                b'0'..=b'9' if !matches!(*current_atom, Element::Number(_)) => {
-                    Some(Operator::Times)
-                },
-                _ => None,
-            };
+        
+        #[allow(clippy::items_after_statements)]
+        const TIMES_INFOS: (Operator, usize) = (Operator::Times, BinOp::precedence(&Operator::Times));
+        match current_byte {
+            // if multiplication precedence is lower than current precedence
+            // we now we don't need implicit multiplication
+            _ if TIMES_INFOS.1 <= precedence => None,
+            // if it's an identifier or an opening parenthesis
+            // we can consider its an implicit multiplication
+            b'a'..=b'z' | b'(' => Some(TIMES_INFOS),
+            // if it's a number implicit multiplication is
+            // only possible if previous atom isn't a number
+            b'0'..=b'9' if !matches!(*current_atom, Element::Number(_)) => {
+                Some(TIMES_INFOS)
+            },
+            _ => None,
         }
-        None
     }
 }
 
