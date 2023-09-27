@@ -13,12 +13,27 @@ use miette::{Diagnostic, SourceSpan};
 /* Constants */
 pub const NO_PERCEDENCE: usize = 0;
 
-pub struct Parser<'a> {
+#[derive(Debug, Default)]
+#[non_exhaustive]
+pub struct Parser;
+
+impl Parser {
+    #[inline]
+    pub fn parse<'a>(
+        &'a self,
+        input: &'a str,
+    ) -> Result<Element<'a>, Error> {
+        ParserImpl::new(input).parse()
+    }
+}
+
+
+struct ParserImpl<'a> {
     input: &'a [u8],
     cursor: usize,
 }
 
-impl<'a> Parser<'a> {
+impl<'a> ParserImpl<'a> {
     #[inline]
     #[must_use]
     pub const fn new(input: &'a str) -> Self {
@@ -139,7 +154,7 @@ impl<'a> Parser<'a> {
     }
 }
 
-impl Parser<'_> {
+impl ParserImpl<'_> {
     #[inline]
     fn skip_while(&mut self, predicate: fn(&u8) -> bool) {
         while self.current().is_some_and(predicate) {

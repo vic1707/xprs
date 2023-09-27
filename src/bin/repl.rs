@@ -6,6 +6,7 @@ use std::io::{self, Write};
 use xprs::Parser;
 
 fn main() -> Result<(), Box<dyn Error>> {
+    let parser = Parser::default();
     let mut input = String::new();
 
     println!("Welcome to the XPRS REPL!");
@@ -17,7 +18,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         io::stdin().read_line(&mut input)?;
         match &input {
             line if line.trim() == "exit" => break,
-            line => match Parser::new(line).parse() {
+            line => match parser.parse(line) {
                 Ok(ast) => println!("{ast:#?}",),
                 Err(err) => println!("{:?}", miette::Report::new(err)),
             },

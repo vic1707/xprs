@@ -260,8 +260,9 @@ fn get_valid_test_cases<'a>() -> Vec<(&'static str, Element<'a>)> {
 
 #[test]
 fn test_valid() {
+    let parser = Parser::default();
     for (expr, expected) in get_valid_test_cases() {
-        let res = Parser::new(expr).parse();
+        let res = parser.parse(expr);
         assert!(res.is_ok(), "\nShould have passed for {expr}\n{res:?}");
         assert_eq!(res.unwrap(), expected, "\n{expr}");
     }
@@ -282,13 +283,14 @@ const WHITESPACES: &[(&str, &str); 10] = &[
 
 #[test]
 fn test_valid_with_whitespace() {
+    let parser = Parser::default();
     for &(expr, expected) in WHITESPACES {
-        let res_expr = Parser::new(expr).parse();
+        let res_expr = parser.parse(expr);
         assert!(
             res_expr.is_ok(),
             "\n[EXPR] Should have passed for {expr}\n{res_expr:?}"
         );
-        let res_expected = Parser::new(expected).parse();
+        let res_expected = parser.parse(expected);
         assert!(
             res_expected.is_ok(),
             "\n[EXPECTED] Should have passed for {expected}\n{res_expected:?}"

@@ -16,8 +16,9 @@ const ERRORS: [&str; 9] = [
 
 #[test]
 fn test_errors() {
+    let parser = Parser::default();
     for &should_fail in &ERRORS {
-        let res = Parser::new(should_fail).parse();
+        let res = parser.parse(should_fail);
         assert!(res.is_err(), "\nShould have failed for {should_fail}");
     }
 }
