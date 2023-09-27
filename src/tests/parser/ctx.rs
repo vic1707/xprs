@@ -21,10 +21,7 @@ fn get_parser_with_ctx() -> Parser {
 
 fn get_valid_test_cases<'a>() -> Vec<(&'static str, Element<'a>)> {
     vec![
-        (
-            "y",
-            Element::Number(1.0),
-        ),
+        ("y", Element::Number(1.0)),
         (
             "2 + phi",
             Element::BinOp(Box::new(BinOp::new(
