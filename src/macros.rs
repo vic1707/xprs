@@ -1,8 +1,8 @@
 #[doc(hidden)]
 macro_rules! trust_me {
-  ($($t:tt)*) => {
-    unsafe { $($t)* }
-  }
+    ($($t:tt)*) => {
+        unsafe { $($t)* }
+    }
 }
 
 pub(crate) use trust_me;

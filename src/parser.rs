@@ -19,14 +19,10 @@ pub struct Parser;
 
 impl Parser {
     #[inline]
-    pub fn parse<'a>(
-        &'a self,
-        input: &'a str,
-    ) -> Result<Element<'a>, Error> {
+    pub fn parse<'a>(&'a self, input: &'a str) -> Result<Element<'a>, Error> {
         ParserImpl::new(input).parse()
     }
 }
-
 
 struct ParserImpl<'a> {
     input: &'a [u8],
