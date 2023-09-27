@@ -2,6 +2,7 @@
 #![allow(clippy::std_instead_of_core)]
 /* Built-in imports */
 use core::str;
+use std::collections::HashMap;
 /* Crate imports */
 use crate::{
     element::{BinOp, Element, FunctionCall, UnOp},
@@ -15,27 +16,49 @@ pub const NO_PERCEDENCE: usize = 0;
 
 #[derive(Debug, Default)]
 #[non_exhaustive]
-pub struct Parser;
+pub struct Parser {
+    ctx: HashMap<String, f64>,
+}
 
 impl Parser {
+    #[must_use]
+    #[inline]
+    pub const fn new_with_ctx(ctx: HashMap<String, f64>) -> Self {
+        Self { ctx }
+    }
+
+    #[must_use]
+    #[inline]
+    pub const fn ctx(&self) -> &HashMap<String, f64> {
+        &self.ctx
+    }
+
+    #[must_use]
+    #[inline]
+    pub fn ctx_mut(&mut self) -> &mut HashMap<String, f64> {
+        &mut self.ctx
+    }
+
     #[inline]
     pub fn parse<'a>(&'a self, input: &'a str) -> Result<Element<'a>, Error> {
-        ParserImpl::new(input).parse()
+        ParserImpl::new(input, &self.ctx).parse()
     }
 }
 
 struct ParserImpl<'a> {
     input: &'a [u8],
     cursor: usize,
+    ctx: &'a HashMap<String, f64>,
 }
 
 impl<'a> ParserImpl<'a> {
     #[inline]
     #[must_use]
-    pub const fn new(input: &'a str) -> Self {
+    pub const fn new(input: &'a str, ctx: &'a HashMap<String, f64>) -> Self {
         Self {
             input: input.as_bytes(),
             cursor: 0,
+            ctx,
         }
     }
 
@@ -109,7 +132,14 @@ impl<'a> ParserImpl<'a> {
             /* Identifier */
             b'a'..=b'z' => match self.parse_identifier() {
                 Identifier::Constant(val) => Element::Number(val),
-                Identifier::Variable(var) => Element::Variable(var),
+                Identifier::Variable(var) => {
+                    // Could be a if-let-guard but it's experimental atm
+                    if let Some(&value) = self.ctx.get(var) {
+                        Element::Number(value)
+                    } else {
+                        Element::Variable(var)
+                    }
+                },
                 Identifier::Function(func) if Some(&b'(') == self.next() => {
                     let el = self.element(FunctionCall::PRECEDENCE)?;
                     Element::Function(Box::new(FunctionCall::new(func, el)))
