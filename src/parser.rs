@@ -229,7 +229,7 @@ pub struct Error {
     src: String,
 }
 
-#[derive(Debug, Eq, PartialEq, thiserror::Error, Diagnostic)]
+#[derive(Debug, Eq, PartialEq, thiserror::Error)]
 #[non_exhaustive]
 pub enum ErrorKind {
     #[error("Unexpected end of expression")]
