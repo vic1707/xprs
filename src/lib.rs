@@ -11,3 +11,11 @@ mod token;
 mod tests;
 /* Exports */
 pub use parser::{Error, ErrorKind, Parser};
+
+/* Feature safety */
+#[cfg(all(feature = "pemdas", feature = "pejmdas"))]
+compile_error!(
+    "You can't enable both features `pemdas` and `pejmdas` at the same time."
+);
+#[cfg(not(any(feature = "pemdas", feature = "pejmdas")))]
+compile_error!("You must enable either feature `pemdas` or `pejmdas`.");
