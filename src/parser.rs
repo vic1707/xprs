@@ -207,7 +207,7 @@ impl ParserImpl<'_> {
 
         #[allow(clippy::items_after_statements)]
         const TIMES_INFOS: (Operator, usize) =
-            (Operator::Times, BinOp::precedence(&Operator::Times));
+            (Operator::Times, BinOp::IMPLICIT_MULTIPLICATION_PRECEDENCE);
         match current_byte {
             // if multiplication precedence is lower than current precedence
             // we now we don't need implicit multiplication

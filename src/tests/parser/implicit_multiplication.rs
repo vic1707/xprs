@@ -1,15 +1,32 @@
 /* Crate imports */
 use crate::Parser;
 
-const IMPLICIT_MULTIPLICATIONS: [(&str, &str); 8] = [
+#[cfg(feature = "pemdas")]
+const IMPLICIT_MULTIPLICATIONS: [(&str, &str); 9] = [
     ("2(3)", "2*(3)"),
     ("2(3+4)", "2*(3+4)"),
     ("2 (3+4)5", "2*(3+4)*5"),
     ("2 (3+4) 5", "2*(3+4)*5"),
-    ("6/2(2+1)", "6/2*(2+1)"),
     ("2(3+4)(5+6)", "2*(3+4)*(5+6)"),
     ("2x + 3 x y", "2*x + 3*x*y"),
     ("12 + 3-1x+3y x", "12 + 3-1*x+3*y*x"),
+    // These ones are different for the `pejmdas` feature
+    ("6/2(2+1)", "6/2*(2+1)"),
+    ("1/2x", "(1/2)*x"),
+];
+
+#[cfg(feature = "pejmdas")]
+const IMPLICIT_MULTIPLICATIONS: [(&str, &str); 9] = [
+    ("2(3)", "2*(3)"),
+    ("2(3+4)", "2*(3+4)"),
+    ("2 (3+4)5", "2*(3+4)*5"),
+    ("2 (3+4) 5", "2*(3+4)*5"),
+    ("2(3+4)(5+6)", "2*(3+4)*(5+6)"),
+    ("2x + 3 x y", "2*x + 3*x*y"),
+    ("12 + 3-1x+3y x", "12 + 3-1*x+3*y*x"),
+    // These ones are different for the `pemdas` feature
+    ("6/2(2+1)", "6/(2*(2+1))"),
+    ("1/2x", "1/(2*x)"),
 ];
 
 #[test]
