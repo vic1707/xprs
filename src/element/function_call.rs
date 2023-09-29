@@ -18,6 +18,7 @@ impl<'a> FunctionCall<'a> {
 }
 
 impl fmt::Display for FunctionCall<'_> {
+    #[allow(clippy::panic_in_result_fn)]
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         // TODO: see if there's a better way to do this
         #[allow(clippy::fn_address_comparisons, clippy::unreachable)]

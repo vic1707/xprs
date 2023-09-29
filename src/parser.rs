@@ -88,6 +88,7 @@ impl<'a> ParserImpl<'a> {
         Ok(el)
     }
 
+    #[allow(clippy::panic_in_result_fn)]
     fn atom(&mut self) -> Result<Element<'a>, Error> {
         let Some(next) = self.next() else {
             yeet!(Error {
@@ -248,7 +249,6 @@ impl ParserImpl<'_> {
     }
 }
 
-#[allow(clippy::error_impl_error)]
 #[derive(Debug, Eq, PartialEq, thiserror::Error, Diagnostic)]
 #[error("{kind}")]
 pub struct Error {
