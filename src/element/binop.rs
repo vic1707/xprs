@@ -16,11 +16,18 @@ impl<'a> BinOp<'a> {
         Self { op, lhs, rhs }
     }
 
+    #[cfg(feature = "pejmdas")]
+    pub const IMPLICIT_MULTIPLICATION_PRECEDENCE: usize = 3;
+    #[cfg(feature = "pemdas")]
+    pub const IMPLICIT_MULTIPLICATION_PRECEDENCE: usize =
+        Self::precedence(&Operator::Times);
+
     pub const fn precedence(op: &Operator) -> usize {
         match *op {
             Operator::Plus | Operator::Minus => 1,
             Operator::Times | Operator::Divide | Operator::Modulo => 2,
-            Operator::Power => 3,
+            // uses `4` because `pejmdas` feature uses `3`
+            Operator::Power => 4,
         }
     }
 }
