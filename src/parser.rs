@@ -91,7 +91,9 @@ impl<'a> ParserImpl<'a> {
         };
         let atom = match next {
             /* Number */
-            b'0'..=b'9' | b'.' => Element::Number(self.parse_number()?),
+            b'0'..=b'9' | b'.' => self.parse_number()?,
+            /* Identifier */
+            b'a'..=b'z' => self.parse_identifier()?,
             /* Unary expression */
             op @ (b'+' | b'-') => {
                 self.cursor += 1;
@@ -114,25 +116,7 @@ impl<'a> ParserImpl<'a> {
                 self.cursor += 1;
                 el
             },
-            /* Identifier */
-            b'a'..=b'z' => match self.parse_identifier() {
-                Identifier::Constant(val) => Element::Number(val),
-                Identifier::Variable(var) => {
-                    // Could be a if-let-guard but it's experimental atm
-                    if let Some(&value) = self.ctx.get(var) {
-                        Element::Number(value)
-                    } else {
-                        Element::Variable(var)
-                    }
-                },
-                Identifier::Function(func) if Some(&b'(') == self.next() => {
-                    let el = self.element(FunctionCall::PRECEDENCE)?;
-                    Element::Function(Box::new(FunctionCall::new(func, el)))
-                },
-                Identifier::Function(_) => {
-                    yeet!(Error::new_expected_token(self, b'('))
-                },
-            },
+            /* Errors */
             b')' => yeet!(Error::new_unexpected_token(self, b')')),
             tok => {
                 yeet!(Error::new_illegal_character(self, tok));
@@ -142,8 +126,37 @@ impl<'a> ParserImpl<'a> {
         Ok(atom)
     }
 
-    fn parse_identifier(&mut self) -> Identifier<'a> {
-        self.take_while(u8::is_ascii_lowercase).into()
+    fn parse_identifier(&mut self) -> Result<Element<'a>, Error> {
+        let ident = match self.take_while(u8::is_ascii_lowercase).into() {
+            Identifier::Constant(val) => Element::Number(val),
+            Identifier::Variable(var) => {
+                // Could be a if-let-guard but it's experimental atm
+                if let Some(&value) = self.ctx.get(var) {
+                    Element::Number(value)
+                } else {
+                    Element::Variable(var)
+                }
+            },
+            Identifier::Function(func) if Some(&b'(') == self.next() => {
+                let el = self.element(FunctionCall::PRECEDENCE)?;
+                Element::Function(Box::new(FunctionCall::new(func, el)))
+            },
+            Identifier::Function(_) => {
+                yeet!(Error::new_expected_token(self, b'('))
+            },
+        };
+        Ok(ident)
+    }
+
+    fn parse_number(&mut self) -> Result<Element<'a>, Error> {
+        let ident = self
+            .take_while(|&ch| matches!(ch, b'0'..=b'9' | b'.' | b'e' | b'E'));
+
+        let num = ident
+            .parse()
+            .map_err(|_err| Error::new_malformed_number(self, ident))?;
+
+        Ok(Element::Number(num))
     }
 
     #[inline]
@@ -174,17 +187,6 @@ impl ParserImpl<'_> {
     fn next(&mut self) -> Option<&u8> {
         self.skip_while(u8::is_ascii_whitespace);
         self.current()
-    }
-
-    fn parse_number(&mut self) -> Result<f64, Error> {
-        let ident = self
-            .take_while(|&ch| matches!(ch, b'0'..=b'9' | b'.' | b'e' | b'E'));
-
-        let num = ident
-            .parse()
-            .map_err(|_err| Error::new_malformed_number(self, ident))?;
-
-        Ok(num)
     }
 
     fn get_operator_infos(
