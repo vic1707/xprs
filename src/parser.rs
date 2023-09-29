@@ -66,11 +66,7 @@ impl<'a> ParserImpl<'a> {
     pub fn parse(&mut self) -> Result<Element<'a>, Error> {
         let root = self.element(NO_PERCEDENCE)?;
         if let Some(&tok) = self.next() {
-            yeet!(Error {
-                kind: ErrorKind::UnexpectedToken(char::from(tok)),
-                span: self.cursor.into(),
-                src: trust_me!(str::from_utf8_unchecked(self.input)).to_owned(),
-            });
+            yeet!(Error::new_unexpected_token(self, tok));
         }
         Ok(root)
     }
@@ -90,15 +86,10 @@ impl<'a> ParserImpl<'a> {
 
     #[allow(clippy::panic_in_result_fn)]
     fn atom(&mut self) -> Result<Element<'a>, Error> {
-        let Some(next) = self.next() else {
-            yeet!(Error {
-                kind: ErrorKind::UnexpectedEndOfExpression,
-                // -1 because we want to point to the last character (currently pointing to `None`)
-                span: (self.cursor - 1).into(),
-                src: trust_me!(str::from_utf8_unchecked(self.input)).to_owned(),
-            });
+        let Some(&next) = self.next() else {
+            yeet!(Error::new_unexpected_end_of_expression(self));
         };
-        let atom = match *next {
+        let atom = match next {
             /* Number */
             b'0'..=b'9' | b'.' => Element::Number(self.parse_number()?),
             /* Unary expression */
@@ -118,14 +109,7 @@ impl<'a> ParserImpl<'a> {
                 self.cursor += 1;
                 let el = self.element(NO_PERCEDENCE)?;
                 if self.next() != Some(&b')') {
-                    yeet!(Error {
-                        kind: ErrorKind::ExpectedToken(')'),
-                        // -1 because we want to point to where the `)` should be
-                        // not where the next token is
-                        span: (self.cursor - 1).into(),
-                        src: trust_me!(str::from_utf8_unchecked(self.input))
-                            .to_owned(),
-                    });
+                    yeet!(Error::new_expected_token(self, b')'));
                 }
                 self.cursor += 1;
                 el
@@ -145,20 +129,13 @@ impl<'a> ParserImpl<'a> {
                     let el = self.element(FunctionCall::PRECEDENCE)?;
                     Element::Function(Box::new(FunctionCall::new(func, el)))
                 },
-                Identifier::Function(_) => yeet!(Error {
-                    kind: ErrorKind::ExpectedToken('('),
-                    span: self.cursor.into(),
-                    src: trust_me!(str::from_utf8_unchecked(self.input))
-                        .to_owned(),
-                }),
+                Identifier::Function(_) => {
+                    yeet!(Error::new_expected_token(self, b'('))
+                },
             },
+            b')' => yeet!(Error::new_unexpected_token(self, b')')),
             tok => {
-                yeet!(Error {
-                    kind: ErrorKind::IllegalCharacter(char::from(tok)),
-                    span: self.cursor.into(),
-                    src: trust_me!(str::from_utf8_unchecked(self.input))
-                        .to_owned(),
-                });
+                yeet!(Error::new_illegal_character(self, tok));
             },
         };
 
@@ -200,15 +177,12 @@ impl ParserImpl<'_> {
     }
 
     fn parse_number(&mut self) -> Result<f64, Error> {
-        let begin = self.cursor;
         let ident = self
             .take_while(|&ch| matches!(ch, b'0'..=b'9' | b'.' | b'e' | b'E'));
 
-        let num = ident.parse().map_err(|_err| Error {
-            kind: ErrorKind::MalformedNumber(ident.to_owned()),
-            span: (begin..self.cursor).into(),
-            src: trust_me!(str::from_utf8_unchecked(self.input)).to_owned(),
-        })?;
+        let num = ident
+            .parse()
+            .map_err(|_err| Error::new_malformed_number(self, ident))?;
 
         Ok(num)
     }
@@ -272,4 +246,49 @@ pub enum ErrorKind {
     IllegalCharacter(char),
     #[error("Expected token: `{0}`")]
     ExpectedToken(char),
+}
+
+impl Error {
+    fn new_unexpected_end_of_expression(parser: &ParserImpl) -> Self {
+        Self {
+            kind: ErrorKind::UnexpectedEndOfExpression,
+            // - 1 because we want to point to the last character
+            // (without it we would point to a `None` value)
+            span: (parser.cursor - 1).into(),
+            src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
+        }
+    }
+
+    fn new_unexpected_token(parser: &ParserImpl, tok: u8) -> Self {
+        Self {
+            kind: ErrorKind::UnexpectedToken(char::from(tok)),
+            span: parser.cursor.into(),
+            src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
+        }
+    }
+
+    fn new_malformed_number(parser: &ParserImpl, ident: &str) -> Self {
+        let num_len = ident.len();
+        Self {
+            kind: ErrorKind::MalformedNumber(ident.to_owned()),
+            span: (parser.cursor - num_len, num_len).into(),
+            src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
+        }
+    }
+
+    fn new_illegal_character(parser: &ParserImpl, tok: u8) -> Self {
+        Self {
+            kind: ErrorKind::IllegalCharacter(char::from(tok)),
+            span: parser.cursor.into(),
+            src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
+        }
+    }
+
+    fn new_expected_token(parser: &ParserImpl, tok: u8) -> Self {
+        Self {
+            kind: ErrorKind::ExpectedToken(char::from(tok)),
+            span: parser.cursor.into(),
+            src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
+        }
+    }
 }
