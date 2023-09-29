@@ -14,7 +14,7 @@ use miette::{Diagnostic, SourceSpan};
 /* Constants */
 pub const NO_PERCEDENCE: usize = 0;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq)]
 #[non_exhaustive]
 pub struct Parser {
     ctx: HashMap<String, f64>,
