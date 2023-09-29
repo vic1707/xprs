@@ -19,7 +19,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         match &input {
             line if line.trim() == "exit" => break,
             line => match parser.parse(line) {
-                Ok(ast) => println!("{ast:#?}",),
+                Ok(ast) => {
+                    println!("Interpreted as: {ast}");
+                    println!("{ast:#?}");
+                },
                 Err(err) => println!("{:?}", miette::Report::new(err)),
             },
         }

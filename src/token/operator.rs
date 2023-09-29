@@ -1,3 +1,6 @@
+/* Build-it imports */
+use core::fmt;
+
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum Operator {
     // Factorial,
@@ -22,6 +25,20 @@ impl TryFrom<u8> for Operator {
             b'^' => Ok(Self::Power),
             b'%' => Ok(Self::Modulo),
             _ => Err("Operator not found"),
+        }
+    }
+}
+
+impl fmt::Display for Operator {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match *self {
+            // Self::Factorial => write!(f, "!"),
+            Self::Plus => write!(fmt, "+"),
+            Self::Minus => write!(fmt, "-"),
+            Self::Times => write!(fmt, "*"),
+            Self::Divide => write!(fmt, "/"),
+            Self::Power => write!(fmt, "^"),
+            Self::Modulo => write!(fmt, "%"),
         }
     }
 }

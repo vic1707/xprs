@@ -1,3 +1,5 @@
+/* Build-it imports */
+use core::fmt;
 /* Modules */
 mod binop;
 mod function_call;
@@ -15,4 +17,17 @@ pub enum Element<'a> {
     UnOp(Box<UnOp<'a>>),
     Function(Box<FunctionCall<'a>>),
     Variable(&'a str),
+}
+
+impl fmt::Display for Element<'_> {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        #[allow(clippy::ref_patterns)]
+        match *self {
+            Self::Number(num) => write!(fmt, "{num}"),
+            Self::BinOp(ref binop) => write!(fmt, "{binop}"),
+            Self::UnOp(ref unop) => write!(fmt, "{unop}"),
+            Self::Function(ref func) => write!(fmt, "{func}"),
+            Self::Variable(var) => write!(fmt, "{var}"),
+        }
+    }
 }

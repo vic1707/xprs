@@ -1,3 +1,5 @@
+/* Build-it imports */
+use core::fmt;
 /* Crate imports */
 use super::Element;
 use crate::token::Operator;
@@ -20,5 +22,11 @@ impl<'a> BinOp<'a> {
             Operator::Times | Operator::Divide | Operator::Modulo => 2,
             Operator::Power => 3,
         }
+    }
+}
+
+impl fmt::Display for BinOp<'_> {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(fmt, "({} {} {})", self.lhs, self.op, self.rhs)
     }
 }

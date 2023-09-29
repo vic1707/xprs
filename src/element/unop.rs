@@ -1,3 +1,5 @@
+/* Build-it imports */
+use core::fmt;
 /* Crate imports */
 use super::Element;
 use crate::token::Operator;
@@ -13,5 +15,11 @@ impl<'a> UnOp<'a> {
 
     pub const fn new(op: Operator, operand: Element<'a>) -> Self {
         Self { op, operand }
+    }
+}
+
+impl fmt::Display for UnOp<'_> {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(fmt, "({}{})", self.op, self.operand)
     }
 }
