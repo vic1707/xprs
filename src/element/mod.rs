@@ -31,3 +31,13 @@ impl fmt::Display for Element<'_> {
         }
     }
 }
+
+impl<T> From<T> for Element<'_>
+where
+    T: Into<f64>,
+{
+    #[inline]
+    fn from(num: T) -> Self {
+        Self::Number(num.into())
+    }
+}
