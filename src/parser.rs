@@ -18,13 +18,17 @@ pub const NO_PERCEDENCE: usize = 0;
 #[non_exhaustive]
 pub struct Parser {
     ctx: HashMap<String, f64>,
+    fn_ctx: HashMap<String, fn(f64) -> f64>,
 }
 
 impl Parser {
     #[must_use]
     #[inline]
-    pub const fn new_with_ctx(ctx: HashMap<String, f64>) -> Self {
-        Self { ctx }
+    pub const fn new_with_ctx(
+        ctx: HashMap<String, f64>,
+        fn_ctx: HashMap<String, fn(f64) -> f64>,
+    ) -> Self {
+        Self { ctx, fn_ctx }
     }
 
     #[must_use]
@@ -39,9 +43,21 @@ impl Parser {
         &mut self.ctx
     }
 
+    #[must_use]
+    #[inline]
+    pub const fn fn_ctx(&self) -> &HashMap<String, fn(f64) -> f64> {
+        &self.fn_ctx
+    }
+
+    #[must_use]
+    #[inline]
+    pub fn fn_ctx_mut(&mut self) -> &mut HashMap<String, fn(f64) -> f64> {
+        &mut self.fn_ctx
+    }
+
     #[inline]
     pub fn parse<'a>(&'a self, input: &'a str) -> Result<Element<'a>, Error> {
-        ParserImpl::new(input, &self.ctx).parse()
+        ParserImpl::new(input, &self.ctx, &self.fn_ctx).parse()
     }
 }
 
@@ -49,16 +65,22 @@ struct ParserImpl<'a> {
     input: &'a [u8],
     cursor: usize,
     ctx: &'a HashMap<String, f64>,
+    fn_ctx: &'a HashMap<String, fn(f64) -> f64>,
 }
 
 impl<'a> ParserImpl<'a> {
     #[inline]
     #[must_use]
-    pub const fn new(input: &'a str, ctx: &'a HashMap<String, f64>) -> Self {
+    pub const fn new(
+        input: &'a str,
+        ctx: &'a HashMap<String, f64>,
+        fn_ctx: &'a HashMap<String, fn(f64) -> f64>,
+    ) -> Self {
         Self {
             input: input.as_bytes(),
             cursor: 0,
             ctx,
+            fn_ctx,
         }
     }
 
@@ -129,10 +151,18 @@ impl<'a> ParserImpl<'a> {
     fn parse_identifier(&mut self) -> Result<Element<'a>, Error> {
         let name = self.take_while(u8::is_ascii_lowercase);
 
+        // checks for contexts or built-in functions
+        // else defaults to variable
         let ident = self
             .ctx
             .get(name)
-            .map_or_else(|| name.into(), |&value| Identifier::Constant(value));
+            .map(|&value| Identifier::Constant(value))
+            .or_else(|| {
+                self.fn_ctx
+                    .get(name)
+                    .map(|&func| Identifier::Function(func))
+            })
+            .unwrap_or_else(|| name.into());
 
         let el = match ident {
             Identifier::Constant(val) => Element::Number(val),
