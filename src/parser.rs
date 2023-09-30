@@ -127,16 +127,16 @@ impl<'a> ParserImpl<'a> {
     }
 
     fn parse_identifier(&mut self) -> Result<Element<'a>, Error> {
-        let ident = match self.take_while(u8::is_ascii_lowercase).into() {
+        let name = self.take_while(u8::is_ascii_lowercase);
+
+        let ident = self
+            .ctx
+            .get(name)
+            .map_or_else(|| name.into(), |&value| Identifier::Constant(value));
+
+        let el = match ident {
             Identifier::Constant(val) => Element::Number(val),
-            Identifier::Variable(var) => {
-                // Could be a if-let-guard but it's experimental atm
-                if let Some(&value) = self.ctx.get(var) {
-                    Element::Number(value)
-                } else {
-                    Element::Variable(var)
-                }
-            },
+            Identifier::Variable(var) => Element::Variable(var),
             Identifier::Function(func) if Some(&b'(') == self.next() => {
                 let el = self.element(FunctionCall::PRECEDENCE)?;
                 Element::Function(Box::new(FunctionCall::new(func, el)))
@@ -145,7 +145,7 @@ impl<'a> ParserImpl<'a> {
                 yeet!(Error::new_expected_token(self, b'('))
             },
         };
-        Ok(ident)
+        Ok(el)
     }
 
     fn parse_number(&mut self) -> Result<Element<'a>, Error> {
