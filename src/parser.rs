@@ -56,7 +56,10 @@ impl Parser {
     }
 
     #[inline]
-    pub fn parse<'a>(&'a self, input: &'a str) -> Result<Element<'a>, Error> {
+    pub fn parse<'a>(
+        &'a self,
+        input: &'a str,
+    ) -> Result<Element<'a>, ParseError> {
         ParserImpl::new(input, &self.ctx, &self.fn_ctx).parse()
     }
 }
@@ -85,15 +88,18 @@ impl<'a> ParserImpl<'a> {
     }
 
     #[inline]
-    pub fn parse(&mut self) -> Result<Element<'a>, Error> {
+    pub fn parse(&mut self) -> Result<Element<'a>, ParseError> {
         let root = self.element(NO_PERCEDENCE)?;
         if let Some(&tok) = self.next() {
-            yeet!(Error::new_unexpected_token(self, tok));
+            yeet!(ParseError::new_unexpected_token(self, tok));
         }
         Ok(root)
     }
 
-    fn element(&mut self, precedence: usize) -> Result<Element<'a>, Error> {
+    fn element(
+        &mut self,
+        precedence: usize,
+    ) -> Result<Element<'a>, ParseError> {
         let mut el = self.atom()?;
 
         while let Some((op, op_precedence)) =
@@ -106,9 +112,9 @@ impl<'a> ParserImpl<'a> {
         Ok(el)
     }
 
-    fn atom(&mut self) -> Result<Element<'a>, Error> {
+    fn atom(&mut self) -> Result<Element<'a>, ParseError> {
         let Some(&next) = self.next() else {
-            yeet!(Error::new_unexpected_end_of_expression(self));
+            yeet!(ParseError::new_unexpected_end_of_expression(self));
         };
         let atom = match next {
             /* Number */
@@ -132,22 +138,22 @@ impl<'a> ParserImpl<'a> {
                 self.cursor += 1;
                 let el = self.element(NO_PERCEDENCE)?;
                 if self.next() != Some(&b')') {
-                    yeet!(Error::new_expected_token(self, b')'));
+                    yeet!(ParseError::new_expected_token(self, b')'));
                 }
                 self.cursor += 1;
                 el
             },
             /* Errors */
-            b')' => yeet!(Error::new_unexpected_token(self, b')')),
+            b')' => yeet!(ParseError::new_unexpected_token(self, b')')),
             tok => {
-                yeet!(Error::new_illegal_character(self, tok));
+                yeet!(ParseError::new_illegal_character(self, tok));
             },
         };
 
         Ok(atom)
     }
 
-    fn parse_identifier(&mut self) -> Result<Element<'a>, Error> {
+    fn parse_identifier(&mut self) -> Result<Element<'a>, ParseError> {
         let name = self.take_while(u8::is_ascii_lowercase);
 
         // checks for contexts or built-in functions
@@ -171,19 +177,19 @@ impl<'a> ParserImpl<'a> {
                 Element::Function(Box::new(FunctionCall::new(func, el)))
             },
             Identifier::Function(_) => {
-                yeet!(Error::new_expected_token(self, b'('))
+                yeet!(ParseError::new_expected_token(self, b'('))
             },
         };
         Ok(el)
     }
 
-    fn parse_number(&mut self) -> Result<Element<'a>, Error> {
+    fn parse_number(&mut self) -> Result<Element<'a>, ParseError> {
         let ident = self
             .take_while(|&ch| matches!(ch, b'0'..=b'9' | b'.' | b'e' | b'E'));
 
         let num = ident
             .parse()
-            .map_err(|_err| Error::new_malformed_number(self, ident))?;
+            .map_err(|_err| ParseError::new_malformed_number(self, ident))?;
 
         Ok(Element::Number(num))
     }
@@ -254,10 +260,9 @@ impl ParserImpl<'_> {
     }
 }
 
-#[allow(clippy::error_impl_error)]
 #[derive(Debug, Eq, PartialEq, thiserror::Error, Diagnostic)]
 #[error("{kind}")]
-pub struct Error {
+pub struct ParseError {
     kind: ErrorKind,
     #[label("here")]
     span: SourceSpan,
@@ -280,7 +285,7 @@ pub enum ErrorKind {
     ExpectedToken(char),
 }
 
-impl Error {
+impl ParseError {
     fn new_unexpected_end_of_expression(parser: &ParserImpl) -> Self {
         Self {
             kind: ErrorKind::UnexpectedEndOfExpression,

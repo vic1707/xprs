@@ -1,7 +1,7 @@
 /* Crate imports */
 use crate::{
     element::{BinOp, Element, FunctionCall, UnOp},
-    parser::{Error, ErrorKind, Parser},
+    parser::{ErrorKind, ParseError, Parser},
     token::{Identifier, Operator},
 };
 
@@ -15,8 +15,8 @@ const fn test_thread_safety() {
     is_sized_send_sync_unpin::<FunctionCall<'_>>();
     is_sized_send_sync_unpin::<UnOp<'_>>();
     // parser module
-    is_sized_send_sync_unpin::<Error>();
     is_sized_send_sync_unpin::<ErrorKind>();
+    is_sized_send_sync_unpin::<ParseError>();
     is_sized_send_sync_unpin::<Parser>();
     // token module
     is_sized_send_sync_unpin::<Identifier>();

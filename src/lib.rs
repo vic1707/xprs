@@ -10,7 +10,7 @@ mod token;
 #[cfg(test)]
 mod tests;
 /* Exports */
-pub use parser::{Error, ErrorKind, Parser};
+pub use parser::{ErrorKind, ParseError, Parser};
 
 /* Feature safety */
 #[cfg(all(feature = "pemdas", feature = "pejmdas"))]
