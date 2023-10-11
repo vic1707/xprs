@@ -106,7 +106,6 @@ impl<'a> ParserImpl<'a> {
         Ok(el)
     }
 
-    #[allow(clippy::panic_in_result_fn)]
     fn atom(&mut self) -> Result<Element<'a>, Error> {
         let Some(&next) = self.next() else {
             yeet!(Error::new_unexpected_end_of_expression(self));
