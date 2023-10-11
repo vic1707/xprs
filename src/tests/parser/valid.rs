@@ -288,17 +288,17 @@ fn test_valid_with_whitespace() {
         let res_expr = parser.parse(expr);
         assert!(
             res_expr.is_ok(),
-            "\n[EXPR] Should have passed for {expr}\n{res_expr:?}"
+            "[EXPR] Should have passed for `{expr}`\n{res_expr:?}\n"
         );
         let res_expected = parser.parse(expected);
         assert!(
             res_expected.is_ok(),
-            "\n[EXPECTED] Should have passed for {expected}\n{res_expected:?}"
+            "[EXPECTED] Should have passed for `{expected}`\n{res_expected:?}\n"
         );
         assert_eq!(
             res_expr.unwrap(),
             res_expected.unwrap(),
-            "\n{expr}\n VS \n{expected}"
+            "\n`{expr}` VS `{expected}`"
         );
     }
 }

@@ -73,7 +73,7 @@ fn test_ctx() {
     let parser = get_parser_with_ctx();
     for (expr, expected) in get_valid_test_cases() {
         let res = parser.parse(expr);
-        assert!(res.is_ok(), "\nShould have passed for {expr}\n{res:?}");
-        assert_eq!(res.unwrap(), expected, "\n{expr}");
+        assert!(res.is_ok(), "Should have passed for `{expr}`\n{res:?}");
+        assert_eq!(res.unwrap(), expected, "\n`{expr}`");
     }
 }

@@ -19,6 +19,6 @@ fn test_errors() {
     let parser = Parser::default();
     for &should_fail in &ERRORS {
         let res = parser.parse(should_fail);
-        assert!(res.is_err(), "\nShould have failed for {should_fail}");
+        assert!(res.is_err(), "Should have failed for `{should_fail}`");
     }
 }

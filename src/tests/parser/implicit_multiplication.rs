@@ -36,16 +36,16 @@ fn test_implicit_multiplication() {
         let res_implicit = parser.parse(implicit);
         assert!(
             res_implicit.is_ok(),
-            "\nExplicit multiplication failed for {implicit}"
+            "Explicit multiplication failed for `{implicit}`"
         );
         let res_explicit = parser.parse(explicit);
         assert!(
             res_explicit.is_ok(),
-            "\nExplicit multiplication failed for {explicit}"
+            "Explicit multiplication failed for `{explicit}`"
         );
         assert_eq!(
             res_implicit, res_explicit,
-            "\nImplicit multiplication failed for {implicit}"
+            "\nImplicit multiplication failed for `{implicit}`"
         );
     }
 }
