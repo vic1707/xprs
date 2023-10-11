@@ -255,6 +255,7 @@ impl ParserImpl<'_> {
     }
 }
 
+#[allow(clippy::error_impl_error)]
 #[derive(Debug, Eq, PartialEq, thiserror::Error, Diagnostic)]
 #[error("{kind}")]
 pub struct Error {

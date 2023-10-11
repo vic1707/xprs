@@ -5,6 +5,7 @@ use std::io::{self, Write};
 /* Crate imports */
 use xprs::Parser;
 
+#[allow(clippy::print_stdout)]
 fn main() -> Result<(), Box<dyn Error>> {
     let parser = Parser::default();
     let mut input = String::new();
