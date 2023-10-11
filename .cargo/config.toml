@@ -5,19 +5,19 @@ rustflags = [
   "-Wclippy::restriction",
   "-Wclippy::nursery",
   # "-Wclippy::cargo",
+  ## Conflicts ##
+  "-Aclippy::implicit_return",                  # clippy::needless-return             - remove return keyword when not needed
+  "-Aclippy::pub-with-shorthand",               # clippy::pub-without-shorthand       - pub(<scope>) instead of pub(in <scope>)
+  "-Aclippy::separated_literal_suffix",         # clippy::unseparated-literal-suffix  - 2.0_f32 vs 2.0f32
   ## Allowed ##
   "-Aclippy::arithmetic-side-effects",          # cursor increment in parsing/lexing and evaluation
-  "-Aclippy::blanket_clippy_restriction_lints", # allow `clippy::restriction` to be used globally
-  "-Aclippy::implicit_return",                  # convenience
+  "-Aclippy::blanket_clippy_restriction_lints", # allows `clippy::restriction` to be used globally
   "-Aclippy::question_mark_used",               # convenience
-  "-Aclippy::separated_literal_suffix",         # allows 2.0_f32
   "-Aclippy::single_call_fn",                   # function only called once
   "-Aclippy::single_char_lifetime_names",       # common practice to use 'a, to remove ?
-  "-Aclippy::pub-with-shorthand",               # pub(<scope>) instead of pub(in <scope>)
   ## Must remove ##
   "-Aclippy::missing_docs_in_private_items",
   "-Aclippy::missing-errors-doc",
   "-Aclippy::mod_module_files",
   "-Aclippy::undocumented-unsafe-blocks",
-  "-Aclippy::use_debug",
 ]
