@@ -1,9 +1,11 @@
 /* Built-in imports */
 use core::f64;
+/* Crate imports */
+use crate::utils::Function;
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub enum Identifier<'a> {
-    Function(fn(f64) -> f64),
+    Function(Function),
     Constant(f64),
     Variable(&'a str),
 }

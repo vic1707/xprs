@@ -8,6 +8,7 @@ use crate::{
     element::{BinOp, Element, FunctionCall, UnOp},
     macros::{trust_me, yeet},
     token::{Identifier, Operator},
+    utils::{precedence, Function},
 };
 /* Dependencies imports */
 use miette::{Diagnostic, SourceSpan};
@@ -18,7 +19,7 @@ pub const NO_PERCEDENCE: usize = 0;
 #[non_exhaustive]
 pub struct Parser {
     ctx: HashMap<String, f64>,
-    fn_ctx: HashMap<String, fn(f64) -> f64>,
+    fn_ctx: HashMap<String, Function>,
 }
 
 impl Parser {
@@ -26,7 +27,7 @@ impl Parser {
     #[inline]
     pub const fn new_with_ctx(
         ctx: HashMap<String, f64>,
-        fn_ctx: HashMap<String, fn(f64) -> f64>,
+        fn_ctx: HashMap<String, Function>,
     ) -> Self {
         Self { ctx, fn_ctx }
     }
@@ -45,13 +46,13 @@ impl Parser {
 
     #[must_use]
     #[inline]
-    pub const fn fn_ctx(&self) -> &HashMap<String, fn(f64) -> f64> {
+    pub const fn fn_ctx(&self) -> &HashMap<String, Function> {
         &self.fn_ctx
     }
 
     #[must_use]
     #[inline]
-    pub fn fn_ctx_mut(&mut self) -> &mut HashMap<String, fn(f64) -> f64> {
+    pub fn fn_ctx_mut(&mut self) -> &mut HashMap<String, Function> {
         &mut self.fn_ctx
     }
 
@@ -68,7 +69,7 @@ struct ParserImpl<'a> {
     input: &'a [u8],
     cursor: usize,
     ctx: &'a HashMap<String, f64>,
-    fn_ctx: &'a HashMap<String, fn(f64) -> f64>,
+    fn_ctx: &'a HashMap<String, Function>,
 }
 
 impl<'a> ParserImpl<'a> {
@@ -77,7 +78,7 @@ impl<'a> ParserImpl<'a> {
     pub const fn new(
         input: &'a str,
         ctx: &'a HashMap<String, f64>,
-        fn_ctx: &'a HashMap<String, fn(f64) -> f64>,
+        fn_ctx: &'a HashMap<String, Function>,
     ) -> Self {
         Self {
             input: input.as_bytes(),
@@ -130,7 +131,7 @@ impl<'a> ParserImpl<'a> {
                     b'-' => Operator::Minus,
                     _ => unreachable!(),
                 };
-                let operand = self.element(UnOp::PRECEDENCE)?;
+                let operand = self.element(precedence::UNOP_PRECEDENCE)?;
                 Element::UnOp(Box::new(UnOp::new(operator, operand)))
             },
             /* Parenthesis */
@@ -173,7 +174,7 @@ impl<'a> ParserImpl<'a> {
             Identifier::Constant(val) => Element::Number(val),
             Identifier::Variable(var) => Element::Variable(var),
             Identifier::Function(func) if Some(&b'(') == self.next() => {
-                let el = self.element(FunctionCall::PRECEDENCE)?;
+                let el = self.element(precedence::FN_PRECEDENCE)?;
                 Element::Function(Box::new(FunctionCall::new(func, el)))
             },
             Identifier::Function(_) => {
@@ -229,10 +230,11 @@ impl ParserImpl<'_> {
         current_atom: &Element<'_>,
         precedence: usize,
     ) -> Option<(Operator, usize)> {
+        use precedence::IMPLICIT_MULTIPLICATION_INFO;
         let current_byte = *self.next()?;
         // check for binary operator
         if let Ok(op) = Operator::try_from(current_byte) {
-            let op_p = BinOp::precedence(&op);
+            let op_p = precedence::get_for_op(&op);
             if op_p <= precedence {
                 return None;
             }
@@ -240,20 +242,17 @@ impl ParserImpl<'_> {
             return Some((op, op_p));
         }
 
-        #[allow(clippy::items_after_statements)]
-        const TIMES_INFOS: (Operator, usize) =
-            (Operator::Times, BinOp::IMPLICIT_MULTIPLICATION_PRECEDENCE);
         match current_byte {
             // if multiplication precedence is lower than current precedence
             // we now we don't need implicit multiplication
-            _ if TIMES_INFOS.1 <= precedence => None,
+            _ if IMPLICIT_MULTIPLICATION_INFO.1 <= precedence => None,
             // if it's an identifier or an opening parenthesis
             // we can consider its an implicit multiplication
-            b'a'..=b'z' | b'(' => Some(TIMES_INFOS),
+            b'a'..=b'z' | b'(' => Some(IMPLICIT_MULTIPLICATION_INFO),
             // if it's a number implicit multiplication is
             // only possible if previous atom isn't a number
             b'0'..=b'9' if !matches!(*current_atom, Element::Number(_)) => {
-                Some(TIMES_INFOS)
+                Some(IMPLICIT_MULTIPLICATION_INFO)
             },
             _ => None,
         }

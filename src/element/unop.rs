@@ -11,8 +11,6 @@ pub struct UnOp<'a> {
 }
 
 impl<'a> UnOp<'a> {
-    pub const PRECEDENCE: usize = 0;
-
     pub const fn new(op: Operator, operand: Element<'a>) -> Self {
         Self { op, operand }
     }

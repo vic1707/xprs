@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use crate::{
     element::{BinOp, Element, FunctionCall},
     token::Operator,
+    utils::Function,
     Parser,
 };
 
@@ -14,7 +15,7 @@ fn lambda(x: f64) -> f64 {
 
 fn get_parser_with_ctx() -> Parser {
     let mut ctx = HashMap::<String, f64>::new();
-    let mut fn_ctx = HashMap::<String, fn(f64) -> f64>::new();
+    let mut fn_ctx = HashMap::<String, Function>::new();
 
     ctx.insert("x".to_owned(), 2.0_f64);
     ctx.insert("phi".to_owned(), 1.618_033_988_749_895_f64);

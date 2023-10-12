@@ -6,6 +6,7 @@ mod element;
 mod macros;
 mod parser;
 mod token;
+mod utils;
 /* Tests */
 #[cfg(test)]
 mod tests;
