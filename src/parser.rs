@@ -68,6 +68,7 @@ impl<'a> ParserImpl<'a> {
     #[inline]
     pub fn parse(&mut self) -> Result<Element<'a>, ParseError> {
         let root = self.element(NO_PERCEDENCE)?;
+
         if let Some(&tok) = self.next() {
             yeet!(ParseError::new_unexpected_token(self, tok));
         }
@@ -160,6 +161,7 @@ impl<'a> ParserImpl<'a> {
                 yeet!(ParseError::new_expected_token(self, b'('))
             },
         };
+
         Ok(el)
     }
 
@@ -210,6 +212,7 @@ impl ParserImpl<'_> {
         precedence: usize,
     ) -> Option<(Operator, usize)> {
         use precedence::IMPLICIT_MULTIPLICATION_INFO;
+
         let current_byte = *self.next()?;
         // check for binary operator
         if let Ok(op) = Operator::try_from(current_byte) {
