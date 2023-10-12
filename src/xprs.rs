@@ -1,5 +1,5 @@
 /* Built-in imports */
-use core::fmt;
+use core::{fmt, mem, ptr};
 use std::collections::{HashMap, HashSet};
 /* Crate imports */
 use crate::{element::Element, macros::yeet, token::Operator};
@@ -35,12 +35,36 @@ impl Xprs<'_> {
     }
 
     #[inline]
-    #[must_use]
-    pub fn simplify_for(self, var: (&str, f64)) -> Self {
-        let root = self.root.simplify_for(var);
-        let mut vars = self.vars;
-        vars.remove(var.0);
-        Self { root, vars }
+    pub fn simplify_for_inplace(&mut self, var: (&str, f64)) {
+        let mut tmp = unsafe { ptr::read(&self.root) };
+        tmp = tmp.simplify_for(var);
+        unsafe {
+            ptr::write(&mut self.root, tmp);
+        };
+        self.vars.remove(var.0);
+    }
+
+    #[inline]
+    pub fn simplify_for_inplace2(&mut self, var: (&str, f64)) {
+        let tmp = mem::ManuallyDrop::new(
+            unsafe { ptr::read(&self.root) }.simplify_for(var),
+        );
+        unsafe {
+            ptr::write(&mut self.root, mem::ManuallyDrop::into_inner(tmp));
+        };
+        self.vars.remove(var.0);
+    }
+
+    #[inline]
+    pub fn simplify_for_inplace3(&mut self, var: (&str, f64)) {
+        let mut tmp = mem::MaybeUninit::uninit();
+        #[allow(clippy::multiple_unsafe_ops_per_block)]
+        unsafe {
+            mem::swap(&mut self.root, tmp.assume_init_mut());
+            tmp = mem::MaybeUninit::new(tmp.assume_init().simplify_for(var));
+            mem::swap(&mut self.root, tmp.assume_init_mut());
+        };
+        self.vars.remove(var.0);
     }
 }
 
