@@ -33,6 +33,15 @@ impl Xprs<'_> {
 
         XprsImpl::new(variables).eval_element(&self.root)
     }
+
+    #[inline]
+    #[must_use]
+    pub fn simplify_for(self, var: (&str, f64)) -> Self {
+        let root = self.root.simplify_for(var);
+        let mut vars = self.vars;
+        vars.remove(var.0);
+        Self { root, vars }
+    }
 }
 
 struct XprsImpl<'a> {

@@ -41,3 +41,15 @@ where
         Self::Number(num.into())
     }
 }
+
+impl Element<'_> {
+    pub fn simplify_for(self, var: (&str, f64)) -> Self {
+        match self {
+            Self::BinOp(binop) => binop.simplify_for(var),
+            Self::UnOp(unop) => unop.simplify_for(var),
+            Self::Function(func) => func.simplify_for(var),
+            Self::Variable(name) if name == var.0 => Self::Number(var.1),
+            Self::Number(_) | Self::Variable(_) => self,
+        }   
+    }
+}
