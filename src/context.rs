@@ -1,5 +1,5 @@
 /* Built-in imports */
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 /* Crate imports */
 use crate::utils::Function;
 
@@ -8,4 +8,5 @@ use crate::utils::Function;
 pub struct Context<'a> {
     pub vars: HashMap<&'a str, f64>,
     pub funcs: HashMap<&'a str, Function>,
+    pub expected_vars: Option<HashSet<&'a str>>,
 }

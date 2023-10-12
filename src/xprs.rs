@@ -1,5 +1,6 @@
 /* Built-in imports */
 use core::fmt;
+use std::collections::HashSet;
 /* Crate imports */
 use crate::element::Element;
 
@@ -7,6 +8,7 @@ use crate::element::Element;
 #[non_exhaustive]
 pub struct Xprs<'a> {
     pub root: Element<'a>,
+    pub vars: HashSet<&'a str>,
 }
 
 impl fmt::Display for Xprs<'_> {
