@@ -1,4 +1,4 @@
-/* Build-it imports */
+/* Built-in imports */
 use core::fmt;
 /* Crate imports */
 use super::Element;
