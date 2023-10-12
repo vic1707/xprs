@@ -19,7 +19,8 @@ impl<'a> BinOp<'a> {
     pub fn simplify_for(self, var: (&str, f64)) -> Element<'a> {
         let lhs = self.lhs.simplify_for(var);
         let rhs = self.rhs.simplify_for(var);
-        if let (&Element::Number(left), &Element::Number(right)) = (&lhs, &rhs) {
+        if let (&Element::Number(left), &Element::Number(right)) = (&lhs, &rhs)
+        {
             Element::Number(match self.op {
                 Operator::Plus => left + right,
                 Operator::Minus => left - right,

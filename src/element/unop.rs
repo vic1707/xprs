@@ -22,7 +22,10 @@ impl<'a> UnOp<'a> {
             match self.op {
                 Operator::Plus => Element::Number(num),
                 Operator::Minus => Element::Number(-num),
-                Operator::Times | Operator::Divide | Operator::Power | Operator::Modulo => unreachable!(),
+                Operator::Times
+                | Operator::Divide
+                | Operator::Power
+                | Operator::Modulo => unreachable!(),
             }
         } else {
             Element::UnOp(Box::new(Self::new(self.op, operand)))

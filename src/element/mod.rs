@@ -50,6 +50,6 @@ impl Element<'_> {
             Self::Function(func) => func.simplify_for(var),
             Self::Variable(name) if name == var.0 => Self::Number(var.1),
             Self::Number(_) | Self::Variable(_) => self,
-        }   
+        }
     }
 }
