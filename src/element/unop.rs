@@ -6,8 +6,8 @@ use crate::token::Operator;
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct UnOp<'a> {
-    op: Operator,
-    operand: Element<'a>,
+    pub(crate) op: Operator,
+    pub(crate) operand: Element<'a>,
 }
 
 impl<'a> UnOp<'a> {

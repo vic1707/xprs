@@ -6,8 +6,8 @@ use crate::utils::Function;
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct FunctionCall<'a> {
-    func: Function,
-    arg: Element<'a>,
+    pub(crate) func: Function,
+    pub(crate) arg: Element<'a>,
 }
 
 impl<'a> FunctionCall<'a> {

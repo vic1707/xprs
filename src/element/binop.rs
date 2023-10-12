@@ -6,9 +6,9 @@ use crate::token::Operator;
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct BinOp<'a> {
-    op: Operator,
-    lhs: Element<'a>,
-    rhs: Element<'a>,
+    pub(crate) op: Operator,
+    pub(crate) lhs: Element<'a>,
+    pub(crate) rhs: Element<'a>,
 }
 
 impl<'a> BinOp<'a> {
