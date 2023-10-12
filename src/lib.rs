@@ -1,6 +1,7 @@
 /* Clippy config */
 #![allow(clippy::pub_use)]
 /* Modules */
+mod context;
 mod element;
 #[doc(hidden)]
 mod macros;
@@ -11,6 +12,7 @@ mod utils;
 #[cfg(test)]
 mod tests;
 /* Exports */
+pub use context::Context;
 pub use parser::{ErrorKind, ParseError, Parser};
 
 /* Feature safety */

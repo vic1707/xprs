@@ -2,13 +2,13 @@
 #![allow(clippy::std_instead_of_core)]
 /* Built-in imports */
 use core::str;
-use std::collections::HashMap;
 /* Crate imports */
 use crate::{
+    context::Context,
     element::{BinOp, Element, FunctionCall, UnOp},
     macros::{trust_me, yeet},
     token::{Identifier, Operator},
-    utils::{precedence, Function},
+    utils::precedence,
 };
 /* Dependencies imports */
 use miette::{Diagnostic, SourceSpan};
@@ -16,75 +16,52 @@ use miette::{Diagnostic, SourceSpan};
 pub const NO_PERCEDENCE: usize = 0;
 
 #[derive(Debug, Default, PartialEq)]
-#[non_exhaustive]
-pub struct Parser {
-    ctx: HashMap<String, f64>,
-    fn_ctx: HashMap<String, Function>,
+pub struct Parser<'a> {
+    ctx: Context<'a>,
 }
 
-impl Parser {
+impl<'a> Parser<'a> {
     #[must_use]
     #[inline]
-    pub const fn new_with_ctx(
-        ctx: HashMap<String, f64>,
-        fn_ctx: HashMap<String, Function>,
-    ) -> Self {
-        Self { ctx, fn_ctx }
+    pub const fn new_with_ctx(ctx: Context<'a>) -> Self {
+        Self { ctx }
     }
 
     #[must_use]
     #[inline]
-    pub const fn ctx(&self) -> &HashMap<String, f64> {
+    pub const fn ctx(&self) -> &Context {
         &self.ctx
     }
 
     #[must_use]
     #[inline]
-    pub fn ctx_mut(&mut self) -> &mut HashMap<String, f64> {
+    pub fn ctx_mut<'b>(&'b mut self) -> &'b mut Context<'a> {
         &mut self.ctx
     }
 
-    #[must_use]
     #[inline]
-    pub const fn fn_ctx(&self) -> &HashMap<String, Function> {
-        &self.fn_ctx
-    }
-
-    #[must_use]
-    #[inline]
-    pub fn fn_ctx_mut(&mut self) -> &mut HashMap<String, Function> {
-        &mut self.fn_ctx
-    }
-
-    #[inline]
-    pub fn parse<'a>(
-        &'a self,
-        input: &'a str,
-    ) -> Result<Element<'a>, ParseError> {
-        ParserImpl::new(input, &self.ctx, &self.fn_ctx).parse()
+    pub fn parse<'b>(
+        &'b self,
+        input: &'b str,
+    ) -> Result<Element<'b>, ParseError> {
+        ParserImpl::new(input, &self.ctx).parse()
     }
 }
 
 struct ParserImpl<'a> {
     input: &'a [u8],
     cursor: usize,
-    ctx: &'a HashMap<String, f64>,
-    fn_ctx: &'a HashMap<String, Function>,
+    ctx: &'a Context<'a>,
 }
 
 impl<'a> ParserImpl<'a> {
     #[inline]
     #[must_use]
-    pub const fn new(
-        input: &'a str,
-        ctx: &'a HashMap<String, f64>,
-        fn_ctx: &'a HashMap<String, Function>,
-    ) -> Self {
+    pub const fn new(input: &'a str, ctx: &'a Context) -> Self {
         Self {
             input: input.as_bytes(),
             cursor: 0,
             ctx,
-            fn_ctx,
         }
     }
 
@@ -161,10 +138,12 @@ impl<'a> ParserImpl<'a> {
         // else defaults to variable
         let ident = self
             .ctx
+            .vars
             .get(name)
             .map(|&value| Identifier::Constant(value))
             .or_else(|| {
-                self.fn_ctx
+                self.ctx
+                    .funcs
                     .get(name)
                     .map(|&func| Identifier::Function(func))
             })
