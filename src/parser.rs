@@ -9,6 +9,7 @@ use crate::{
     macros::{trust_me, yeet},
     token::{Identifier, Operator},
     utils::precedence,
+    xprs::Xprs,
 };
 /* Dependencies imports */
 use miette::{Diagnostic, SourceSpan};
@@ -40,11 +41,8 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
-    pub fn parse<'b>(
-        &'b self,
-        input: &'b str,
-    ) -> Result<Element<'b>, ParseError> {
-        ParserImpl::new(input, &self.ctx).parse()
+    pub fn parse<'b>(&'b self, input: &'b str) -> Result<Xprs<'b>, ParseError> {
+        ParserImpl::parse(input, &self.ctx)
     }
 }
 
@@ -57,7 +55,7 @@ struct ParserImpl<'a> {
 impl<'a> ParserImpl<'a> {
     #[inline]
     #[must_use]
-    pub const fn new(input: &'a str, ctx: &'a Context) -> Self {
+    const fn new(input: &'a str, ctx: &'a Context) -> Self {
         Self {
             input: input.as_bytes(),
             cursor: 0,
@@ -66,13 +64,18 @@ impl<'a> ParserImpl<'a> {
     }
 
     #[inline]
-    pub fn parse(&mut self) -> Result<Element<'a>, ParseError> {
-        let root = self.element(NO_PERCEDENCE)?;
+    pub fn parse(
+        input: &'a str,
+        ctx: &'a Context,
+    ) -> Result<Xprs<'a>, ParseError> {
+        let mut parser_impl = Self::new(input, ctx);
 
-        if let Some(&tok) = self.next() {
-            yeet!(ParseError::new_unexpected_token(self, tok));
+        let root = parser_impl.element(NO_PERCEDENCE)?;
+
+        if let Some(&tok) = parser_impl.next() {
+            yeet!(ParseError::new_unexpected_token(&parser_impl, tok));
         }
-        Ok(root)
+        Ok(Xprs { root })
     }
 
     fn element(
