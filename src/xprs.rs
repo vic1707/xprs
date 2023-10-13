@@ -48,7 +48,7 @@ impl Xprs<'_> {
 
     #[inline]
     #[must_use]
-    pub fn simplify(mut self, var: (&str, f64)) -> Self {
+    pub fn simplify_for(mut self, var: (&str, f64)) -> Self {
         self.simplify_for_inplace(var);
         self
     }
