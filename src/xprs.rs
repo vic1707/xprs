@@ -2,11 +2,7 @@
 use core::{fmt, ptr};
 use std::collections::{HashMap, HashSet};
 /* Crate imports */
-use crate::{
-    element::Element,
-    macros::{trust_me, yeet},
-    token::Operator,
-};
+use crate::{element::Element, macros::trust_me, token::Operator};
 
 #[derive(Debug, PartialEq)]
 #[non_exhaustive]
