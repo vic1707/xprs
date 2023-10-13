@@ -28,13 +28,6 @@ impl Xprs<'_> {
         &self,
         variables: &HashMap<&str, f64>,
     ) -> Result<f64, &'static str> {
-        // check if all variables are present
-        for var in &self.vars {
-            if !variables.contains_key(var) {
-                yeet!("Variable not found");
-            }
-        }
-
         XprsImpl::new(variables).eval_element(&self.root)
     }
 
@@ -64,7 +57,7 @@ impl XprsImpl<'_> {
         XprsImpl { variables }
     }
 
-    #[allow(clippy::ref_patterns)]
+    #[allow(clippy::ref_patterns, clippy::unreachable)]
     fn eval_element(&self, element: &Element) -> Result<f64, &'static str> {
         let res = match *element {
             Element::Number(n) => n,
@@ -79,7 +72,7 @@ impl XprsImpl<'_> {
                     Operator::Times
                     | Operator::Divide
                     | Operator::Power
-                    | Operator::Modulo => yeet!("Invalid unary operator"),
+                    | Operator::Modulo => unreachable!(),
                 }
             },
             Element::BinOp(ref binop) => {
