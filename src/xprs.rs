@@ -1,8 +1,12 @@
 /* Built-in imports */
-use core::fmt;
+use core::{fmt, ptr};
 use std::collections::{HashMap, HashSet};
 /* Crate imports */
-use crate::{element::Element, macros::yeet, token::Operator};
+use crate::{
+    element::Element,
+    macros::{trust_me, yeet},
+    token::Operator,
+};
 
 #[derive(Debug, PartialEq)]
 #[non_exhaustive]
@@ -35,12 +39,18 @@ impl Xprs<'_> {
     }
 
     #[inline]
+    pub fn simplify_for_inplace(&mut self, var: (&str, f64)) {
+        let mut tmp = trust_me!(ptr::read(&self.root));
+        tmp = tmp.simplify_for(var);
+        trust_me!(ptr::write(&mut self.root, tmp););
+        self.vars.remove(var.0);
+    }
+
+    #[inline]
     #[must_use]
-    pub fn simplify_for(self, var: (&str, f64)) -> Self {
-        let root = self.root.simplify_for(var);
-        let mut vars = self.vars;
-        vars.remove(var.0);
-        Self { root, vars }
+    pub fn simplify_for(mut self, var: (&str, f64)) -> Self {
+        self.simplify_for_inplace(var);
+        self
     }
 }
 
