@@ -28,11 +28,11 @@ impl Xprs<'_> {
     }
 
     #[inline]
-    pub fn simplify_for_inplace(&mut self, var: (&str, f64)) {
+    pub fn simplify_for_inplace(&mut self, var: (&str, f64)) -> bool {
         let mut tmp = trust_me!(ptr::read(&self.root));
         tmp = tmp.simplify_for(var);
         trust_me!(ptr::write(&mut self.root, tmp););
-        self.vars.remove(var.0);
+        self.vars.remove(var.0)
     }
 
     #[inline]
