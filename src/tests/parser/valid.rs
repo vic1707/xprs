@@ -29,8 +29,15 @@ use crate::{
 /// sin(-cos(2))
 /// sin(2)^2
 /// 2 * x + 3y + 4x + 5
+/// Ambiguous negative numbers (#5)
+///  2 + -5
+/// -1 + 2
+/// -1 * 2
+/// 1 / -2
+/// 1 ^ -2
+/// -2 ^ 2
 #[allow(clippy::too_many_lines)]
-fn get_valid_test_cases<'a>() -> [(&'static str, Xprs<'a>); 21] {
+fn get_valid_test_cases<'a>() -> [(&'static str, Xprs<'a>); 27] {
     [
         (
             "2",
@@ -351,6 +358,90 @@ fn get_valid_test_cases<'a>() -> [(&'static str, Xprs<'a>); 21] {
                     Element::Number(5.),
                 ))),
                 vars: ["x", "y"].into(),
+            },
+        ),
+        (
+            "2 + -5",
+            Xprs {
+                root: Element::BinOp(Box::new(BinOp::new(
+                    Operator::Plus,
+                    Element::Number(2.),
+                    Element::UnOp(Box::new(UnOp::new(
+                        Operator::Minus,
+                        Element::Number(5.),
+                    ))),
+                ))),
+                vars: [].into(),
+            },
+        ),
+        (
+            "-1 + 2",
+            Xprs {
+                root: Element::BinOp(Box::new(BinOp::new(
+                    Operator::Plus,
+                    Element::UnOp(Box::new(UnOp::new(
+                        Operator::Minus,
+                        Element::Number(1.),
+                    ))),
+                    Element::Number(2.),
+                ))),
+                vars: [].into(),
+            },
+        ),
+        (
+            "-1 * 2",
+            Xprs {
+                root: Element::BinOp(Box::new(BinOp::new(
+                    Operator::Times,
+                    Element::UnOp(Box::new(UnOp::new(
+                        Operator::Minus,
+                        Element::Number(1.),
+                    ))),
+                    Element::Number(2.),
+                ))),
+                vars: [].into(),
+            },
+        ),
+        (
+            "1 / -2",
+            Xprs {
+                root: Element::BinOp(Box::new(BinOp::new(
+                    Operator::Divide,
+                    Element::Number(1.),
+                    Element::UnOp(Box::new(UnOp::new(
+                        Operator::Minus,
+                        Element::Number(2.),
+                    ))),
+                ))),
+                vars: [].into(),
+            },
+        ),
+        (
+            "1 ^ -2",
+            Xprs {
+                root: Element::BinOp(Box::new(BinOp::new(
+                    Operator::Power,
+                    Element::Number(1.),
+                    Element::UnOp(Box::new(UnOp::new(
+                        Operator::Minus,
+                        Element::Number(2.),
+                    ))),
+                ))),
+                vars: [].into(),
+            },
+        ),
+        (
+            "-2 ^ 2",
+            Xprs {
+                root: Element::UnOp(Box::new(UnOp::new(
+                    Operator::Minus,
+                    Element::BinOp(Box::new(BinOp::new(
+                        Operator::Power,
+                        Element::Number(2.),
+                        Element::Number(2.),
+                    ))),
+                ))),
+                vars: [].into(),
             },
         ),
     ]
