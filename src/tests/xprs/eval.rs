@@ -61,7 +61,7 @@ fn test_valid_eval() {
 }
 
 #[test]
-fn test_valid_simplify() {
+fn test_invalid_eval() {
     let parser = Parser::default();
 
     let xprs = parser.parse("2 * x + 3y + 4x + 5").unwrap();
