@@ -14,8 +14,6 @@ use crate::{
 };
 /* Dependencies imports */
 use miette::{Diagnostic, SourceSpan};
-/* Constants */
-pub const NO_PERCEDENCE: usize = 0;
 
 #[derive(Debug, Default, PartialEq)]
 pub struct Parser<'a> {
@@ -88,7 +86,7 @@ impl<'a> ParserImpl<'a> {
     ) -> Result<Xprs<'a>, ParseError> {
         let mut parser_impl = Self::new(input, ctx);
 
-        let root = parser_impl.element(NO_PERCEDENCE)?;
+        let root = parser_impl.element(precedence::NO_PRECEDENCE)?;
 
         if let Some(&tok) = parser_impl.next() {
             yeet!(ParseError::new_unexpected_token(&parser_impl, tok));
@@ -139,7 +137,7 @@ impl<'a> ParserImpl<'a> {
             /* Parenthesis */
             b'(' => {
                 self.cursor += 1;
-                let el = self.element(NO_PERCEDENCE)?;
+                let el = self.element(precedence::NO_PRECEDENCE)?;
                 if self.next() != Some(&b')') {
                     yeet!(ParseError::new_expected_token(self, b')'));
                 }
