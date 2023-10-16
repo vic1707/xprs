@@ -2,6 +2,7 @@
 #![allow(clippy::std_instead_of_core)]
 /* Built-in imports */
 use core::str;
+use std::collections::HashSet;
 /* Crate imports */
 use crate::{
     context::Context,
@@ -9,6 +10,7 @@ use crate::{
     macros::{trust_me, yeet},
     token::{Identifier, Operator},
     utils::precedence,
+    xprs::Xprs,
 };
 /* Dependencies imports */
 use miette::{Diagnostic, SourceSpan};
@@ -40,11 +42,23 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
-    pub fn parse<'b>(
-        &'b self,
-        input: &'b str,
-    ) -> Result<Element<'b>, ParseError> {
-        ParserImpl::new(input, &self.ctx).parse()
+    pub fn parse<'b>(&'b self, input: &'b str) -> Result<Xprs<'b>, ParseError> {
+        let xprs = ParserImpl::parse(input, &self.ctx)?;
+
+        // Check if no unknown variable was found
+        if let Some(unknown_var) = self
+            .ctx
+            .expected_vars
+            .as_ref()
+            .and_then(|expected| xprs.vars.difference(expected).next())
+        {
+            yeet!(ParseError::new_variable_not_declared(
+                &ParserImpl::new(input, &self.ctx),
+                unknown_var,
+            ))
+        }
+
+        Ok(xprs)
     }
 }
 
@@ -52,27 +66,37 @@ struct ParserImpl<'a> {
     input: &'a [u8],
     cursor: usize,
     ctx: &'a Context<'a>,
+    found_vars: HashSet<&'a str>,
 }
 
 impl<'a> ParserImpl<'a> {
     #[inline]
     #[must_use]
-    pub const fn new(input: &'a str, ctx: &'a Context) -> Self {
+    fn new(input: &'a str, ctx: &'a Context) -> Self {
         Self {
             input: input.as_bytes(),
             cursor: 0,
             ctx,
+            found_vars: HashSet::new(),
         }
     }
 
     #[inline]
-    pub fn parse(&mut self) -> Result<Element<'a>, ParseError> {
-        let root = self.element(NO_PERCEDENCE)?;
+    pub fn parse(
+        input: &'a str,
+        ctx: &'a Context,
+    ) -> Result<Xprs<'a>, ParseError> {
+        let mut parser_impl = Self::new(input, ctx);
 
-        if let Some(&tok) = self.next() {
-            yeet!(ParseError::new_unexpected_token(self, tok));
+        let root = parser_impl.element(NO_PERCEDENCE)?;
+
+        if let Some(&tok) = parser_impl.next() {
+            yeet!(ParseError::new_unexpected_token(&parser_impl, tok));
         }
-        Ok(root)
+        Ok(Xprs {
+            root,
+            vars: parser_impl.found_vars,
+        })
     }
 
     fn element(
@@ -152,7 +176,10 @@ impl<'a> ParserImpl<'a> {
 
         let el = match ident {
             Identifier::Constant(val) => Element::Number(val),
-            Identifier::Variable(var) => Element::Variable(var),
+            Identifier::Variable(var) => {
+                self.found_vars.insert(var);
+                Element::Variable(var)
+            },
             Identifier::Function(func) if Some(&b'(') == self.next() => {
                 let el = self.element(precedence::FN_PRECEDENCE)?;
                 Element::Function(Box::new(FunctionCall::new(func, el)))
@@ -264,6 +291,8 @@ pub enum ErrorKind {
     IllegalCharacter(char),
     #[error("Expected token: `{0}`")]
     ExpectedToken(char),
+    #[error("Variable not previously declared: `{0}`")]
+    VariableNotDeclared(String),
 }
 
 impl ParseError {
@@ -306,6 +335,14 @@ impl ParseError {
         Self {
             kind: ErrorKind::ExpectedToken(char::from(tok)),
             span: parser.cursor.into(),
+            src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
+        }
+    }
+
+    fn new_variable_not_declared(parser: &ParserImpl, var: &str) -> Self {
+        Self {
+            kind: ErrorKind::VariableNotDeclared(var.to_owned()),
+            span: (0, parser.input.len()).into(),
             src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
         }
     }

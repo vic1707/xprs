@@ -8,12 +8,14 @@ mod macros;
 mod parser;
 mod token;
 mod utils;
+mod xprs;
 /* Tests */
 #[cfg(test)]
 mod tests;
 /* Exports */
 pub use context::Context;
 pub use parser::{ErrorKind, ParseError, Parser};
+pub use xprs::{EvalError, Xprs};
 
 /* Feature safety */
 #[cfg(all(feature = "pemdas", feature = "pejmdas"))]

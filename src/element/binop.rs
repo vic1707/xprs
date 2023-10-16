@@ -15,6 +15,24 @@ impl<'a> BinOp<'a> {
     pub const fn new(op: Operator, lhs: Element<'a>, rhs: Element<'a>) -> Self {
         Self { op, lhs, rhs }
     }
+
+    pub fn simplify_for(self, var: (&str, f64)) -> Element<'a> {
+        let lhs = self.lhs.simplify_for(var);
+        let rhs = self.rhs.simplify_for(var);
+        if let (&Element::Number(left), &Element::Number(right)) = (&lhs, &rhs)
+        {
+            Element::Number(match self.op {
+                Operator::Plus => left + right,
+                Operator::Minus => left - right,
+                Operator::Times => left * right,
+                Operator::Divide => left / right,
+                Operator::Modulo => left % right,
+                Operator::Power => left.powf(right),
+            })
+        } else {
+            Element::BinOp(Box::new(Self::new(self.op, lhs, rhs)))
+        }
+    }
 }
 
 impl fmt::Display for BinOp<'_> {
