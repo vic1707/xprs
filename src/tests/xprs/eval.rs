@@ -59,3 +59,15 @@ fn test_valid_eval() {
         );
     }
 }
+
+#[test]
+fn test_valid_simplify() {
+    let parser = Parser::default();
+
+    let xprs = parser.parse("2 * x + 3y + 4x + 5").unwrap();
+    let result = xprs.eval(&[("x", 2.0_f64)].into());
+    assert!(
+        result.is_err(),
+        "Should have failed because `y` is not provided"
+    );
+}
