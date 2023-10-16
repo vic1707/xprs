@@ -1,11 +1,12 @@
 /* Built-in imports */
 #![allow(clippy::std_instead_of_core)]
+use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::io::{self, Write};
 /* Crate imports */
 use xprs::Parser;
 
-#[allow(clippy::print_stdout, clippy::use_debug)]
+#[allow(clippy::print_stdout, clippy::use_debug, clippy::unreachable)]
 fn main() -> Result<(), Box<dyn Error>> {
     let parser = Parser::default();
     let mut input = String::new();
@@ -23,6 +24,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                 Ok(ast) => {
                     println!("Interpreted as: {ast}");
                     println!("{ast:#?}");
+                    println!("Variables: {:?}", ast.vars);
+                    let variables = ask_for_variables(&ast.vars);
+                    println!(
+                        "Evaluated: {:#?}",
+                        ast.eval(&variables).unwrap_or_else(|_| unreachable!())
+                    );
                 },
                 Err(err) => println!("{:?}", miette::Report::new(err)),
             },
@@ -32,4 +39,29 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("Bye!");
     Ok(())
+}
+
+#[allow(clippy::print_stdout)]
+fn ask_for_variables<'a>(set: &'a HashSet<&str>) -> HashMap<&'a str, f64> {
+    if !set.is_empty() {
+        println!("Please enter the following variables:");
+    }
+
+    #[allow(clippy::expect_used)]
+    set.iter().fold(HashMap::new(), |mut acc, var| {
+        print!("{var}: ");
+        io::stdout().lock().flush().expect("Failed to flush stdout");
+        let mut input = String::new();
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read line");
+        acc.insert(
+            var,
+            input
+                .trim()
+                .parse()
+                .expect("Failed to parse input as a number"),
+        );
+        acc
+    })
 }
