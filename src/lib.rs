@@ -15,7 +15,7 @@ mod tests;
 /* Exports */
 pub use context::Context;
 pub use parser::{ErrorKind, ParseError, Parser};
-pub use xprs::Xprs;
+pub use xprs::{EvalError, Xprs};
 
 /* Feature safety */
 #[cfg(all(feature = "pemdas", feature = "pejmdas"))]
