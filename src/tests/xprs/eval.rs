@@ -47,19 +47,15 @@ fn get_valid_test_cases(
 }
 
 #[test]
-fn test_eval() {
+fn test_valid_eval() {
     let parser = Parser::default();
 
     for (input, vars, expected) in get_valid_test_cases() {
-        let xprs = parser.parse(input);
-        assert!(xprs.is_ok());
-        let result = xprs.unwrap().eval(&vars);
+        let xprs = parser.parse(input).unwrap();
+        let result = xprs.eval(&vars).unwrap();
         assert!(
-            (result.unwrap() - expected).abs() < ERROR_MARGIN,
-            "{}\nExpected: {}, got: {}",
-            input,
-            expected,
-            result.unwrap()
+            (result - expected).abs() < ERROR_MARGIN,
+            "{input}\nExpected: {expected}, got: {result}"
         );
     }
 }
