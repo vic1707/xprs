@@ -29,8 +29,8 @@ fn get_parser_with_ctx<'a>() -> Parser<'a> {
     parser
 }
 
-fn get_valid_test_cases<'a>() -> Vec<(&'static str, Element<'a>)> {
-    vec![
+fn get_valid_test_cases<'a>() -> [(&'static str, Element<'a>); 5] {
+    [
         ("y", Element::Number(1.0)),
         (
             "2 + phi",

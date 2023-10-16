@@ -29,8 +29,8 @@ use crate::{
 /// sin(-cos(2))
 /// sin(2)^2
 #[allow(clippy::too_many_lines)]
-fn get_valid_test_cases<'a>() -> Vec<(&'static str, Element<'a>)> {
-    vec![
+fn get_valid_test_cases<'a>() -> [(&'static str, Element<'a>); 20] {
+    [
         ("2", Element::Number(2.0)),
         ("((2))", Element::Number(2.0)),
         (
