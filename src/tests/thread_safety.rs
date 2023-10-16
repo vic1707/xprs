@@ -4,7 +4,7 @@ use crate::{
     element::{BinOp, Element, FunctionCall, UnOp},
     parser::{ErrorKind, ParseError, Parser},
     token::{Identifier, Operator},
-    xprs::Xprs,
+    xprs::{EvalError, Xprs},
 };
 
 const fn is_sized_send_sync_unpin<T: Sized + Send + Sync + Unpin>() {}
@@ -26,5 +26,6 @@ const fn test_thread_safety() {
     is_sized_send_sync_unpin::<Identifier>();
     is_sized_send_sync_unpin::<Operator>();
     // xprs module
+    is_sized_send_sync_unpin::<EvalError>();
     is_sized_send_sync_unpin::<Xprs<'_>>();
 }
