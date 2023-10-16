@@ -30,8 +30,8 @@ use crate::{
 /// sin(2)^2
 /// 2 * x + 3y + 4x + 5
 #[allow(clippy::too_many_lines)]
-fn get_valid_test_cases<'a>() -> Vec<(&'static str, Xprs<'a>)> {
-    vec![
+fn get_valid_test_cases<'a>() -> [(&'static str, Xprs<'a>); 21] {
+    [
         (
             "2",
             Xprs {
