@@ -2,10 +2,12 @@
 use core::fmt;
 /* Modules */
 mod binop;
+mod comp_time;
 mod function_call;
 mod unop;
 /* Exports */
 pub use binop::BinOp;
+pub use comp_time::CompTime;
 pub use function_call::FunctionCall;
 pub use unop::UnOp;
 

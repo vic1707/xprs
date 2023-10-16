@@ -6,7 +6,7 @@ use std::collections::HashSet;
 /* Crate imports */
 use crate::{
     context::Context,
-    element::{BinOp, Element, FunctionCall, UnOp},
+    element::{BinOp, CompTime, Element, FunctionCall, UnOp},
     macros::{trust_me, yeet},
     token::{Identifier, Operator},
     utils::precedence,
@@ -109,6 +109,11 @@ impl<'a> ParserImpl<'a> {
             let rhs = self.element(op_precedence)?;
             el = Element::BinOp(Box::new(BinOp::new(op, el, rhs)));
         }
+
+        #[cfg(feature = "compile-time-optimizations")]
+        {
+            el = el.simplify();
+        };
 
         Ok(el)
     }
