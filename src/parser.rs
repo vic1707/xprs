@@ -6,7 +6,7 @@ use std::collections::HashSet;
 /* Crate imports */
 use crate::{
     context::Context,
-    element::{BinOp, CompTime, Element, FunctionCall, UnOp},
+    element::{BinOp, Element, FunctionCall, Simplify, UnOp},
     macros::{trust_me, yeet},
     token::{Identifier, Operator},
     utils::precedence,
