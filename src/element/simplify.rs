@@ -31,22 +31,10 @@ impl<'a> Simplify<'a> for Element<'a> {
 
 impl<'a> Simplify<'a> for BinOp<'a> {
     #[inline]
-    fn simplify_for(self, var: (&str, f64)) -> Element<'a> {
-        let lhs = self.lhs.simplify_for(var);
-        let rhs = self.rhs.simplify_for(var);
-        if let (&Element::Number(left), &Element::Number(right)) = (&lhs, &rhs)
-        {
-            Element::Number(match self.op {
-                Operator::Plus => left + right,
-                Operator::Minus => left - right,
-                Operator::Times => left * right,
-                Operator::Divide => left / right,
-                Operator::Modulo => left % right,
-                Operator::Power => left.powf(right),
-            })
-        } else {
-            Element::BinOp(Box::new(Self::new(self.op, lhs, rhs)))
-        }
+    fn simplify_for(mut self, var: (&str, f64)) -> Element<'a> {
+        self.lhs = self.lhs.simplify_for(var);
+        self.rhs = self.rhs.simplify_for(var);
+        self.simplify()
     }
 
     #[inline]
@@ -190,20 +178,9 @@ impl<'a> Simplify<'a> for BinOp<'a> {
 impl<'a> Simplify<'a> for UnOp<'a> {
     #[inline]
     #[allow(clippy::unreachable)]
-    fn simplify_for(self, var: (&str, f64)) -> Element<'a> {
-        let operand = self.operand.simplify_for(var);
-        if let Element::Number(num) = operand {
-            match self.op {
-                Operator::Plus => Element::Number(num),
-                Operator::Minus => Element::Number(-num),
-                Operator::Times
-                | Operator::Divide
-                | Operator::Power
-                | Operator::Modulo => unreachable!(),
-            }
-        } else {
-            Element::UnOp(Box::new(Self::new(self.op, operand)))
-        }
+    fn simplify_for(mut self, var: (&str, f64)) -> Element<'a> {
+        self.operand = self.operand.simplify_for(var);
+        self.simplify()
     }
 
     #[inline]
@@ -242,13 +219,9 @@ impl<'a> Simplify<'a> for UnOp<'a> {
 
 impl<'a> Simplify<'a> for FunctionCall<'a> {
     #[inline]
-    fn simplify_for(self, var: (&str, f64)) -> Element<'a> {
-        let arg = self.arg.simplify_for(var);
-        if let Element::Number(num) = arg {
-            Element::Number((self.func)(num))
-        } else {
-            Element::Function(Box::new(Self::new(self.func, arg)))
-        }
+    fn simplify_for(mut self, var: (&str, f64)) -> Element<'a> {
+        self.arg = self.arg.simplify_for(var);
+        self.simplify()
     }
 
     #[inline]
