@@ -6,4 +6,4 @@ mod implicit_multiplication;
 #[cfg(not(feature = "compile-time-optimizations"))]
 mod valid;
 #[cfg(feature = "compile-time-optimizations")]
-mod valid_comptime_optimizations;
+mod comptime_optimizations;
