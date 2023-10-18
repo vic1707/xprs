@@ -6,7 +6,7 @@ pub mod precedence {
 
     pub const NO_PRECEDENCE: usize = 0;
     /* Unary operators */
-    pub const UNOP_PRECEDENCE: usize = NO_PRECEDENCE;
+    pub const UNOP_PRECEDENCE: usize = 3;
     /* Binary operators */
 
     #[cfg(feature = "pejmdas")]
