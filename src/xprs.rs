@@ -43,6 +43,24 @@ impl Xprs<'_> {
         self.simplify_for_inplace(var);
         self
     }
+
+    #[inline]
+    pub fn simplify_for_multiple_inplace(&mut self, vars: &[(&str, f64)]) {
+        // rewriting `simplify_for_inplace` to avoid dozens of `ptr::read` and `ptr::write`
+        let mut tmp = trust_me!(ptr::read(&self.root));
+        for &var in vars {
+            tmp = tmp.simplify_for(var);
+            self.vars.remove(var.0);
+        }
+        trust_me!(ptr::write(&mut self.root, tmp););
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn simplify_for_multiple(mut self, vars: &[(&str, f64)]) -> Self {
+        self.simplify_for_multiple_inplace(vars);
+        self
+    }
 }
 
 struct XprsImpl<'a> {
