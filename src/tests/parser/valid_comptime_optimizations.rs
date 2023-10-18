@@ -110,7 +110,7 @@ fn get_valid_test_cases<'a>() -> [(&'static str, Xprs<'a>); 12] {
                 root: Element::BinOp(Box::new(BinOp::new(
                     Operator::Power,
                     Element::Number(4.),
-                    Element::Number(5.)
+                    Element::Number(5.),
                 ))),
                 vars: [].into(),
             },
