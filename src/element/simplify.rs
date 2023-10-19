@@ -164,9 +164,7 @@ impl<'a> Simplify<'a> for BinOp<'a> {
                 };
                 Number(result)
             },
-            BinOp { op, rhs, lhs } => {
-                Element::BinOp(Box::new(BinOp::new(op, lhs, rhs)))
-            },
+            _ => Element::BinOp(Box::new(self)),
         }
     }
 }
