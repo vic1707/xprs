@@ -21,8 +21,10 @@ use crate::{
 /// sin(-cos(2))
 ////// With variables
 /// x - x
+////// Commutativity
+/// (a + b) - (b + a)
 #[allow(clippy::too_many_lines)]
-fn get_valid_test_cases<'a>() -> [(&'static str, Xprs<'a>); 12] {
+fn get_valid_test_cases<'a>() -> [(&'static str, Xprs<'a>); 13] {
     [
         (
             "2 + pi",
@@ -110,6 +112,13 @@ fn get_valid_test_cases<'a>() -> [(&'static str, Xprs<'a>); 12] {
             Xprs {
                 root: Element::Number(0.),
                 vars: ["x"].into(),
+            },
+        ),
+        (
+            "(a + b) - (b + a)",
+            Xprs {
+                root: Element::Number(0.),
+                vars: ["a", "b"].into(),
             },
         ),
     ]
