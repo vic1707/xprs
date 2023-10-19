@@ -39,19 +39,17 @@ impl<'a> Simplify<'a> for BinOp<'a> {
 
     #[inline]
     #[allow(clippy::too_many_lines)]
-    fn simplify(self) -> Element<'a> {
+    fn simplify(mut self) -> Element<'a> {
         use Element::Number;
         use Operator::{Divide, Minus, Modulo, Plus, Power, Times};
+        self.lhs = self.lhs.simplify();
+        self.rhs = self.rhs.simplify();
         match self {
             /////////////////////////// Additions ///////////////////////////
             // 0 + .. => ..
-            BinOp { op: Plus, lhs, rhs } if lhs == Number(0.0_f64) => {
-                rhs.simplify()
-            },
+            BinOp { op: Plus, lhs, rhs } if lhs == Number(0.0_f64) => rhs,
             // .. + 0 => ..
-            BinOp { op: Plus, lhs, rhs } if rhs == Number(0.0_f64) => {
-                lhs.simplify()
-            },
+            BinOp { op: Plus, lhs, rhs } if rhs == Number(0.0_f64) => lhs,
             ////////////////////////// Subtractions /////////////////////////
             // 0 - .. => -..
             BinOp {
@@ -59,14 +57,14 @@ impl<'a> Simplify<'a> for BinOp<'a> {
                 lhs,
                 rhs,
             } if lhs == Number(0.0_f64) => {
-                UnOp::new(Operator::Minus, rhs.simplify()).simplify()
+                UnOp::new(Operator::Minus, rhs).simplify()
             },
             // .. - 0 => ..
             BinOp {
                 op: Minus,
                 lhs,
                 rhs,
-            } if rhs == Number(0.0_f64) => lhs.simplify(),
+            } if rhs == Number(0.0_f64) => lhs,
             // .. - .. => 0
             BinOp {
                 op: Minus,
@@ -87,13 +85,13 @@ impl<'a> Simplify<'a> for BinOp<'a> {
                 op: Times,
                 lhs,
                 rhs,
-            } if lhs == Number(1.0_f64) => rhs.simplify(),
+            } if lhs == Number(1.0_f64) => rhs,
             // .. * 1 => ..
             BinOp {
                 op: Times,
                 lhs,
                 rhs,
-            } if rhs == Number(1.0_f64) => lhs.simplify(),
+            } if rhs == Number(1.0_f64) => lhs,
             /////////////////////////// Divisions ///////////////////////////
             // 0 / .. => 0
             BinOp {
@@ -108,7 +106,7 @@ impl<'a> Simplify<'a> for BinOp<'a> {
                 op: Divide,
                 lhs,
                 rhs,
-            } if rhs == Number(1.0_f64) => lhs.simplify(),
+            } if rhs == Number(1.0_f64) => lhs,
             // .. / .. => 1
             BinOp {
                 op: Divide,
@@ -129,7 +127,7 @@ impl<'a> Simplify<'a> for BinOp<'a> {
                 op: Power,
                 lhs,
                 rhs,
-            } if rhs == Number(1.0_f64) => lhs.simplify(),
+            } if rhs == Number(1.0_f64) => lhs,
             //////////////////////////// Modulos ////////////////////////////
             // 0 % .. => 0
             BinOp {
@@ -166,11 +164,9 @@ impl<'a> Simplify<'a> for BinOp<'a> {
                 };
                 Number(result)
             },
-            BinOp { op, rhs, lhs } => Element::BinOp(Box::new(BinOp::new(
-                op,
-                lhs.simplify(),
-                rhs.simplify(),
-            ))),
+            BinOp { op, rhs, lhs } => {
+                Element::BinOp(Box::new(BinOp::new(op, lhs, rhs)))
+            },
         }
     }
 }
@@ -184,12 +180,12 @@ impl<'a> Simplify<'a> for UnOp<'a> {
     }
 
     #[inline]
-    fn simplify(self) -> Element<'a> {
-        let operand = self.operand.simplify();
+    fn simplify(mut self) -> Element<'a> {
+        self.operand = self.operand.simplify();
         #[allow(clippy::unreachable)]
         match self.op {
-            Operator::Plus => operand,
-            Operator::Minus => match operand {
+            Operator::Plus => self.operand,
+            Operator::Minus => match self.operand {
                 Element::Number(num) => Element::Number(-num),
                 Element::UnOp(unop) => match unop.op {
                     Operator::Plus => Element::UnOp(Box::new(UnOp::new(
@@ -204,10 +200,7 @@ impl<'a> Simplify<'a> for UnOp<'a> {
                 },
                 Element::BinOp(_)
                 | Element::Function(_)
-                | Element::Variable(_) => Element::UnOp(Box::new(UnOp {
-                    op: self.op,
-                    operand,
-                })),
+                | Element::Variable(_) => Element::UnOp(Box::new(self)),
             },
             Operator::Times
             | Operator::Divide
@@ -225,19 +218,14 @@ impl<'a> Simplify<'a> for FunctionCall<'a> {
     }
 
     #[inline]
-    fn simplify(self) -> Element<'a> {
-        let arg = self.arg.simplify();
-        match arg {
+    fn simplify(mut self) -> Element<'a> {
+        self.arg = self.arg.simplify();
+        match self.arg {
             Element::Number(num) => Element::Number((self.func)(num)),
             Element::BinOp(_)
             | Element::UnOp(_)
             | Element::Function(_)
-            | Element::Variable(_) => {
-                Element::Function(Box::new(FunctionCall {
-                    func: self.func,
-                    arg,
-                }))
-            },
+            | Element::Variable(_) => Element::Function(Box::new(self)),
         }
     }
 }

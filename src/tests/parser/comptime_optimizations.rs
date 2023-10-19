@@ -52,33 +52,21 @@ fn get_valid_test_cases<'a>() -> [(&'static str, Xprs<'a>); 12] {
         (
             "2 * 4 + 1",
             Xprs {
-                root: Element::BinOp(Box::new(BinOp::new(
-                    Operator::Plus,
-                    Element::Number(8.),
-                    Element::Number(1.),
-                ))),
+                root: Element::Number(9.),
                 vars: [].into(),
             },
         ),
         (
             "3 / 2 * 4",
             Xprs {
-                root: Element::BinOp(Box::new(BinOp::new(
-                    Operator::Times,
-                    Element::Number(1.5),
-                    Element::Number(4.),
-                ))),
+                root: Element::Number(6.),
                 vars: [].into(),
             },
         ),
         (
             "3 % 2 * 4",
             Xprs {
-                root: Element::BinOp(Box::new(BinOp::new(
-                    Operator::Times,
-                    Element::Number(1.),
-                    Element::Number(4.),
-                ))),
+                root: Element::Number(4.),
                 vars: [].into(),
             },
         ),
@@ -92,26 +80,14 @@ fn get_valid_test_cases<'a>() -> [(&'static str, Xprs<'a>); 12] {
         (
             "2 + 3 ^ 2 * 3 + 4",
             Xprs {
-                root: Element::BinOp(Box::new(BinOp::new(
-                    Operator::Plus,
-                    Element::BinOp(Box::new(BinOp::new(
-                        Operator::Plus,
-                        Element::Number(2.),
-                        Element::Number(27.),
-                    ))),
-                    Element::Number(4.),
-                ))),
+                root: Element::Number(33.),
                 vars: [].into(),
             },
         ),
         (
             "2^2^(2^2 + 1)",
             Xprs {
-                root: Element::BinOp(Box::new(BinOp::new(
-                    Operator::Power,
-                    Element::Number(4.),
-                    Element::Number(5.),
-                ))),
+                root: Element::Number(1024.),
                 vars: [].into(),
             },
         ),
