@@ -64,18 +64,16 @@ struct ParserImpl<'a> {
     input: &'a [u8],
     cursor: usize,
     ctx: &'a Context<'a>,
-    found_vars: HashSet<&'a str>,
 }
 
 impl<'a> ParserImpl<'a> {
     #[inline]
     #[must_use]
-    fn new(input: &'a str, ctx: &'a Context) -> Self {
+    const fn new(input: &'a str, ctx: &'a Context) -> Self {
         Self {
             input: input.as_bytes(),
             cursor: 0,
             ctx,
-            found_vars: HashSet::new(),
         }
     }
 
@@ -91,10 +89,14 @@ impl<'a> ParserImpl<'a> {
         if let Some(&tok) = parser_impl.next() {
             yeet!(ParseError::new_unexpected_token(&parser_impl, tok));
         }
-        Ok(Xprs {
-            root,
-            vars: parser_impl.found_vars,
-        })
+
+        // TODO: find a better way to get variables
+        // don't like the fact that we go through the whole tree
+        // to find variables
+        let mut vars: HashSet<&str> = HashSet::default();
+        root.find_variables(&mut vars);
+
+        Ok(Xprs { root, vars })
     }
 
     fn element(
@@ -179,10 +181,7 @@ impl<'a> ParserImpl<'a> {
 
         let el = match ident {
             Identifier::Constant(val) => Element::Number(val),
-            Identifier::Variable(var) => {
-                self.found_vars.insert(var);
-                Element::Variable(var)
-            },
+            Identifier::Variable(var) => Element::Variable(var),
             Identifier::Function(func) if Some(&b'(') == self.next() => {
                 let el = self.element(precedence::FN_PRECEDENCE)?;
                 Element::Function(Box::new(FunctionCall::new(func, el)))

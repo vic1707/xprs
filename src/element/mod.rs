@@ -1,5 +1,6 @@
 /* Built-in imports */
 use core::fmt;
+use std::collections::HashSet;
 /* Modules */
 mod binop;
 mod function_call;
@@ -41,5 +42,28 @@ where
     #[inline]
     fn from(num: T) -> Self {
         Self::Number(num.into())
+    }
+}
+
+impl<'a> Element<'a> {
+    #[inline]
+    pub fn find_variables(&self, vars: &mut HashSet<&'a str>) {
+        #[allow(clippy::ref_patterns)]
+        match *self {
+            Self::Variable(var) => {
+                vars.insert(var);
+            },
+            Self::BinOp(ref binop) => {
+                binop.lhs.find_variables(vars);
+                binop.rhs.find_variables(vars);
+            },
+            Self::UnOp(ref unop) => {
+                unop.operand.find_variables(vars);
+            },
+            Self::Function(ref func) => {
+                func.arg.find_variables(vars);
+            },
+            Self::Number(_) => (),
+        };
     }
 }
