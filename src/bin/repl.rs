@@ -3,7 +3,7 @@
     clippy::expect_used,
     clippy::print_stdout,
     clippy::unreachable,
-    clippy::use_debug,
+    clippy::use_debug
 )]
 /* Built-in imports */
 #![allow(clippy::std_instead_of_core)]

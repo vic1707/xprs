@@ -37,8 +37,8 @@ impl<'a> Simplify<'a> for BinOp<'a> {
         self.simplify()
     }
 
-    #[allow(clippy::too_many_lines)]
     #[inline]
+    #[allow(clippy::too_many_lines)]
     fn simplify(mut self) -> Element<'a> {
         use Element::Number;
         use Operator::{Divide, Minus, Modulo, Plus, Power, Times};

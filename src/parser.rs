@@ -21,20 +21,20 @@ pub struct Parser<'a> {
 }
 
 impl<'a> Parser<'a> {
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn new_with_ctx(ctx: Context<'a>) -> Self {
         Self { ctx }
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn ctx(&self) -> &Context {
         &self.ctx
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub fn ctx_mut<'b>(&'b mut self) -> &'b mut Context<'a> {
         &mut self.ctx
     }
