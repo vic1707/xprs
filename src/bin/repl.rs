@@ -1,3 +1,10 @@
+/* Clippy config */
+#![allow(
+    clippy::expect_used,
+    clippy::print_stdout,
+    clippy::unreachable,
+    clippy::use_debug,
+)]
 /* Built-in imports */
 #![allow(clippy::std_instead_of_core)]
 use std::collections::{HashMap, HashSet};
@@ -6,7 +13,6 @@ use std::io::{self, Write};
 /* Crate imports */
 use xprs::Parser;
 
-#[allow(clippy::print_stdout, clippy::use_debug, clippy::unreachable)]
 fn main() -> Result<(), Box<dyn Error>> {
     let parser = Parser::default();
     let mut input = String::new();
@@ -41,13 +47,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-#[allow(clippy::print_stdout)]
 fn ask_for_variables<'a>(set: &'a HashSet<&str>) -> HashMap<&'a str, f64> {
     if !set.is_empty() {
         println!("Please enter the following variables:");
     }
 
-    #[allow(clippy::expect_used)]
     set.iter().fold(HashMap::new(), |mut acc, var| {
         print!("{var}: ");
         io::stdout().lock().flush().expect("Failed to flush stdout");

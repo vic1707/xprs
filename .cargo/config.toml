@@ -13,6 +13,7 @@ rustflags = [
   "-Aclippy::arithmetic-side-effects",          # cursor increment in parsing/lexing and evaluation
   "-Aclippy::blanket_clippy_restriction_lints", # allows `clippy::restriction` to be used globally
   "-Aclippy::float-arithmetic",                 # float arithmetic during evaluation
+  "-Aclippy::missing_trait_methods",            # can use default impl for methods in traits
   "-Aclippy::modulo-arithmetic",                # modulo arithmetic during evaluation
   "-Aclippy::question_mark_used",               # convenience
   "-Aclippy::single_call_fn",                   # function only called once
@@ -22,4 +23,5 @@ rustflags = [
   "-Aclippy::missing-errors-doc",
   "-Aclippy::mod_module_files",
   "-Aclippy::undocumented-unsafe-blocks",
+  "-Aclippy::ref_patterns",                     # dunno if it can be removed
 ]

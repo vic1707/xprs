@@ -75,7 +75,7 @@ impl XprsImpl<'_> {
         XprsImpl { variables }
     }
 
-    #[allow(clippy::ref_patterns, clippy::unreachable)]
+    #[allow(clippy::unreachable)]
     fn eval_element(&self, element: &Element) -> Result<f64, EvalError> {
         let res = match *element {
             Element::Number(n) => n,

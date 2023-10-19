@@ -37,8 +37,8 @@ impl<'a> Simplify<'a> for BinOp<'a> {
         self.simplify()
     }
 
-    #[inline]
     #[allow(clippy::too_many_lines)]
+    #[inline]
     fn simplify(mut self) -> Element<'a> {
         use Element::Number;
         use Operator::{Divide, Minus, Modulo, Plus, Power, Times};
@@ -159,7 +159,6 @@ impl<'a> Simplify<'a> for BinOp<'a> {
                     Times => lhs * rhs,
                     Divide => lhs / rhs,
                     Power => lhs.powf(rhs),
-                    #[allow(clippy::modulo_arithmetic)]
                     Modulo => lhs % rhs,
                 };
                 Number(result)
@@ -171,7 +170,6 @@ impl<'a> Simplify<'a> for BinOp<'a> {
 
 impl<'a> Simplify<'a> for UnOp<'a> {
     #[inline]
-    #[allow(clippy::unreachable)]
     fn simplify_for(mut self, var: (&str, f64)) -> Element<'a> {
         self.operand = self.operand.simplify_for(var);
         self.simplify()

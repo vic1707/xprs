@@ -24,7 +24,6 @@ pub enum Element<'a> {
 
 impl fmt::Display for Element<'_> {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        #[allow(clippy::ref_patterns)]
         match *self {
             Self::Number(num) => write!(fmt, "{num}"),
             Self::BinOp(ref binop) => write!(fmt, "{binop}"),
@@ -48,7 +47,6 @@ where
 impl<'a> Element<'a> {
     #[inline]
     pub fn find_variables(&self, vars: &mut HashSet<&'a str>) {
-        #[allow(clippy::ref_patterns)]
         match *self {
             Self::Variable(var) => {
                 vars.insert(var);

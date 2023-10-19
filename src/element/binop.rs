@@ -23,7 +23,6 @@ impl fmt::Display for BinOp<'_> {
     }
 }
 
-#[allow(clippy::missing_trait_methods)]
 impl PartialEq for BinOp<'_> {
     fn eq(&self, other: &Self) -> bool {
         self.op == other.op

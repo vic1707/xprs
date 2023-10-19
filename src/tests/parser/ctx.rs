@@ -8,7 +8,6 @@ use crate::{
 };
 
 const DOUBLE: Function = |x| x * 2.0_f64;
-#[allow(clippy::float_arithmetic)]
 fn triple(x: f64) -> f64 {
     x * 3.0_f64
 }
