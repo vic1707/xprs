@@ -14,15 +14,6 @@ impl<'a> FunctionCall<'a> {
     pub const fn new(func: Function, arg: Element<'a>) -> Self {
         Self { func, arg }
     }
-
-    pub fn simplify_for(self, var: (&str, f64)) -> Element<'a> {
-        let arg = self.arg.simplify_for(var);
-        if let Element::Number(num) = arg {
-            Element::Number((self.func)(num))
-        } else {
-            Element::Function(Box::new(Self::new(self.func, arg)))
-        }
-    }
 }
 
 impl fmt::Display for FunctionCall<'_> {

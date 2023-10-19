@@ -1,12 +1,15 @@
 /* Built-in imports */
 use core::fmt;
+use std::collections::HashSet;
 /* Modules */
 mod binop;
 mod function_call;
+mod simplify;
 mod unop;
 /* Exports */
 pub use binop::BinOp;
 pub use function_call::FunctionCall;
+pub use simplify::Simplify;
 pub use unop::UnOp;
 
 #[derive(Debug, PartialEq, PartialOrd)]
@@ -42,14 +45,25 @@ where
     }
 }
 
-impl Element<'_> {
-    pub fn simplify_for(self, var: (&str, f64)) -> Self {
-        match self {
-            Self::BinOp(binop) => binop.simplify_for(var),
-            Self::UnOp(unop) => unop.simplify_for(var),
-            Self::Function(func) => func.simplify_for(var),
-            Self::Variable(name) if name == var.0 => Self::Number(var.1),
-            Self::Number(_) | Self::Variable(_) => self,
-        }
+impl<'a> Element<'a> {
+    #[inline]
+    pub fn find_variables(&self, vars: &mut HashSet<&'a str>) {
+        #[allow(clippy::ref_patterns)]
+        match *self {
+            Self::Variable(var) => {
+                vars.insert(var);
+            },
+            Self::BinOp(ref binop) => {
+                binop.lhs.find_variables(vars);
+                binop.rhs.find_variables(vars);
+            },
+            Self::UnOp(ref unop) => {
+                unop.operand.find_variables(vars);
+            },
+            Self::Function(ref func) => {
+                func.arg.find_variables(vars);
+            },
+            Self::Number(_) => (),
+        };
     }
 }
