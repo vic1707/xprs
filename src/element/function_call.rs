@@ -2,7 +2,7 @@
 use core::fmt;
 /* Crate imports */
 use super::Element;
-use crate::utils::Function;
+use crate::misc::Function;
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct FunctionCall<'a> {

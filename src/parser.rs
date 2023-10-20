@@ -2,13 +2,16 @@
 #![allow(clippy::std_instead_of_core)]
 /* Built-in imports */
 use core::str;
-use std::collections::HashSet;
 /* Crate imports */
 use crate::{
     context::Context,
     element::{BinOp, Element, FunctionCall, Simplify, UnOp},
+    misc::HashSet,
     token::{Identifier, Operator},
-    utils::{precedence, macros::{trust_me, yeet}},
+    utils::{
+        macros::{trust_me, yeet},
+        precedence,
+    },
     xprs::Xprs,
 };
 /* Dependencies imports */

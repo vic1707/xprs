@@ -2,10 +2,13 @@
 #![allow(clippy::std_instead_of_core)]
 /* Built-in imports */
 use core::{fmt, ptr};
-use std::collections::{HashMap, HashSet};
 /* Crate imports */
 use crate::{
-    element::Element, element::Simplify, utils::macros::trust_me, token::Operator,
+    element::Element,
+    element::Simplify,
+    misc::{HashMap, HashSet},
+    token::Operator,
+    utils::macros::trust_me,
 };
 
 #[derive(Debug, PartialEq)]

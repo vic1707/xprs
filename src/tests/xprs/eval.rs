@@ -1,7 +1,5 @@
-/* Built-in imports */
-use std::collections::HashMap;
 /* Crate imports */
-use crate::Parser;
+use crate::{misc::HashMap, Parser};
 
 const ERROR_MARGIN: f64 = f64::EPSILON;
 

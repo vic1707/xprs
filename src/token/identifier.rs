@@ -1,7 +1,7 @@
 /* Built-in imports */
 use core::f64;
 /* Crate imports */
-use crate::utils::Function;
+use crate::misc::Function;
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub enum Identifier<'a> {

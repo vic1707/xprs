@@ -1,7 +1,5 @@
-/* Built-in imports */
-use std::collections::{HashMap, HashSet};
 /* Crate imports */
-use crate::utils::Function;
+use crate::misc::{Function, HashMap, HashSet};
 
 #[derive(Debug, Default, PartialEq)]
 #[non_exhaustive]

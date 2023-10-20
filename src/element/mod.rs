@@ -1,6 +1,5 @@
 /* Built-in imports */
 use core::fmt;
-use std::collections::HashSet;
 /* Modules */
 mod binop;
 mod function_call;
@@ -11,6 +10,8 @@ pub use binop::BinOp;
 pub use function_call::FunctionCall;
 pub use simplify::Simplify;
 pub use unop::UnOp;
+
+use crate::misc::HashSet;
 
 #[derive(Debug, PartialEq, PartialOrd)]
 #[non_exhaustive]
