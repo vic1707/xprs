@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 miette = { version = "5.10.0", features = ["fancy-no-backtrace"] }
-thiserror = "1.0.48"
+thiserror = "1.0.50"
 
 [[bin]]
 name = "repl"
