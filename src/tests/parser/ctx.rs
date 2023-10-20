@@ -2,8 +2,8 @@
 use crate::{
     context::Context,
     element::{BinOp, Element, FunctionCall},
-    token::Operator,
     misc::Function,
+    token::Operator,
     Parser,
 };
 
