@@ -177,18 +177,22 @@ impl<'a> ParserImpl<'a> {
                 self.ctx
                     .funcs
                     .get(name)
-                    .map(|&func| Identifier::Function(func))
+                    .map(|&func| Identifier::Function(name, func))
             })
             .unwrap_or_else(|| name.into());
 
         let el = match ident {
             Identifier::Constant(val) => Element::Number(val),
             Identifier::Variable(var) => Element::Variable(var),
-            Identifier::Function(func) if Some(&b'(') == self.next() => {
+            Identifier::Function(fn_name, func)
+                if Some(&b'(') == self.next() =>
+            {
                 let el = self.element(precedence::FN_PRECEDENCE)?;
-                Element::Function(Box::new(FunctionCall::new(func, el)))
+                Element::Function(Box::new(FunctionCall::new(
+                    fn_name, func, el,
+                )))
             },
-            Identifier::Function(_) => {
+            Identifier::Function(_, _) => {
                 yeet!(ParseError::new_expected_token(self, b'('))
             },
         };
