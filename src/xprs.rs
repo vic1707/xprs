@@ -79,9 +79,9 @@ impl XprsImpl<'_> {
         let res = match *element {
             Element::Number(n) => n,
             Element::Variable(name) => *self
-            .variables
-            .get(name)
-            .ok_or_else(|| EvalError(name.to_owned()))?,
+                .variables
+                .get(name)
+                .ok_or_else(|| EvalError(name.to_owned()))?,
             Element::UnOp(ref unop) => {
                 let operand = self.eval_element(&unop.operand)?;
                 #[allow(clippy::unreachable)]
