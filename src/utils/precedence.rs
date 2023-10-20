@@ -1,6 +1,3 @@
-pub type Function = fn(f64) -> f64;
-
-pub mod precedence {
     /* Crate imports */
     use crate::token::Operator;
 
@@ -28,4 +25,3 @@ pub mod precedence {
     }
     /* Functions */
     pub const FN_PRECEDENCE: usize = 5;
-}

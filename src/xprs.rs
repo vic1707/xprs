@@ -5,7 +5,7 @@ use core::{fmt, ptr};
 use std::collections::{HashMap, HashSet};
 /* Crate imports */
 use crate::{
-    element::Element, element::Simplify, macros::trust_me, token::Operator,
+    element::Element, element::Simplify, utils::macros::trust_me, token::Operator,
 };
 
 #[derive(Debug, PartialEq)]

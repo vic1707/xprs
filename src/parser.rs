@@ -7,9 +7,8 @@ use std::collections::HashSet;
 use crate::{
     context::Context,
     element::{BinOp, Element, FunctionCall, Simplify, UnOp},
-    macros::{trust_me, yeet},
     token::{Identifier, Operator},
-    utils::precedence,
+    utils::{precedence, macros::{trust_me, yeet}},
     xprs::Xprs,
 };
 /* Dependencies imports */

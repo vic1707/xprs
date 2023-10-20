@@ -3,8 +3,6 @@
 /* Modules */
 mod context;
 mod element;
-#[doc(hidden)]
-mod macros;
 mod parser;
 mod token;
 mod utils;
