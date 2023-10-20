@@ -3,7 +3,7 @@ use crate::{
     context::Context,
     element::{BinOp, Element, FunctionCall},
     token::Operator,
-    utils::Function,
+    misc::Function,
     Parser,
 };
 
