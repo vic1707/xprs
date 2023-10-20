@@ -54,6 +54,7 @@ fn get_valid_test_cases<'a>() -> [(&'static str, Element<'a>); 5] {
         (
             "double(2 + phi * x)",
             Element::Function(Box::new(FunctionCall::new(
+                "double",
                 DOUBLE,
                 Element::BinOp(Box::new(BinOp::new(
                     Operator::Plus,
@@ -69,6 +70,7 @@ fn get_valid_test_cases<'a>() -> [(&'static str, Element<'a>); 5] {
         (
             "triple(2)",
             Element::Function(Box::new(FunctionCall::new(
+                "triple",
                 triple,
                 Element::Number(2.0),
             ))),

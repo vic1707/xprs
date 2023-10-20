@@ -280,6 +280,7 @@ fn get_valid_test_cases<'a>() -> [(&'static str, Xprs<'a>); 27] {
             "sin(2)",
             Xprs {
                 root: Element::Function(Box::new(FunctionCall::new(
+                    "sin",
                     f64::sin,
                     Element::Number(2.),
                 ))),
@@ -290,8 +291,10 @@ fn get_valid_test_cases<'a>() -> [(&'static str, Xprs<'a>); 27] {
             "abs(sin(2))",
             Xprs {
                 root: Element::Function(Box::new(FunctionCall::new(
+                    "abs",
                     f64::abs,
                     Element::Function(Box::new(FunctionCall::new(
+                        "sin",
                         f64::sin,
                         Element::Number(2.),
                     ))),
@@ -303,10 +306,12 @@ fn get_valid_test_cases<'a>() -> [(&'static str, Xprs<'a>); 27] {
             "sin(-cos(2))",
             Xprs {
                 root: Element::Function(Box::new(FunctionCall::new(
+                    "sin",
                     f64::sin,
                     Element::UnOp(Box::new(UnOp::new(
                         Operator::Minus,
                         Element::Function(Box::new(FunctionCall::new(
+                            "cos",
                             f64::cos,
                             Element::Number(2.),
                         ))),
@@ -321,6 +326,7 @@ fn get_valid_test_cases<'a>() -> [(&'static str, Xprs<'a>); 27] {
                 root: Element::BinOp(Box::new(BinOp::new(
                     Operator::Power,
                     Element::Function(Box::new(FunctionCall::new(
+                        "sin",
                         f64::sin,
                         Element::Number(2.),
                     ))),
