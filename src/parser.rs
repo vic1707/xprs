@@ -111,7 +111,7 @@ impl<'a> ParserImpl<'a> {
             self.get_operator_infos(&el, precedence)
         {
             let rhs = self.element(op_precedence)?;
-            el = Element::BinOp(Box::new(BinOp::new(op, el, rhs)));
+            el = BinOp::new_element(op, el, rhs);
         }
 
         #[cfg(feature = "compile-time-optimizations")]
@@ -141,7 +141,7 @@ impl<'a> ParserImpl<'a> {
                     _ => unreachable!(),
                 };
                 let operand = self.element(precedence::UNOP_PRECEDENCE)?;
-                Element::UnOp(Box::new(UnOp::new(operator, operand)))
+                UnOp::new_element(operator, operand)
             },
             /* Parenthesis */
             b'(' => {
@@ -188,9 +188,7 @@ impl<'a> ParserImpl<'a> {
                 if Some(&b'(') == self.next() =>
             {
                 let el = self.element(precedence::FN_PRECEDENCE)?;
-                Element::Function(Box::new(FunctionCall::new(
-                    fn_name, func, el,
-                )))
+                FunctionCall::new_element(fn_name, func, el)
             },
             Identifier::Function(_, _) => {
                 yeet!(ParseError::new_expected_token(self, b'('))

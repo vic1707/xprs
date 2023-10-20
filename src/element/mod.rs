@@ -45,6 +45,27 @@ where
     }
 }
 
+impl<'a> From<BinOp<'a>> for Element<'a> {
+    #[inline]
+    fn from(binop: BinOp<'a>) -> Self {
+        Self::BinOp(Box::new(binop))
+    }
+}
+
+impl<'a> From<UnOp<'a>> for Element<'a> {
+    #[inline]
+    fn from(unop: UnOp<'a>) -> Self {
+        Self::UnOp(Box::new(unop))
+    }
+}
+
+impl<'a> From<FunctionCall<'a>> for Element<'a> {
+    #[inline]
+    fn from(func: FunctionCall<'a>) -> Self {
+        Self::Function(Box::new(func))
+    }
+}
+
 impl<'a> Element<'a> {
     #[inline]
     pub fn find_variables(&self, vars: &mut HashSet<&'a str>) {

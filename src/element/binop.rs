@@ -15,6 +15,14 @@ impl<'a> BinOp<'a> {
     pub const fn new(op: Operator, lhs: Element<'a>, rhs: Element<'a>) -> Self {
         Self { op, lhs, rhs }
     }
+
+    pub fn new_element(
+        op: Operator,
+        lhs: Element<'a>,
+        rhs: Element<'a>,
+    ) -> Element<'a> {
+        Element::BinOp(Box::new(Self::new(op, lhs, rhs)))
+    }
 }
 
 impl fmt::Display for BinOp<'_> {

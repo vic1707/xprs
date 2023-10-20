@@ -15,6 +15,14 @@ impl<'a> FunctionCall<'a> {
     pub const fn new(name: &'a str, func: Function, arg: Element<'a>) -> Self {
         Self { name, func, arg }
     }
+
+    pub fn new_element(
+        name: &'a str,
+        func: Function,
+        arg: Element<'a>,
+    ) -> Element<'a> {
+        Element::Function(Box::new(Self::new(name, func, arg)))
+    }
 }
 
 impl fmt::Display for FunctionCall<'_> {

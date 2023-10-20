@@ -163,7 +163,7 @@ impl<'a> Simplify<'a> for BinOp<'a> {
                 };
                 Number(result)
             },
-            _ => Element::BinOp(Box::new(self)),
+            _ => self.into(),
         }
     }
 }
@@ -184,10 +184,9 @@ impl<'a> Simplify<'a> for UnOp<'a> {
             Operator::Minus => match self.operand {
                 Element::Number(num) => Element::Number(-num),
                 Element::UnOp(unop) => match unop.op {
-                    Operator::Plus => Element::UnOp(Box::new(UnOp::new(
-                        Operator::Minus,
-                        unop.operand,
-                    ))),
+                    Operator::Plus => {
+                        UnOp::new_element(Operator::Minus, unop.operand)
+                    },
                     Operator::Minus => unop.operand,
                     Operator::Times
                     | Operator::Divide
@@ -196,7 +195,7 @@ impl<'a> Simplify<'a> for UnOp<'a> {
                 },
                 Element::BinOp(_)
                 | Element::Function(_)
-                | Element::Variable(_) => Element::UnOp(Box::new(self)),
+                | Element::Variable(_) => self.into(),
             },
             Operator::Times
             | Operator::Divide
@@ -221,7 +220,7 @@ impl<'a> Simplify<'a> for FunctionCall<'a> {
             Element::BinOp(_)
             | Element::UnOp(_)
             | Element::Function(_)
-            | Element::Variable(_) => Element::Function(Box::new(self)),
+            | Element::Variable(_) => self.into(),
         }
     }
 }

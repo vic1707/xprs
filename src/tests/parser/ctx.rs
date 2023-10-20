@@ -33,47 +33,43 @@ fn get_valid_test_cases<'a>() -> [(&'static str, Element<'a>); 5] {
         ("y", Element::Number(1.0)),
         (
             "2 + phi",
-            Element::BinOp(Box::new(BinOp::new(
+            BinOp::new_element(
                 Operator::Plus,
                 Element::Number(2.0),
                 Element::Number(1.618_033_988_749_895),
-            ))),
+            ),
         ),
         (
             "2 + phi * x",
-            Element::BinOp(Box::new(BinOp::new(
+            BinOp::new_element(
                 Operator::Plus,
                 Element::Number(2.0),
-                Element::BinOp(Box::new(BinOp::new(
+                BinOp::new_element(
                     Operator::Times,
                     Element::Number(1.618_033_988_749_895),
                     Element::Number(2.0),
-                ))),
-            ))),
+                ),
+            ),
         ),
         (
             "double(2 + phi * x)",
-            Element::Function(Box::new(FunctionCall::new(
+            FunctionCall::new_element(
                 "double",
                 DOUBLE,
-                Element::BinOp(Box::new(BinOp::new(
+                BinOp::new_element(
                     Operator::Plus,
                     Element::Number(2.0),
-                    Element::BinOp(Box::new(BinOp::new(
+                    BinOp::new_element(
                         Operator::Times,
                         Element::Number(1.618_033_988_749_895),
                         Element::Number(2.0),
-                    ))),
-                ))),
-            ))),
+                    ),
+                ),
+            ),
         ),
         (
             "triple(2)",
-            Element::Function(Box::new(FunctionCall::new(
-                "triple",
-                triple,
-                Element::Number(2.0),
-            ))),
+            FunctionCall::new_element("triple", triple, Element::Number(2.0)),
         ),
     ]
 }

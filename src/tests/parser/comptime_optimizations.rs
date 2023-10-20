@@ -36,11 +36,11 @@ fn get_valid_test_cases<'a>() -> [(&'static str, Xprs<'a>); 13] {
         (
             "2 * y",
             Xprs {
-                root: Element::BinOp(Box::new(BinOp::new(
+                root: BinOp::new_element(
                     Operator::Times,
                     Element::Number(2.),
                     Element::Variable("y"),
-                ))),
+                ),
                 vars: ["y"].into(),
             },
         ),

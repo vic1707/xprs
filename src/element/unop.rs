@@ -14,6 +14,10 @@ impl<'a> UnOp<'a> {
     pub const fn new(op: Operator, operand: Element<'a>) -> Self {
         Self { op, operand }
     }
+
+    pub fn new_element(op: Operator, operand: Element<'a>) -> Element<'a> {
+        Element::UnOp(Box::new(Self::new(op, operand)))
+    }
 }
 
 impl fmt::Display for UnOp<'_> {
