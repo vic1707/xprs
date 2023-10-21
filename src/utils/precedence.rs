@@ -2,9 +2,8 @@
 use crate::token::Operator;
 
 pub const NO_PRECEDENCE: usize = 0;
-/* Unary operators */
 pub const UNOP_PRECEDENCE: usize = 3;
-/* Binary operators */
+pub const FN_PRECEDENCE: usize = 5;
 
 #[cfg(feature = "pejmdas")]
 pub const IMPLICIT_MULTIPLICATION_PRECEDENCE: usize = 3;
@@ -23,5 +22,3 @@ pub const fn get_for_op(op: &Operator) -> usize {
         Operator::Power => 4,
     }
 }
-/* Functions */
-pub const FN_PRECEDENCE: usize = 5;
