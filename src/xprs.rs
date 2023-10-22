@@ -178,7 +178,7 @@ impl<'a> Xprs<'a> {
     // + I don't really think anyone will need more than 9 variables anyway
     #[inline]
     pub fn bind_n<const T: usize>(self, vars: [&'a str; T]) -> impl Fn([f64; T]) -> Result<f64, EvalError> + 'a {
-        move |vals| self.eval(&vars.iter().copied().zip(vals).collect())
+        move |vals| self.eval(&vars.into_iter().zip(vals).collect())
     }
     #[inline]
     pub fn bind_n_runtime(self, vars: &'a [&'a str]) -> impl Fn(&[f64]) -> Result<f64, EvalError> + 'a {
