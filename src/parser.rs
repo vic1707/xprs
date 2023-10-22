@@ -177,20 +177,18 @@ impl<'a> ParserImpl<'a> {
                 self.ctx
                     .funcs
                     .get(name)
-                    .map(|&func| Identifier::Function(name, func))
+                    .map(|&func| Identifier::Function(func))
             })
             .unwrap_or_else(|| name.into());
 
         let el = match ident {
             Identifier::Constant(val) => Element::Number(val),
             Identifier::Variable(var) => Element::Variable(var),
-            Identifier::Function(fn_name, func)
-                if Some(&b'(') == self.next() =>
-            {
-                let el = self.element(precedence::FN_PRECEDENCE)?;
-                FunctionCall::new_element(fn_name, func, el)
+            Identifier::Function(func) if Some(&b'(') == self.next() => {
+                let args = self.parse_arguments(func.nb_args)?;
+                FunctionCall::new_element(func, args)
             },
-            Identifier::Function(_, _) => {
+            Identifier::Function(_) => {
                 yeet!(ParseError::new_expected_token(self, b'('))
             },
         };
@@ -207,6 +205,32 @@ impl<'a> ParserImpl<'a> {
             .map_err(|_err| ParseError::new_malformed_number(self, ident))?;
 
         Ok(Element::Number(num))
+    }
+
+    fn parse_arguments(
+        &mut self,
+        mut nb_args: usize,
+    ) -> Result<Vec<Element<'a>>, ParseError> {
+        let mut args = Vec::with_capacity(nb_args);
+        self.cursor += 1;
+
+        while nb_args > 0 {
+            args.push(self.element(precedence::FN_PRECEDENCE)?);
+            nb_args -= 1;
+            if nb_args > 0 {
+                if self.next() != Some(&b',') {
+                    yeet!(ParseError::new_expected_token(self, b','));
+                }
+                self.cursor += 1;
+            }
+        }
+
+        if self.next() != Some(&b')') {
+            yeet!(ParseError::new_expected_token(self, b')'));
+        }
+        self.cursor += 1;
+
+        Ok(args)
     }
 
     #[inline]

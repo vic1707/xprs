@@ -81,7 +81,9 @@ impl<'a> Element<'a> {
                 unop.operand.find_variables(vars);
             },
             Self::Function(ref func) => {
-                func.arg.find_variables(vars);
+                for arg in &*func.args {
+                    arg.find_variables(vars);
+                }
             },
             Self::Number(_) => (),
         };

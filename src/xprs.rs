@@ -110,8 +110,12 @@ impl XprsImpl<'_> {
                 }
             },
             Element::Function(ref func) => {
-                let arg = self.eval_element(&func.arg)?;
-                (func.func)(arg)
+                let args = func
+                    .args
+                    .iter()
+                    .map(|arg| self.eval_element(arg))
+                    .collect::<Result<Vec<_>, EvalError>>()?;
+                func.call(&args)
             },
         };
 

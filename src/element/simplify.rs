@@ -209,19 +209,34 @@ impl<'a> Simplify<'a> for UnOp<'a> {
 impl<'a> Simplify<'a> for FunctionCall<'a> {
     #[inline]
     fn simplify_for(mut self, var: (&str, f64)) -> Element<'a> {
-        self.arg = self.arg.simplify_for(var);
+        self.args = self
+            .args
+            .into_iter()
+            .map(|arg| arg.simplify_for(var))
+            .collect();
         self.simplify()
     }
 
     #[inline]
     fn simplify(mut self) -> Element<'a> {
-        self.arg = self.arg.simplify();
-        match self.arg {
-            Element::Number(num) => Element::Number((self.func)(num)),
-            Element::BinOp(_)
-            | Element::UnOp(_)
-            | Element::Function(_)
-            | Element::Variable(_) => self.into(),
+        let mut args: Vec<f64> = Vec::with_capacity(self.args.len());
+
+        self.args = self
+            .args
+            .into_iter()
+            .map(|argu| {
+                let arg = argu.simplify();
+                if let Element::Number(num) = arg {
+                    args.push(num);
+                }
+                arg
+            })
+            .collect();
+
+        if args.len() == self.args.len() {
+            self.call(&args).into()
+        } else {
+            self.into()
         }
     }
 }
