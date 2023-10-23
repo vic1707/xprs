@@ -26,11 +26,7 @@ impl<'a> Function<'a> {
         func: fn(&[f64]) -> f64,
         nb_args: u8,
     ) -> Identifier<'a> {
-        Identifier::Function(Self::new(
-            name,
-            func,
-            nb_args,
-        ))
+        Identifier::Function(Self::new(name, func, nb_args))
     }
 }
 
