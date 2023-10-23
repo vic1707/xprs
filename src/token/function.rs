@@ -2,14 +2,14 @@
 pub struct Function<'a> {
     pub(crate) name: &'a str,
     pub(crate) func: fn(&[f64]) -> f64,
-    pub(crate) nb_args: usize,
+    pub(crate) nb_args: u8,
 }
 
 impl<'a> Function<'a> {
     pub const fn new(
         name: &'a str,
         func: fn(&[f64]) -> f64,
-        nb_args: usize,
+        nb_args: u8,
     ) -> Self {
         Self {
             name,

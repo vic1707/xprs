@@ -209,9 +209,9 @@ impl<'a> ParserImpl<'a> {
 
     fn parse_arguments(
         &mut self,
-        mut nb_args: usize,
+        mut nb_args: u8,
     ) -> Result<Vec<Element<'a>>, ParseError> {
-        let mut args = Vec::with_capacity(nb_args);
+        let mut args = Vec::with_capacity(usize::from(nb_args));
         self.cursor += 1;
 
         while nb_args > 0 {
