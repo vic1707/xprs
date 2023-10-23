@@ -1,3 +1,6 @@
+/* Crate imports */
+use crate::token::Identifier;
+
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Copy, Clone)]
 pub struct Function<'a> {
     pub(crate) name: &'a str,
@@ -16,6 +19,18 @@ impl<'a> Function<'a> {
             func,
             nb_args,
         }
+    }
+
+    pub const fn new_identifier(
+        name: &'a str,
+        func: fn(&[f64]) -> f64,
+        nb_args: u8,
+    ) -> Identifier<'a> {
+        Identifier::Function(Self::new(
+            name,
+            func,
+            nb_args,
+        ))
     }
 }
 
