@@ -9,6 +9,9 @@ edition = "2021"
 miette = { version = "5.10.0", features = ["fancy-no-backtrace"] }
 thiserror = "1.0.50"
 
+[build-dependencies]
+rustc_version = "0.4.0"
+
 [[bin]]
 name = "repl"
 path = "src/bin/repl.rs"
