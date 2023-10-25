@@ -8,7 +8,10 @@ fn main() {
     let version_meta = version_meta().expect("Couldn't get Rust channel");
 
     // Assert we haven't travelled back in time
-    assert!(version.major >= 1, "How did you get a version before 1.0.0?");
+    assert!(
+        version.major >= 1,
+        "How did you get a version before 1.0.0?"
+    );
 
     // Generic setting
     println!("cargo:rerun-if-changed=build.rs");
