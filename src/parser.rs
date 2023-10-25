@@ -209,19 +209,18 @@ impl<'a> ParserImpl<'a> {
 
     fn parse_arguments(
         &mut self,
-        mut nb_args: u8,
+        nb_args: u8,
     ) -> Result<Vec<Element<'a>>, ParseError> {
+        /* At the call we are still on the opening parenthesis */
         let mut args = Vec::with_capacity(usize::from(nb_args));
-        self.cursor += 1;
 
-        while nb_args > 0 {
-            args.push(self.element(precedence::FN_PRECEDENCE)?);
-            nb_args -= 1;
-            if nb_args > 0 {
-                if self.next() != Some(&b',') {
-                    yeet!(ParseError::new_expected_token(self, b','));
-                }
-                self.cursor += 1;
+        for idx in 1..=nb_args {
+            self.cursor += 1;
+            let arg = self.element(precedence::NO_PRECEDENCE)?;
+            args.push(arg);
+            // check for comma if not last argument
+            if idx != nb_args && self.next() != Some(&b',') {
+                yeet!(ParseError::new_expected_token(self, b','));
             }
         }
 
