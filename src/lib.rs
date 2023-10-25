@@ -1,3 +1,6 @@
+/* NIGHTLY Features */
+// no_std if nightly and feature is enabled
+#![cfg_attr(all(NIGHTLY, not(feature = "std")), no_std)]
 /* Clippy config */
 #![allow(clippy::pub_use)]
 /* Modules */

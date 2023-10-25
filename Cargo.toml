@@ -17,7 +17,9 @@ name = "repl"
 path = "src/bin/repl.rs"
 
 [features]
-default = ["pemdas", "compile-time-optimizations"]
-pemdas = []
-pejmdas = []
+default = ["pemdas", "compile-time-optimizations", "std"]
 compile-time-optimizations = []
+pejmdas = []
+pemdas = []
+std = []
+
