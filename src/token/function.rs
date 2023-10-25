@@ -5,14 +5,14 @@ use crate::token::Identifier;
 pub struct Function<'a> {
     pub(crate) name: &'a str,
     pub(crate) func: fn(&[f64]) -> f64,
-    pub(crate) nb_args: u8,
+    pub(crate) nb_args: Option<u8>,
 }
 
 impl<'a> Function<'a> {
     pub const fn new(
         name: &'a str,
         func: fn(&[f64]) -> f64,
-        nb_args: u8,
+        nb_args: Option<u8>,
     ) -> Self {
         Self {
             name,
@@ -24,7 +24,7 @@ impl<'a> Function<'a> {
     pub const fn new_identifier(
         name: &'a str,
         func: fn(&[f64]) -> f64,
-        nb_args: u8,
+        nb_args: Option<u8>,
     ) -> Identifier<'a> {
         Identifier::Function(Self::new(name, func, nb_args))
     }
@@ -33,14 +33,14 @@ impl<'a> Function<'a> {
 macro_rules! function {
     ($function:expr, 1) => {
         #[allow(clippy::indexing_slicing)]
-        Function::new(stringify!($function), move |args| $function(args[0]), 1)
+        Function::new(stringify!($function), move |args| $function(args[0]), Some(1))
     };
     ($function:expr, 2) => {
         #[allow(clippy::indexing_slicing)]
         Function::new(
             stringify!($function),
             move |args| $function(args[0], args[1]),
-            2,
+            Some(2),
         )
     };
     ($function:expr, 3) => {
@@ -48,7 +48,7 @@ macro_rules! function {
         Function::new(
             stringify!($function),
             move |args| $function(args[0], args[1], args[2]),
-            3,
+            Some(3),
         )
     };
     ($function:expr, 4) => {
@@ -56,7 +56,7 @@ macro_rules! function {
         Function::new(
             stringify!($function),
             move |args| $function(args[0], args[1], args[2], args[3]),
-            4,
+            Some(4),
         )
     };
     ($function:expr, 5) => {
@@ -64,7 +64,7 @@ macro_rules! function {
         Function::new(
             stringify!($function),
             move |args| $function(args[0], args[1], args[2], args[3], args[4]),
-            5,
+            Some(5),
         )
     };
     ($function:expr, 6) => {
@@ -74,7 +74,7 @@ macro_rules! function {
             move |args| {
                 $function(args[0], args[1], args[2], args[3], args[4], args[5])
             },
-            6,
+            Some(6),
         )
     };
     ($function:expr, 7) => {
@@ -87,7 +87,7 @@ macro_rules! function {
                     args[6],
                 )
             },
-            7,
+            Some(7),
         )
     };
     ($function:expr, 8) => {
@@ -100,7 +100,7 @@ macro_rules! function {
                     args[6], args[7],
                 )
             },
-            8,
+            Some(8),
         )
     };
     ($function:expr, 9) => {
@@ -113,7 +113,7 @@ macro_rules! function {
                     args[6], args[7], args[8],
                 )
             },
-            9,
+            Some(9),
         )
     };
 }

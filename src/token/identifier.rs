@@ -45,6 +45,9 @@ impl<'a> From<&'a str> for Identifier<'a> {
             "ceil" => function!(f64::ceil, 1).into(),
             "round" => function!(f64::round, 1).into(),
             "trunc" => function!(f64::trunc, 1).into(),
+            "sum" => {
+                Function::new_identifier("sum", |args| args.iter().sum(), None)
+            },
             /* Variables */
             _ => Identifier::Variable(value),
         }

@@ -185,7 +185,10 @@ impl<'a> ParserImpl<'a> {
             Identifier::Constant(val) => Element::Number(val),
             Identifier::Variable(var) => Element::Variable(var),
             Identifier::Function(func) if Some(&b'(') == self.next() => {
-                let args = self.parse_arguments(func.nb_args)?;
+                let args = match func.nb_args {
+                    Some(nb) => self.parse_arguments(nb)?,
+                    None => self.parse_variadic_arguments()?,
+                };
                 FunctionCall::new_element(func, args)
             },
             Identifier::Function(_) => {
@@ -227,6 +230,31 @@ impl<'a> ParserImpl<'a> {
         if self.next() != Some(&b')') {
             yeet!(ParseError::new_expected_token(self, b')'));
         }
+        self.cursor += 1;
+
+        Ok(args)
+    }
+
+    fn parse_variadic_arguments(&mut self) -> Result<Vec<Element<'a>>, ParseError> {
+        /* At the call we are still on the opening parenthesis */
+        let mut args = Vec::new();
+
+        loop {
+            self.cursor += 1;
+            let arg = self.element(precedence::NO_PRECEDENCE)?;
+            args.push(arg);
+
+            // expect either a comma or a closing parenthesis
+            match self.next() {
+                Some(&b',') => continue,
+                Some(&b')') => break,
+                Some(&tok) => yeet!(ParseError::new_unexpected_token(self, tok)),
+                None => yeet!(ParseError::new_unexpected_end_of_expression(
+                    self
+                )),
+            }
+        }
+        // we know we have a closing parenthesis
         self.cursor += 1;
 
         Ok(args)
