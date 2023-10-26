@@ -33,7 +33,11 @@ impl<'a> Function<'a> {
 macro_rules! function {
     ($function:expr, 1) => {
         #[allow(clippy::indexing_slicing)]
-        Function::new(stringify!($function), move |args| $function(args[0]), Some(1))
+        Function::new(
+            stringify!($function),
+            move |args| $function(args[0]),
+            Some(1),
+        )
     };
     ($function:expr, 2) => {
         #[allow(clippy::indexing_slicing)]
