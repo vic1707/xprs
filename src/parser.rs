@@ -185,10 +185,15 @@ impl<'a> ParserImpl<'a> {
             Identifier::Constant(val) => Element::Number(val),
             Identifier::Variable(var) => Element::Variable(var),
             Identifier::Function(func) if Some(&b'(') == self.next() => {
+                self.cursor += 1;
                 let args = match func.nb_args {
                     Some(nb) => self.parse_arguments(nb)?,
                     None => self.parse_variadic_arguments()?,
                 };
+                if self.next() != Some(&b')') {
+                    yeet!(ParseError::new_expected_token(self, b')'));
+                }
+                self.cursor += 1;
                 FunctionCall::new_element(func, args)
             },
             Identifier::Function(_) => {
@@ -214,49 +219,43 @@ impl<'a> ParserImpl<'a> {
         &mut self,
         nb_args: u8,
     ) -> Result<Vec<Element<'a>>, ParseError> {
-        /* At the call we are still on the opening parenthesis */
-        let mut args = Vec::with_capacity(usize::from(nb_args));
-
-        for idx in 1..=nb_args {
-            self.cursor += 1;
-            let arg = self.element(precedence::NO_PRECEDENCE)?;
-            args.push(arg);
-            // check for comma if not last argument
-            if idx != nb_args && self.next() != Some(&b',') {
-                yeet!(ParseError::new_expected_token(self, b','));
-            }
-        }
-
-        if self.next() != Some(&b')') {
-            yeet!(ParseError::new_expected_token(self, b')'));
-        }
-        self.cursor += 1;
-
-        Ok(args)
+        (1..=nb_args)
+            .map(|idx| {
+                let arg = self.element(precedence::NO_PRECEDENCE)?;
+                // check for comma if not last argument
+                if idx != nb_args {
+                    if self.next() == Some(&b',') {
+                        self.cursor += 1;
+                    } else {
+                        yeet!(ParseError::new_expected_token(self, b','));
+                    }
+                }
+                Ok(arg)
+            })
+            .collect::<Result<Vec<Element<'a>>, ParseError>>()
     }
 
-    fn parse_variadic_arguments(&mut self) -> Result<Vec<Element<'a>>, ParseError> {
-        /* At the call we are still on the opening parenthesis */
+    fn parse_variadic_arguments(
+        &mut self,
+    ) -> Result<Vec<Element<'a>>, ParseError> {
         let mut args = Vec::new();
 
         loop {
-            self.cursor += 1;
             let arg = self.element(precedence::NO_PRECEDENCE)?;
             args.push(arg);
 
             // expect either a comma or a closing parenthesis
             match self.next() {
-                Some(&b',') => continue,
+                Some(&b',') => self.cursor += 1,
                 Some(&b')') => break,
-                Some(&tok) => yeet!(ParseError::new_unexpected_token(self, tok)),
-                None => yeet!(ParseError::new_unexpected_end_of_expression(
-                    self
-                )),
+                Some(&tok) => {
+                    yeet!(ParseError::new_unexpected_token(self, tok))
+                },
+                None => {
+                    yeet!(ParseError::new_unexpected_end_of_expression(self))
+                },
             }
         }
-        // we know we have a closing parenthesis
-        self.cursor += 1;
-
         Ok(args)
     }
 
