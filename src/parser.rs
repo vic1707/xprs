@@ -291,7 +291,7 @@ pub enum ErrorKind {
     UnexpectedEndOfExpression,
     #[error("Unexpected token: `{0}`")]
     UnexpectedToken(char),
-    #[error("Malforned number: `{0}`")]
+    #[error("Malformed number: `{0}`")]
     MalformedNumber(String),
     #[error("Illegal character: `{0}`")]
     IllegalCharacter(char),
