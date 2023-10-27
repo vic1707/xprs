@@ -6,17 +6,17 @@ use crate::token::Function;
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct FunctionCall<'a> {
-    pub(crate) func: Function<'a>,
+    pub(crate) func: &'a Function<'a>,
     pub(crate) args: Vec<Element<'a>>,
 }
 
 impl<'a> FunctionCall<'a> {
-    pub const fn new(func: Function<'a>, args: Vec<Element<'a>>) -> Self {
+    pub const fn new(func: &'a Function<'a>, args: Vec<Element<'a>>) -> Self {
         Self { func, args }
     }
 
     pub fn new_element(
-        func: Function<'a>,
+        func: &'a Function<'a>,
         args: Vec<Element<'a>>,
     ) -> Element<'a> {
         Element::Function(Box::new(Self::new(func, args)))
