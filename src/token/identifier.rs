@@ -31,6 +31,7 @@ impl<'a> From<&'a str> for Identifier<'a> {
             "tan" => built_in_functions::TAN.into(),
             "tanh" => built_in_functions::TANH.into(),
             "atan" => built_in_functions::ATAN.into(),
+            "atan2" => built_in_functions::ATAN2.into(),
             "atanh" => built_in_functions::ATANH.into(),
             // log
             "ln" => built_in_functions::LN.into(),
@@ -48,6 +49,11 @@ impl<'a> From<&'a str> for Identifier<'a> {
             "trunc" => built_in_functions::TRUNC.into(),
             "sum" => built_in_functions::SUM.into(),
             "mean" => built_in_functions::MEAN.into(),
+            "invert" => built_in_functions::INVERT.into(),
+            "min" => built_in_functions::MIN.into(),
+            "max" => built_in_functions::MAX.into(),
+            "hypot" => built_in_functions::HYPOT.into(),
+            "fract" => built_in_functions::FRACT.into(),
             /* Variables */
             _ => Identifier::Variable(value),
         }

@@ -74,6 +74,7 @@ pub mod built_in_functions {
     pub const TAN: Function = xprs_fn!("tan", f64::tan, 1);
     pub const TANH: Function = xprs_fn!("tanh", f64::tanh, 1);
     pub const ATAN: Function = xprs_fn!("atan", f64::atan, 1);
+    pub const ATAN2: Function = xprs_fn!("atan2", f64::atan2, 2);
     pub const ATANH: Function = xprs_fn!("atanh", f64::atanh, 1);
     // log
     pub const LN: Function = xprs_fn!("ln", f64::ln, 1);
@@ -94,4 +95,13 @@ pub mod built_in_functions {
     pub const MEAN: Function = xprs_fn!("mean", |args| {
         args.iter().sum::<f64>() / args.len() as f64
     });
+    pub const INVERT: Function = xprs_fn!("invert", f64::recip, 1);
+    pub const MIN: Function = xprs_fn!("min", |args| {
+        args.iter().fold(f64::INFINITY, |acc, &x| acc.min(x))
+    });
+    pub const MAX: Function = xprs_fn!("max", |args| {
+        args.iter().fold(f64::NEG_INFINITY, |acc, &x| acc.max(x))
+    });
+    pub const HYPOT: Function = xprs_fn!("hypot", f64::hypot, 2);
+    pub const FRACT: Function = xprs_fn!("fract", f64::fract, 1);
 }
