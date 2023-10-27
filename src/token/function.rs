@@ -34,11 +34,22 @@ impl<'a> Function<'a> {
 #[allow(clippy::module_name_repetitions)]
 macro_rules! xprs_function {
     // variadics
+    ($name:literal, $function:expr) => {
+        $crate::token::Function::new($name, $function, None)
+    };
     ($function:expr) => {
-        Function::new(stringify!($function), move |args| $function(args), None)
+        $crate::token::Function::new(stringify!($function), $function, None)
+    };
+    // fixed args
+    ($name:literal, $function:expr, $nb_args:tt) => {
+        $crate::token::Function::new(
+            $name,
+            $crate::utils::macros::wrap_into_closure!($function, $nb_args),
+            Some($nb_args)
+        )
     };
     ($function:expr, $nb_args:tt) => {
-        Function::new(
+        $crate::token::Function::new(
             stringify!($function),
             $crate::utils::macros::wrap_into_closure!($function, $nb_args),
             Some($nb_args),
