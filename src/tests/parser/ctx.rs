@@ -3,22 +3,22 @@ use crate::{
     context::Context,
     element::{BinOp, Element, FunctionCall},
     token::{Function, Operator},
-    xprs_function, Parser,
+    xprs_fn, Parser,
 };
 
 fn double(x: f64) -> f64 {
     x * 2.0_f64
 }
-const DOUBLE: Function = xprs_function!("DOUBLE", double, 1);
+const DOUBLE: Function = xprs_fn!("DOUBLE", double, 1);
 fn add(x: f64, y: f64) -> f64 {
     x + y
 }
-const ADD: Function = xprs_function!("ADD", add, 2);
+const ADD: Function = xprs_fn!("ADD", add, 2);
 #[allow(clippy::as_conversions, clippy::cast_precision_loss)]
 fn mean(args: &[f64]) -> f64 {
     args.iter().sum::<f64>() / args.len() as f64
 }
-const MEAN: Function = xprs_function!("MEAN", mean);
+const MEAN: Function = xprs_fn!("MEAN", mean);
 
 fn get_parser_with_ctx<'a>() -> Parser<'a> {
     let mut ctx = Context::default();
