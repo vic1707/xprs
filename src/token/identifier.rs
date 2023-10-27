@@ -35,6 +35,7 @@ impl<'a> From<&'a str> for Identifier<'a> {
             // log
             "ln" => built_in_functions::LN.into(),
             "log" => built_in_functions::LOG.into(),
+            "logn" => built_in_functions::LOGN.into(),
             // roots
             "sqrt" => built_in_functions::SQRT.into(),
             "cbrt" => built_in_functions::CBRT.into(),

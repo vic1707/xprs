@@ -79,6 +79,7 @@ pub mod built_in_functions {
     // log
     pub const LN: Function = xprs_function!("ln", f64::ln, 1);
     pub const LOG: Function = xprs_function!("log", f64::log10, 1);
+    pub const LOGN: Function = xprs_function!("logn", f64::log, 2);
     // roots
     pub const SQRT: Function = xprs_function!("sqrt", f64::sqrt, 1);
     pub const CBRT: Function = xprs_function!("cbrt", f64::cbrt, 1);
