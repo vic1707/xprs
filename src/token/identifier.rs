@@ -1,7 +1,7 @@
 /* Built-in imports */
 use core::f64;
 /* Crate imports */
-use super::{function::built_in, Function};
+use super::{function::built_in_functions, Function};
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub enum Identifier<'a> {
@@ -18,34 +18,34 @@ impl<'a> From<&'a str> for Identifier<'a> {
             "e" => f64::consts::E.into(),
             /* Functions */
             // sin
-            "sin" => built_in::SIN.into(),
-            "sinh" => built_in::SINH.into(),
-            "asin" => built_in::ASIN.into(),
-            "asinh" => built_in::ASINH.into(),
+            "sin" => built_in_functions::SIN.into(),
+            "sinh" => built_in_functions::SINH.into(),
+            "asin" => built_in_functions::ASIN.into(),
+            "asinh" => built_in_functions::ASINH.into(),
             // cos
-            "cos" => built_in::COS.into(),
-            "cosh" => built_in::COSH.into(),
-            "acos" => built_in::ACOS.into(),
-            "acosh" => built_in::ACOSH.into(),
+            "cos" => built_in_functions::COS.into(),
+            "cosh" => built_in_functions::COSH.into(),
+            "acos" => built_in_functions::ACOS.into(),
+            "acosh" => built_in_functions::ACOSH.into(),
             // tan
-            "tan" => built_in::TAN.into(),
-            "tanh" => built_in::TANH.into(),
-            "atan" => built_in::ATAN.into(),
-            "atanh" => built_in::ATANH.into(),
+            "tan" => built_in_functions::TAN.into(),
+            "tanh" => built_in_functions::TANH.into(),
+            "atan" => built_in_functions::ATAN.into(),
+            "atanh" => built_in_functions::ATANH.into(),
             // log
-            "ln" => built_in::LN.into(),
-            "log" => built_in::LOG.into(),
+            "ln" => built_in_functions::LN.into(),
+            "log" => built_in_functions::LOG.into(),
             // roots
-            "sqrt" => built_in::SQRT.into(),
-            "cbrt" => built_in::CBRT.into(),
+            "sqrt" => built_in_functions::SQRT.into(),
+            "cbrt" => built_in_functions::CBRT.into(),
             // misc
-            "exp" => built_in::EXP.into(),
-            "abs" => built_in::ABS.into(),
-            "floor" => built_in::FLOOR.into(),
-            "ceil" => built_in::CEIL.into(),
-            "round" => built_in::ROUND.into(),
-            "trunc" => built_in::TRUNC.into(),
-            "sum" => built_in::SUM.into(),
+            "exp" => built_in_functions::EXP.into(),
+            "abs" => built_in_functions::ABS.into(),
+            "floor" => built_in_functions::FLOOR.into(),
+            "ceil" => built_in_functions::CEIL.into(),
+            "round" => built_in_functions::ROUND.into(),
+            "trunc" => built_in_functions::TRUNC.into(),
+            "sum" => built_in_functions::SUM.into(),
             /* Variables */
             _ => Identifier::Variable(value),
         }

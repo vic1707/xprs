@@ -57,7 +57,7 @@ macro_rules! xprs_function {
     };
 }
 
-pub mod built_in {
+pub mod built_in_functions {
     /* Crate imports */
     use super::Function;
 
