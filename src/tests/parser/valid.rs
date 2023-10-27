@@ -3,7 +3,7 @@ use core::f64;
 /* Crate imports */
 use crate::{
     element::{BinOp, Element, FunctionCall, UnOp},
-    token::Operator,
+    token::{built_in_functions, Operator},
     Parser, Xprs,
 };
 
@@ -277,9 +277,8 @@ fn get_valid_test_cases<'a>() -> [(&'static str, Xprs<'a>); 27] {
             "sin(2)",
             Xprs {
                 root: FunctionCall::new_element(
-                    "sin",
-                    f64::sin,
-                    Element::Number(2.),
+                    built_in_functions::SIN,
+                    vec![Element::Number(2.)],
                 ),
                 vars: [].into(),
             },
@@ -288,13 +287,11 @@ fn get_valid_test_cases<'a>() -> [(&'static str, Xprs<'a>); 27] {
             "abs(sin(2))",
             Xprs {
                 root: FunctionCall::new_element(
-                    "abs",
-                    f64::abs,
-                    FunctionCall::new_element(
-                        "sin",
-                        f64::sin,
-                        Element::Number(2.),
-                    ),
+                    built_in_functions::ABS,
+                    vec![FunctionCall::new_element(
+                        built_in_functions::SIN,
+                        vec![Element::Number(2.)],
+                    )],
                 ),
                 vars: [].into(),
             },
@@ -303,16 +300,14 @@ fn get_valid_test_cases<'a>() -> [(&'static str, Xprs<'a>); 27] {
             "sin(-cos(2))",
             Xprs {
                 root: FunctionCall::new_element(
-                    "sin",
-                    f64::sin,
-                    UnOp::new_element(
+                    built_in_functions::SIN,
+                    vec![UnOp::new_element(
                         Operator::Minus,
                         FunctionCall::new_element(
-                            "cos",
-                            f64::cos,
-                            Element::Number(2.),
+                            built_in_functions::COS,
+                            vec![Element::Number(2.)],
                         ),
-                    ),
+                    )],
                 ),
                 vars: [].into(),
             },
@@ -323,9 +318,8 @@ fn get_valid_test_cases<'a>() -> [(&'static str, Xprs<'a>); 27] {
                 root: BinOp::new_element(
                     Operator::Power,
                     FunctionCall::new_element(
-                        "sin",
-                        f64::sin,
-                        Element::Number(2.),
+                        built_in_functions::SIN,
+                        vec![Element::Number(2.)],
                     ),
                     Element::Number(2.),
                 ),
