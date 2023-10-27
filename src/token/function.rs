@@ -45,7 +45,7 @@ macro_rules! xprs_function {
         $crate::token::Function::new(
             $name,
             $crate::utils::macros::wrap_into_closure!($function, $nb_args),
-            Some($nb_args)
+            Some($nb_args),
         )
     };
     ($function:expr, $nb_args:tt) => {
