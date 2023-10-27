@@ -21,6 +21,9 @@ pub(crate) use yeet;
 
 #[doc(hidden)]
 macro_rules! wrap_into_closure {
+    ($function:expr, 0) => {
+        move |_| $function()
+    };
     ($function:expr, 1) => {
         #[allow(clippy::indexing_slicing)]
         move |args| $function(args[0])
