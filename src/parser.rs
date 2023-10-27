@@ -3,9 +3,11 @@
 /* Built-in imports */
 use core::str;
 /* Crate imports */
+#[cfg(feature = "compile-time-optimizations")]
+use crate::element::Simplify;
 use crate::{
     context::Context,
-    element::{BinOp, Element, FunctionCall, Simplify, UnOp},
+    element::{BinOp, Element, FunctionCall, UnOp},
     misc::HashSet,
     token::{Identifier, Operator},
     utils::{
@@ -354,7 +356,7 @@ pub enum ErrorKind {
     UnexpectedEndOfExpression,
     #[error("Unexpected token: `{0}`")]
     UnexpectedToken(char),
-    #[error("Malforned number: `{0}`")]
+    #[error("Malformed number: `{0}`")]
     MalformedNumber(String),
     #[error("Illegal character: `{0}`")]
     IllegalCharacter(char),
