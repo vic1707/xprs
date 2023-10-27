@@ -219,7 +219,7 @@ impl<'a> ParserImpl<'a> {
         &mut self,
         nb_args: u8,
     ) -> Result<Vec<Element<'a>>, ParseError> {
-        (1..=nb_args)
+        let args = (1..=nb_args)
             .map(|idx| {
                 let arg = self.element(precedence::NO_PRECEDENCE)?;
                 // check for comma if not last argument
@@ -227,12 +227,25 @@ impl<'a> ParserImpl<'a> {
                     if self.next() == Some(&b',') {
                         self.cursor += 1;
                     } else {
-                        yeet!(ParseError::new_expected_token(self, b','));
+                        yeet!(ParseError::new_not_enough_arguments(
+                            self, nb_args, idx
+                        ));
+                    }
+                    if self.next() == Some(&b')') {
+                        yeet!(ParseError::new_missing_argument(self));
                     }
                 }
                 Ok(arg)
             })
-            .collect::<Result<Vec<Element<'a>>, ParseError>>()
+            .collect::<Result<Vec<Element<'a>>, ParseError>>();
+        if self.next() == Some(&b',') {
+            yeet!(ParseError::new_too_many_arguments(
+                self,
+                nb_args,
+                nb_args + 1
+            ));
+        }
+        args
     }
 
     fn parse_variadic_arguments(
@@ -349,6 +362,12 @@ pub enum ErrorKind {
     ExpectedToken(char),
     #[error("Variable not previously declared: `{0}`")]
     VariableNotDeclared(String),
+    #[error("Not enough arguments for function call, expected {0} got {1}")]
+    NotEnoughArguments(u8, u8),
+    #[error("Too many arguments for function call, expected {0} got {1}")]
+    TooManyArguments(u8, u8),
+    #[error("Missing argument for function call")]
+    MissingArgument,
 }
 
 impl ParseError {
@@ -399,6 +418,38 @@ impl ParseError {
         Self {
             kind: ErrorKind::VariableNotDeclared(var.to_owned()),
             span: (0, parser.input.len()).into(),
+            src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
+        }
+    }
+
+    fn new_not_enough_arguments(
+        parser: &ParserImpl,
+        expected: u8,
+        got: u8,
+    ) -> Self {
+        Self {
+            kind: ErrorKind::NotEnoughArguments(expected, got),
+            span: parser.cursor.into(),
+            src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
+        }
+    }
+
+    fn new_too_many_arguments(
+        parser: &ParserImpl,
+        expected: u8,
+        got: u8,
+    ) -> Self {
+        Self {
+            kind: ErrorKind::TooManyArguments(expected, got),
+            span: parser.cursor.into(),
+            src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
+        }
+    }
+
+    fn new_missing_argument(parser: &ParserImpl) -> Self {
+        Self {
+            kind: ErrorKind::MissingArgument,
+            span: parser.cursor.into(),
             src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
         }
     }
