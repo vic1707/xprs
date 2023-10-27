@@ -1,7 +1,8 @@
 /* Built-in imports */
 use core::f64;
 /* Crate imports */
-use super::{function::function, Function};
+use super::Function;
+use crate::xprs_function;
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub enum Identifier<'a> {
@@ -18,33 +19,33 @@ impl<'a> From<&'a str> for Identifier<'a> {
             "e" => f64::consts::E.into(),
             /* Functions */
             // sin
-            "sin" => function!(f64::sin, 1).into(),
-            "sinh" => function!(f64::sinh, 1).into(),
-            "asin" => function!(f64::asin, 1).into(),
-            "asinh" => function!(f64::asinh, 1).into(),
+            "sin" => xprs_function!(f64::sin, 1).into(),
+            "sinh" => xprs_function!(f64::sinh, 1).into(),
+            "asin" => xprs_function!(f64::asin, 1).into(),
+            "asinh" => xprs_function!(f64::asinh, 1).into(),
             // cos
-            "cos" => function!(f64::cos, 1).into(),
-            "cosh" => function!(f64::cosh, 1).into(),
-            "acos" => function!(f64::acos, 1).into(),
-            "acosh" => function!(f64::acosh, 1).into(),
+            "cos" => xprs_function!(f64::cos, 1).into(),
+            "cosh" => xprs_function!(f64::cosh, 1).into(),
+            "acos" => xprs_function!(f64::acos, 1).into(),
+            "acosh" => xprs_function!(f64::acosh, 1).into(),
             // tan
-            "tan" => function!(f64::tan, 1).into(),
-            "tanh" => function!(f64::tanh, 1).into(),
-            "atan" => function!(f64::atan, 1).into(),
-            "atanh" => function!(f64::atanh, 1).into(),
+            "tan" => xprs_function!(f64::tan, 1).into(),
+            "tanh" => xprs_function!(f64::tanh, 1).into(),
+            "atan" => xprs_function!(f64::atan, 1).into(),
+            "atanh" => xprs_function!(f64::atanh, 1).into(),
             // log
-            "ln" => function!(f64::ln, 1).into(),
-            "log" => function!(f64::log10, 1).into(),
+            "ln" => xprs_function!(f64::ln, 1).into(),
+            "log" => xprs_function!(f64::log10, 1).into(),
             // roots
-            "sqrt" => function!(f64::sqrt, 1).into(),
-            "cbrt" => function!(f64::cbrt, 1).into(),
+            "sqrt" => xprs_function!(f64::sqrt, 1).into(),
+            "cbrt" => xprs_function!(f64::cbrt, 1).into(),
             // misc
-            "exp" => function!(f64::exp, 1).into(),
-            "abs" => function!(f64::abs, 1).into(),
-            "floor" => function!(f64::floor, 1).into(),
-            "ceil" => function!(f64::ceil, 1).into(),
-            "round" => function!(f64::round, 1).into(),
-            "trunc" => function!(f64::trunc, 1).into(),
+            "exp" => xprs_function!(f64::exp, 1).into(),
+            "abs" => xprs_function!(f64::abs, 1).into(),
+            "floor" => xprs_function!(f64::floor, 1).into(),
+            "ceil" => xprs_function!(f64::ceil, 1).into(),
+            "round" => xprs_function!(f64::round, 1).into(),
+            "trunc" => xprs_function!(f64::trunc, 1).into(),
             "sum" => {
                 Function::new_identifier("sum", |args| args.iter().sum(), None)
             },

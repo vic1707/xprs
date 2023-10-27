@@ -30,7 +30,9 @@ impl<'a> Function<'a> {
     }
 }
 
-macro_rules! function {
+#[macro_export]
+#[allow(clippy::module_name_repetitions)]
+macro_rules! xprs_function {
     // variadics
     ($function:expr) => {
         Function::new(stringify!($function), move |args| $function(args), None)
@@ -38,10 +40,8 @@ macro_rules! function {
     ($function:expr, $nb_args:tt) => {
         Function::new(
             stringify!($function),
-            crate::utils::macros::wrap_into_closure!($function, $nb_args),
+            $crate::utils::macros::wrap_into_closure!($function, $nb_args),
             Some($nb_args),
         )
     };
 }
-
-pub(crate) use function;
