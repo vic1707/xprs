@@ -33,11 +33,7 @@ impl<'a> Function<'a> {
 macro_rules! function {
     // variadics
     ($function:expr) => {
-        Function::new(
-            stringify!($function),
-            move |args| $function(args),
-            None,
-        )
+        Function::new(stringify!($function), move |args| $function(args), None)
     };
     ($function:expr, $nb_args:tt) => {
         Function::new(
