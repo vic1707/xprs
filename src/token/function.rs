@@ -90,4 +90,8 @@ pub mod built_in_functions {
     pub const ROUND: Function = xprs_function!("round", f64::round, 1);
     pub const TRUNC: Function = xprs_function!("trunc", f64::trunc, 1);
     pub const SUM: Function = xprs_function!("sum", |args| args.iter().sum());
+    #[allow(clippy::as_conversions, clippy::cast_precision_loss)]
+    pub const MEAN: Function = xprs_function!("mean", |args| {
+        args.iter().sum::<f64>() / args.len() as f64
+    });
 }

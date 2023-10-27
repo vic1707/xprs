@@ -46,6 +46,7 @@ impl<'a> From<&'a str> for Identifier<'a> {
             "round" => built_in_functions::ROUND.into(),
             "trunc" => built_in_functions::TRUNC.into(),
             "sum" => built_in_functions::SUM.into(),
+            "mean" => built_in_functions::MEAN.into(),
             /* Variables */
             _ => Identifier::Variable(value),
         }
