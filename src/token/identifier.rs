@@ -1,11 +1,11 @@
 /* Built-in imports */
 use core::f64;
 /* Crate imports */
-use crate::misc::Function;
+use super::{function::built_in_functions, Function};
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub enum Identifier<'a> {
-    Function(&'a str, Function),
+    Function(&'a Function<'a>),
     Constant(f64),
     Variable(&'a str),
 }
@@ -14,39 +14,60 @@ impl<'a> From<&'a str> for Identifier<'a> {
     fn from(value: &'a str) -> Self {
         match value {
             /* Constants */
-            "pi" => Identifier::Constant(f64::consts::PI),
-            "e" => Identifier::Constant(f64::consts::E),
+            "pi" => f64::consts::PI.into(),
+            "e" => f64::consts::E.into(),
             /* Functions */
             // sin
-            "sin" => Identifier::Function(value, f64::sin),
-            "sinh" => Identifier::Function(value, f64::sinh),
-            "asin" => Identifier::Function(value, f64::asin),
-            "asinh" => Identifier::Function(value, f64::asinh),
+            "sin" => (&built_in_functions::SIN).into(),
+            "sinh" => (&built_in_functions::SINH).into(),
+            "asin" => (&built_in_functions::ASIN).into(),
+            "asinh" => (&built_in_functions::ASINH).into(),
             // cos
-            "cos" => Identifier::Function(value, f64::cos),
-            "cosh" => Identifier::Function(value, f64::cosh),
-            "acos" => Identifier::Function(value, f64::acos),
-            "acosh" => Identifier::Function(value, f64::acosh),
+            "cos" => (&built_in_functions::COS).into(),
+            "cosh" => (&built_in_functions::COSH).into(),
+            "acos" => (&built_in_functions::ACOS).into(),
+            "acosh" => (&built_in_functions::ACOSH).into(),
             // tan
-            "tan" => Identifier::Function(value, f64::tan),
-            "tanh" => Identifier::Function(value, f64::tanh),
-            "atan" => Identifier::Function(value, f64::atan),
-            "atanh" => Identifier::Function(value, f64::atanh),
+            "tan" => (&built_in_functions::TAN).into(),
+            "tanh" => (&built_in_functions::TANH).into(),
+            "atan" => (&built_in_functions::ATAN).into(),
+            "atan2" => (&built_in_functions::ATAN2).into(),
+            "atanh" => (&built_in_functions::ATANH).into(),
             // log
-            "ln" => Identifier::Function(value, f64::ln),
-            "log" => Identifier::Function(value, f64::log10),
+            "ln" => (&built_in_functions::LN).into(),
+            "log" => (&built_in_functions::LOG).into(),
+            "logn" => (&built_in_functions::LOGN).into(),
             // roots
-            "sqrt" => Identifier::Function(value, f64::sqrt),
-            "cbrt" => Identifier::Function(value, f64::cbrt),
+            "sqrt" => (&built_in_functions::SQRT).into(),
+            "cbrt" => (&built_in_functions::CBRT).into(),
             // misc
-            "exp" => Identifier::Function(value, f64::exp),
-            "abs" => Identifier::Function(value, f64::abs),
-            "floor" => Identifier::Function(value, f64::floor),
-            "ceil" => Identifier::Function(value, f64::ceil),
-            "round" => Identifier::Function(value, f64::round),
-            "trunc" => Identifier::Function(value, f64::trunc),
+            "exp" => (&built_in_functions::EXP).into(),
+            "abs" => (&built_in_functions::ABS).into(),
+            "floor" => (&built_in_functions::FLOOR).into(),
+            "ceil" => (&built_in_functions::CEIL).into(),
+            "round" => (&built_in_functions::ROUND).into(),
+            "trunc" => (&built_in_functions::TRUNC).into(),
+            "sum" => (&built_in_functions::SUM).into(),
+            "mean" => (&built_in_functions::MEAN).into(),
+            "invert" => (&built_in_functions::INVERT).into(),
+            "min" => (&built_in_functions::MIN).into(),
+            "max" => (&built_in_functions::MAX).into(),
+            "hypot" => (&built_in_functions::HYPOT).into(),
+            "fract" => (&built_in_functions::FRACT).into(),
             /* Variables */
             _ => Identifier::Variable(value),
         }
+    }
+}
+
+impl From<f64> for Identifier<'_> {
+    fn from(value: f64) -> Self {
+        Identifier::Constant(value)
+    }
+}
+
+impl<'a> From<&'a Function<'a>> for Identifier<'a> {
+    fn from(value: &'a Function<'a>) -> Self {
+        Identifier::Function(value)
     }
 }

@@ -3,7 +3,6 @@ use crate::token::Operator;
 
 pub const NO_PRECEDENCE: usize = 0;
 pub const UNOP_PRECEDENCE: usize = 3;
-pub const FN_PRECEDENCE: usize = 5;
 
 #[cfg(feature = "pejmdas")]
 pub const IMPLICIT_MULTIPLICATION_PRECEDENCE: usize = 3;

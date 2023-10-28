@@ -2,31 +2,38 @@
 use core::fmt;
 /* Crate imports */
 use super::Element;
-use crate::misc::Function;
+use crate::token::Function;
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct FunctionCall<'a> {
-    pub(crate) name: &'a str,
-    pub(crate) func: Function,
-    pub(crate) arg: Element<'a>,
+    pub(crate) desc: &'a Function<'a>,
+    pub(crate) args: Vec<Element<'a>>,
 }
 
 impl<'a> FunctionCall<'a> {
-    pub const fn new(name: &'a str, func: Function, arg: Element<'a>) -> Self {
-        Self { name, func, arg }
+    pub const fn new(desc: &'a Function<'a>, args: Vec<Element<'a>>) -> Self {
+        Self { desc, args }
     }
 
     pub fn new_element(
-        name: &'a str,
-        func: Function,
-        arg: Element<'a>,
+        desc: &'a Function<'a>,
+        args: Vec<Element<'a>>,
     ) -> Element<'a> {
-        Element::Function(Box::new(Self::new(name, func, arg)))
+        Element::Function(Box::new(Self::new(desc, args)))
+    }
+
+    pub fn call(&self, args: &[f64]) -> f64 {
+        (self.desc.func)(args)
     }
 }
 
 impl fmt::Display for FunctionCall<'_> {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(fmt, "{}({})", self.name, self.arg)
+        let args = self
+            .args
+            .iter()
+            .map(|arg| format!("{arg}"))
+            .collect::<Vec<_>>();
+        write!(fmt, "{}({})", self.desc.name, args.join(", "))
     }
 }

@@ -175,24 +175,25 @@ impl<'a> ParserImpl<'a> {
             .vars
             .get(name)
             .map(|&value| Identifier::Constant(value))
-            .or_else(|| {
-                self.ctx
-                    .funcs
-                    .get(name)
-                    .map(|&func| Identifier::Function(name, func))
-            })
+            .or_else(|| self.ctx.funcs.get(name).map(Identifier::Function))
             .unwrap_or_else(|| name.into());
 
         let el = match ident {
             Identifier::Constant(val) => Element::Number(val),
             Identifier::Variable(var) => Element::Variable(var),
-            Identifier::Function(fn_name, func)
-                if Some(&b'(') == self.next() =>
-            {
-                let el = self.element(precedence::FN_PRECEDENCE)?;
-                FunctionCall::new_element(fn_name, func, el)
+            Identifier::Function(func) if Some(&b'(') == self.next() => {
+                self.cursor += 1;
+                let args = match func.nb_args {
+                    Some(nb) => self.parse_arguments(nb)?,
+                    None => self.parse_variadic_arguments()?,
+                };
+                if self.next() != Some(&b')') {
+                    yeet!(ParseError::new_expected_token(self, b')'));
+                }
+                self.cursor += 1;
+                FunctionCall::new_element(func, args)
             },
-            Identifier::Function(_, _) => {
+            Identifier::Function(_) => {
                 yeet!(ParseError::new_expected_token(self, b'('))
             },
         };
@@ -209,6 +210,66 @@ impl<'a> ParserImpl<'a> {
             .map_err(|_err| ParseError::new_malformed_number(self, ident))?;
 
         Ok(Element::Number(num))
+    }
+
+    fn parse_arguments(
+        &mut self,
+        nb_args: u8,
+    ) -> Result<Vec<Element<'a>>, ParseError> {
+        let args = (1..=nb_args)
+            .map(|idx| {
+                let arg = self.element(precedence::NO_PRECEDENCE)?;
+                // check for comma if not last argument
+                if idx == nb_args {
+                    return Ok(arg);
+                }
+                // if not last argument, check for comma
+                if self.next() == Some(&b',') {
+                    self.cursor += 1;
+                } else {
+                    yeet!(ParseError::new_expected_token(self, b','));
+                }
+                // if a comma is followed by a closing parenthesis
+                // it means we have a missing argument
+                if self.next() == Some(&b')') {
+                    yeet!(ParseError::new_missing_argument(self));
+                }
+
+                Ok(arg)
+            })
+            .collect::<Result<Vec<Element<'a>>, ParseError>>();
+        if self.next() == Some(&b',') {
+            yeet!(ParseError::new_too_many_arguments(
+                self,
+                nb_args,
+                nb_args + 1
+            ));
+        }
+        args
+    }
+
+    fn parse_variadic_arguments(
+        &mut self,
+    ) -> Result<Vec<Element<'a>>, ParseError> {
+        let mut args = Vec::new();
+
+        loop {
+            let arg = self.element(precedence::NO_PRECEDENCE)?;
+            args.push(arg);
+
+            // expect either a comma or a closing parenthesis
+            match self.next() {
+                Some(&b',') => self.cursor += 1,
+                Some(&b')') => break,
+                Some(&tok) => {
+                    yeet!(ParseError::new_unexpected_token(self, tok))
+                },
+                None => {
+                    yeet!(ParseError::new_unexpected_end_of_expression(self))
+                },
+            }
+        }
+        Ok(args)
     }
 
     #[inline]
@@ -301,6 +362,10 @@ pub enum ErrorKind {
     ExpectedToken(char),
     #[error("Variable not previously declared: `{0}`")]
     VariableNotDeclared(String),
+    #[error("Too many arguments for function call, expected {0} got {1}")]
+    TooManyArguments(u8, u8),
+    #[error("Missing argument for function call")]
+    MissingArgument,
 }
 
 impl ParseError {
@@ -351,6 +416,26 @@ impl ParseError {
         Self {
             kind: ErrorKind::VariableNotDeclared(var.to_owned()),
             span: (0, parser.input.len()).into(),
+            src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
+        }
+    }
+
+    fn new_too_many_arguments(
+        parser: &ParserImpl,
+        expected: u8,
+        got: u8,
+    ) -> Self {
+        Self {
+            kind: ErrorKind::TooManyArguments(expected, got),
+            span: parser.cursor.into(),
+            src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
+        }
+    }
+
+    fn new_missing_argument(parser: &ParserImpl) -> Self {
+        Self {
+            kind: ErrorKind::MissingArgument,
+            span: parser.cursor.into(),
             src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
         }
     }
