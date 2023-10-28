@@ -219,22 +219,25 @@ impl<'a> Simplify<'a> for FunctionCall<'a> {
 
     #[inline]
     fn simplify(mut self) -> Element<'a> {
-        let mut args: Vec<f64> = Vec::with_capacity(self.args.len());
+        // TODO: Not a big fan of the second vector.
+        // We need to simplify the arguments in all cases, but
+        // if they are all numbers, we can call the function.
+        let mut args_values: Vec<f64> = Vec::with_capacity(self.args.len());
 
         self.args = self
             .args
             .into_iter()
-            .map(|argu| {
-                let arg = argu.simplify();
-                if let Element::Number(num) = arg {
-                    args.push(num);
+            .map(|arg| {
+                let simplified = arg.simplify();
+                if let Element::Number(num) = simplified {
+                    args_values.push(num);
                 }
-                arg
+                simplified
             })
             .collect();
 
-        if args.len() == self.args.len() {
-            self.call(&args).into()
+        if args_values.len() == self.args.len() {
+            self.call(&args_values).into()
         } else {
             self.into()
         }
