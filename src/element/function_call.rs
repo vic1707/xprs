@@ -6,24 +6,24 @@ use crate::token::Function;
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct FunctionCall<'a> {
-    pub(crate) func: &'a Function<'a>,
+    pub(crate) desc: &'a Function<'a>,
     pub(crate) args: Vec<Element<'a>>,
 }
 
 impl<'a> FunctionCall<'a> {
-    pub const fn new(func: &'a Function<'a>, args: Vec<Element<'a>>) -> Self {
-        Self { func, args }
+    pub const fn new(desc: &'a Function<'a>, args: Vec<Element<'a>>) -> Self {
+        Self { desc, args }
     }
 
     pub fn new_element(
-        func: &'a Function<'a>,
+        desc: &'a Function<'a>,
         args: Vec<Element<'a>>,
     ) -> Element<'a> {
-        Element::Function(Box::new(Self::new(func, args)))
+        Element::Function(Box::new(Self::new(desc, args)))
     }
 
     pub fn call(&self, args: &[f64]) -> f64 {
-        (self.func.func)(args)
+        (self.desc.func)(args)
     }
 }
 
@@ -34,6 +34,6 @@ impl fmt::Display for FunctionCall<'_> {
             .iter()
             .map(|arg| format!("{arg}"))
             .collect::<Vec<_>>();
-        write!(fmt, "{}({})", self.func.name, args.join(", "))
+        write!(fmt, "{}({})", self.desc.name, args.join(", "))
     }
 }
