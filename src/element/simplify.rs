@@ -171,7 +171,7 @@ impl<'a> Simplify<'a> for BinOp<'a> {
                 lhs,
                 rhs,
             } if lhs == rhs => Number(0.0_f64),
-            // other
+            /////////////////////////// 2 Numbers ///////////////////////////
             BinOp {
                 op,
                 rhs: Number(rhs),
