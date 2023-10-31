@@ -1,3 +1,6 @@
+/* NIGHTLY Features */
+// box-patterns if nightly
+#![cfg_attr(NIGHTLY, feature(box_patterns))]
 /* Clippy config */
 #![allow(clippy::pub_use)]
 /* Modules */
