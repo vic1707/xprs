@@ -2,6 +2,7 @@
 // box-patterns if nightly
 #![cfg_attr(NIGHTLY, feature(box_patterns))]
 /* Clippy config */
+#![deny(warnings)]
 #![allow(clippy::pub_use)]
 /* Modules */
 mod context;
