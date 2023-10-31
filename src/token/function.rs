@@ -24,14 +24,14 @@ impl<'a> Function<'a> {
 #[macro_export]
 macro_rules! xprs_fn {
     // variadics
-    ($name:literal, $function:expr) => {
+    ($name:expr, $function:expr) => {
         $crate::Function::new($name, $function, None)
     };
     ($function:expr) => {
         $crate::Function::new(stringify!($function), $function, None)
     };
     // fixed args
-    ($name:literal, $function:expr, $nb_args:tt) => {
+    ($name:expr, $function:expr, $nb_args:tt) => {
         $crate::Function::new(
             $name,
             $crate::xprs_fn!(wrap $function, $nb_args),
