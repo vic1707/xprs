@@ -50,8 +50,7 @@ impl<'a> Parser<'a> {
         // Check if no unknown variable was found
         if let Some(unknown_var) = self
             .ctx
-            .expected_vars
-            .as_ref()
+            .get_expected_vars()
             .and_then(|expected| xprs.vars.difference(expected).next())
         {
             yeet!(ParseError::new_variable_not_declared(
@@ -171,10 +170,9 @@ impl<'a> ParserImpl<'a> {
         // else defaults to variable
         let ident = self
             .ctx
-            .vars
-            .get(name)
+            .get_var(name)
             .map(|&value| Identifier::Constant(value))
-            .or_else(|| self.ctx.funcs.get(name).map(Identifier::Function))
+            .or_else(|| self.ctx.get_func(name).map(Identifier::Function))
             .unwrap_or_else(|| name.into());
 
         let el = match ident {

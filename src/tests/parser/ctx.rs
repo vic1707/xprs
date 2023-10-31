@@ -23,16 +23,16 @@ const MEAN: Function = xprs_fn!("MEAN", mean);
 fn get_parser_with_ctx<'a>() -> Parser<'a> {
     let mut ctx = Context::default();
 
-    ctx.vars.insert("x", 2.0_f64);
-    ctx.vars.insert("phi", 1.618_033_988_749_895_f64);
+    ctx.add_var("x", 2.0_f64);
+    ctx.add_var("phi", 1.618_033_988_749_895_f64);
 
-    ctx.funcs.insert("double", DOUBLE);
-    ctx.funcs.insert("add", ADD);
+    ctx.add_func("double", DOUBLE);
+    ctx.add_func("add", ADD);
 
     let mut parser = Parser::new_with_ctx(ctx);
 
-    parser.ctx_mut().vars.insert("y", 1.0_f64);
-    parser.ctx_mut().funcs.insert("mean", MEAN);
+    parser.ctx_mut().add_var("y", 1.0_f64);
+    parser.ctx_mut().add_func("mean", MEAN);
 
     parser
 }
