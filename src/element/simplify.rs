@@ -51,6 +51,21 @@ impl<'a> Simplify<'a> for BinOp<'a> {
             BinOp { op: Plus, lhs, rhs } if lhs == Number(0.0_f64) => rhs,
             // .. + 0 => ..
             BinOp { op: Plus, lhs, rhs } if rhs == Number(0.0_f64) => lhs,
+            ////// NIGHTLY FEATURES //////
+            #[cfg(NIGHTLY)]
+            // (-..) + .. => 0
+            BinOp {
+                op: Plus,
+                lhs: Element::UnOp(box UnOp { op: Minus, operand }),
+                rhs,
+            } if operand == rhs => Number(0.0_f64),
+            #[cfg(NIGHTLY)]
+            // .. + (-..) => 0
+            BinOp {
+                op: Plus,
+                lhs,
+                rhs: Element::UnOp(box UnOp { op: Minus, operand }),
+            } if lhs == operand => Number(0.0_f64),
             ////////////////////////// Subtractions /////////////////////////
             // 0 - .. => -..
             BinOp {
@@ -72,6 +87,14 @@ impl<'a> Simplify<'a> for BinOp<'a> {
                 lhs,
                 rhs,
             } if lhs == rhs => Number(0.0_f64),
+            ////// NIGHTLY FEATURES //////
+            #[cfg(NIGHTLY)]
+            // .. - (-..) => .. + ..
+            BinOp {
+                op: Minus,
+                lhs,
+                rhs: Element::UnOp(box UnOp { op: Minus, operand }),
+            } => BinOp::new_element(Operator::Plus, lhs, operand),
             //////////////////////// Multiplications ////////////////////////
             // 0 * .. => 0
             BinOp { op: Times, lhs, .. } if lhs == Number(0.0_f64) => {
