@@ -199,10 +199,12 @@ impl<'a> ParserImpl<'a> {
     }
 
     fn parse_number(&mut self) -> Result<Element<'a>, ParseError> {
-        let ident = self
-            .take_while(|&ch| matches!(ch, b'0'..=b'9' | b'.' | b'e' | b'E'));
+        let ident = self.take_while(|&ch| {
+            matches!(ch, b'0'..=b'9' | b'.' | b'e' | b'E' | b'_')
+        });
 
         let num = ident
+            .replace('_', "")
             .parse()
             .map_err(|_err| ParseError::new_malformed_number(self, ident))?;
 
