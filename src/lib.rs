@@ -18,6 +18,7 @@ mod tests;
 /* Exports */
 pub use context::Context;
 pub use parser::{ErrorKind, ParseError, Parser};
+pub use token::Function;
 pub use xprs::{EvalError, Xprs};
 
 /* Feature safety */

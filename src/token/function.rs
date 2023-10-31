@@ -6,6 +6,8 @@ pub struct Function<'a> {
 }
 
 impl<'a> Function<'a> {
+    #[inline]
+    #[must_use]
     pub const fn new(
         name: &'a str,
         func: fn(&[f64]) -> f64,
