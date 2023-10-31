@@ -3,7 +3,7 @@ use crate::{
     context::Context,
     element::{BinOp, Element, FunctionCall, UnOp},
     parser::{ErrorKind, ParseError, Parser},
-    token::{Identifier, Operator},
+    token::{Function, Identifier, Operator},
     xprs::{EvalError, Xprs},
 };
 
@@ -23,6 +23,7 @@ const fn test_thread_safety() {
     is_sized_send_sync_unpin::<ParseError>();
     is_sized_send_sync_unpin::<Parser>();
     // token module
+    is_sized_send_sync_unpin::<Function>();
     is_sized_send_sync_unpin::<Identifier>();
     is_sized_send_sync_unpin::<Operator>();
     // xprs module
