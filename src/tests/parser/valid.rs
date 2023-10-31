@@ -3,7 +3,8 @@ use core::f64;
 /* Crate imports */
 use crate::{
     element::{BinOp, Element, FunctionCall, UnOp},
-    token::{built_in_functions, Operator},
+    token::Operator,
+    utils::built_in_functions,
     Parser, Xprs,
 };
 
