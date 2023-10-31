@@ -201,10 +201,10 @@ impl<'a> ParserImpl<'a> {
             matches!(ch, b'0'..=b'9' | b'.' | b'e' | b'E' | b'_')
         });
 
-        let num = ident
-            .replace('_', "")
-            .parse()
-            .map_err(|_err| ParseError::new_malformed_number(self, ident))?;
+        let num = ident.replace('_', "").parse().map_err(
+            #[cold]
+            |_err| ParseError::new_malformed_number(self, ident),
+        )?;
 
         Ok(Element::Number(num))
     }
@@ -371,6 +371,7 @@ pub enum ErrorKind {
 }
 
 impl ParseError {
+    #[cold]
     fn new_unexpected_end_of_expression(parser: &ParserImpl) -> Self {
         Self {
             kind: ErrorKind::UnexpectedEndOfExpression,
@@ -381,6 +382,7 @@ impl ParseError {
         }
     }
 
+    #[cold]
     fn new_unexpected_token(parser: &ParserImpl, tok: u8) -> Self {
         Self {
             kind: ErrorKind::UnexpectedToken(char::from(tok)),
@@ -389,6 +391,7 @@ impl ParseError {
         }
     }
 
+    #[cold]
     fn new_malformed_number(parser: &ParserImpl, ident: &str) -> Self {
         let num_len = ident.len();
         Self {
@@ -398,6 +401,7 @@ impl ParseError {
         }
     }
 
+    #[cold]
     fn new_illegal_character(parser: &ParserImpl, tok: u8) -> Self {
         Self {
             kind: ErrorKind::IllegalCharacter(char::from(tok)),
@@ -406,6 +410,7 @@ impl ParseError {
         }
     }
 
+    #[cold]
     fn new_expected_token(parser: &ParserImpl, tok: u8) -> Self {
         Self {
             kind: ErrorKind::ExpectedToken(char::from(tok)),
@@ -414,6 +419,7 @@ impl ParseError {
         }
     }
 
+    #[cold]
     fn new_variable_not_declared(parser: &ParserImpl, var: &str) -> Self {
         Self {
             kind: ErrorKind::VariableNotDeclared(var.to_owned()),
@@ -422,6 +428,7 @@ impl ParseError {
         }
     }
 
+    #[cold]
     fn new_too_many_arguments(
         parser: &ParserImpl,
         expected: u8,
@@ -434,6 +441,7 @@ impl ParseError {
         }
     }
 
+    #[cold]
     fn new_missing_argument(parser: &ParserImpl) -> Self {
         Self {
             kind: ErrorKind::MissingArgument,
