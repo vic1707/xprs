@@ -94,6 +94,14 @@ impl<'a> Simplify<'a> for BinOp<'a> {
                 rhs,
             } if rhs == Number(1.0_f64) => lhs,
             /////////////////////////// Divisions ///////////////////////////
+            // 0/0 => NaN // special case
+            BinOp {
+                op: Divide,
+                lhs,
+                rhs,
+            } if lhs == Number(0.0_f64) && rhs == Number(0.0_f64) => {
+                Number(f64::NAN)
+            },
             // 0 / .. => 0
             BinOp {
                 op: Divide, lhs, ..
@@ -115,6 +123,14 @@ impl<'a> Simplify<'a> for BinOp<'a> {
                 rhs,
             } if lhs == rhs => Number(1.0_f64),
             ///////////////////////////// Powers ////////////////////////////
+            // 0 ^ 0 => 1 // special case
+            BinOp {
+                op: Power,
+                lhs,
+                rhs,
+            } if lhs == Number(0.0_f64) && rhs == Number(0.0_f64) => {
+                Number(1.0_f64)
+            },
             // 0 ^ .. => 0
             BinOp { op: Power, lhs, .. } if lhs == Number(0.0_f64) => {
                 Number(0.0_f64)
@@ -130,6 +146,14 @@ impl<'a> Simplify<'a> for BinOp<'a> {
                 rhs,
             } if rhs == Number(1.0_f64) => lhs,
             //////////////////////////// Modulos ////////////////////////////
+            // 0 % 0 => NaN // special case
+            BinOp {
+                op: Modulo,
+                lhs,
+                rhs,
+            } if lhs == Number(0.0_f64) && rhs == Number(0.0_f64) => {
+                Number(f64::NAN)
+            },
             // 0 % .. => 0
             BinOp {
                 op: Modulo, lhs, ..
