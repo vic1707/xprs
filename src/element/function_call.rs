@@ -1,8 +1,7 @@
 /* Built-in imports */
 use core::fmt;
 /* Crate imports */
-use super::Element;
-use crate::token::Function;
+use crate::{element::Element, token::Function};
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct FunctionCall<'a> {

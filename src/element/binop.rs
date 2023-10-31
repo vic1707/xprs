@@ -1,8 +1,7 @@
 /* Built-in imports */
 use core::fmt;
 /* Crate imports */
-use super::Element;
-use crate::token::Operator;
+use crate::{element::Element, token::Operator};
 
 #[derive(Debug, PartialOrd)]
 pub struct BinOp<'a> {

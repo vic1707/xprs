@@ -1,6 +1,8 @@
 /* Crate imports */
-use super::{BinOp, Element, FunctionCall, UnOp};
-use crate::token::Operator;
+use crate::{
+    element::{BinOp, Element, FunctionCall, UnOp},
+    token::Operator,
+};
 
 pub trait Simplify<'a> {
     fn simplify_for(self, var: (&str, f64)) -> Element<'a>;

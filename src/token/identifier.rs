@@ -1,8 +1,7 @@
 /* Built-in imports */
 use core::f64;
 /* Crate imports */
-use super::Function;
-use crate::utils::built_in_functions;
+use crate::{token::Function, utils::built_in_functions};
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub enum Identifier<'a> {
