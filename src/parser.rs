@@ -149,10 +149,9 @@ impl<'a> ParserImpl<'a> {
             b'(' => {
                 self.cursor += 1;
                 let el = self.element(precedence::NO_PRECEDENCE)?;
-                if self.next() != Some(&b')') {
+                if !self.consume_if_eq(b')') {
                     yeet!(ParseError::new_expected_token(self, b')'));
                 }
-                self.cursor += 1;
                 el
             },
             /* Errors */
@@ -181,16 +180,14 @@ impl<'a> ParserImpl<'a> {
         let el = match ident {
             Identifier::Constant(val) => Element::Number(val),
             Identifier::Variable(var) => Element::Variable(var),
-            Identifier::Function(func) if Some(&b'(') == self.next() => {
-                self.cursor += 1;
+            Identifier::Function(func) if self.consume_if_eq(b'(') => {
                 let args = match func.nb_args {
                     Some(nb) => self.parse_arguments(nb)?,
                     None => self.parse_variadic_arguments()?,
                 };
-                if self.next() != Some(&b')') {
+                if !self.consume_if_eq(b')') {
                     yeet!(ParseError::new_expected_token(self, b')'));
                 }
-                self.cursor += 1;
                 FunctionCall::new_element(func, args)
             },
             Identifier::Function(_) => {
@@ -224,9 +221,7 @@ impl<'a> ParserImpl<'a> {
                     return Ok(arg);
                 }
                 // if not last argument, check for comma
-                if self.next() == Some(&b',') {
-                    self.cursor += 1;
-                } else {
+                if !self.consume_if_eq(b',') {
                     yeet!(ParseError::new_expected_token(self, b','));
                 }
                 // if a comma is followed by a closing parenthesis
@@ -290,6 +285,13 @@ impl ParserImpl<'_> {
         while self.current().is_some_and(predicate) {
             self.cursor += 1;
         }
+    }
+
+    #[inline]
+    fn consume_if_eq(&mut self, tok: u8) -> bool {
+        let eq = self.next() == Some(&tok);
+        self.cursor += usize::from(eq);
+        eq
     }
 
     #[inline]
