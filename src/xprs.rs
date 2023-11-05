@@ -8,7 +8,7 @@ use crate::{
     element::Simplify,
     misc::{HashMap, HashSet},
     token::Operator,
-    utils::macros::trust_me,
+    utils::macros::{trust_me, yeet},
 };
 
 #[derive(Debug, PartialEq)]
@@ -32,6 +32,12 @@ impl Xprs<'_> {
         variables: &HashMap<&str, f64>,
     ) -> Result<f64, EvalError> {
         XprsImpl::new(variables).eval_element(&self.root)
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn eval_unchecked(&self, variables: &HashMap<&str, f64>) -> f64 {
+        XprsImpl::new(variables).eval_element_unchecked(&self.root)
     }
 
     #[inline]
@@ -121,6 +127,46 @@ impl XprsImpl<'_> {
 
         Ok(res)
     }
+
+    fn eval_element_unchecked(&self, element: &Element) -> f64 {
+        match *element {
+            Element::Number(n) => n,
+            #[allow(clippy::unwrap_used)]
+            Element::Variable(name) => *self.variables.get(name).unwrap(),
+            Element::UnOp(ref unop) => {
+                let operand = self.eval_element_unchecked(&unop.operand);
+                #[allow(clippy::unreachable)]
+                match unop.op {
+                    Operator::Plus => operand,
+                    Operator::Minus => -operand,
+                    Operator::Times
+                    | Operator::Divide
+                    | Operator::Power
+                    | Operator::Modulo => unreachable!(),
+                }
+            },
+            Element::BinOp(ref binop) => {
+                let left = self.eval_element_unchecked(&binop.lhs);
+                let right = self.eval_element_unchecked(&binop.rhs);
+                match binop.op {
+                    Operator::Plus => left + right,
+                    Operator::Minus => left - right,
+                    Operator::Times => left * right,
+                    Operator::Divide => left / right,
+                    Operator::Power => left.powf(right),
+                    Operator::Modulo => left % right,
+                }
+            },
+            Element::Function(ref func) => {
+                let args = func
+                    .args
+                    .iter()
+                    .map(|arg| self.eval_element_unchecked(arg))
+                    .collect::<Vec<_>>();
+                func.call(&args)
+            },
+        }
+    }
 }
 
 #[derive(Debug, Eq, PartialEq, thiserror::Error)]
@@ -134,58 +180,146 @@ pub struct EvalError(String);
 #[rustfmt::skip]
 impl<'a> Xprs<'a> {
     #[inline]
-    pub fn bind(self, var: &'a str) -> impl Fn(f64) -> Result<f64, EvalError> + 'a {
-        move |val| self.eval(&[(var, val)].into())
+    pub fn bind(self, var: &'a str) -> Result<impl Fn(f64) -> f64 + 'a, BindError>  {
+        if let Some(&needed) = self.vars.iter().next() {
+            if var != needed {
+                yeet!(BindError::OneVariable(needed.to_owned()));
+            }
+        }
+        Ok(move |val| self.eval_unchecked(&[(var, val)].into()))
     }
 
     #[inline]
-    pub fn bind2(self, var1: &'a str, var2: &'a str) -> impl Fn(f64, f64) -> Result<f64, EvalError> + 'a {
-        move |val1, val2| self.eval(&[(var1, val1), (var2, val2)].into())
+    pub fn bind2(self, var1: &'a str, var2: &'a str) ->  Result<impl Fn(f64, f64) -> f64 + 'a, BindError> {
+        let variables: HashSet<&str> = HashSet::from([var1, var2]);
+        let missing_vars = self.vars.difference(&variables);
+        if let Some(bind_error) = BindError::from_diff(missing_vars) {
+            yeet!(bind_error);
+        }
+        Ok(move |val1, val2| self.eval_unchecked(&[(var1, val1), (var2, val2)].into()))
     }
 
     #[inline]
-    pub fn bind3(self, var1: &'a str, var2: &'a str, var3: &'a str) -> impl Fn(f64, f64, f64) -> Result<f64, EvalError> + 'a {
-        move |val1, val2, val3| self.eval(&[(var1, val1), (var2, val2), (var3, val3)].into())
+    pub fn bind3(self, var1: &'a str, var2: &'a str, var3: &'a str) ->  Result<impl Fn(f64, f64, f64) -> f64 + 'a, BindError> {
+        let variables: HashSet<&str> = HashSet::from([var1, var2, var3]);
+        let missing_vars = self.vars.difference(&variables);
+        if let Some(bind_error) = BindError::from_diff(missing_vars) {
+            yeet!(bind_error);
+        }
+        Ok(move |val1, val2, val3| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3)].into()))
     }
 
     #[inline]
-    pub fn bind4(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str) -> impl Fn(f64, f64, f64, f64) -> Result<f64, EvalError> + 'a {
-        move |val1, val2, val3, val4| self.eval(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4)].into())
+    pub fn bind4(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str) ->  Result<impl Fn(f64, f64, f64, f64) -> f64 + 'a, BindError> {
+        let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4]);
+        let missing_vars = self.vars.difference(&variables);
+        if let Some(bind_error) = BindError::from_diff(missing_vars) {
+            yeet!(bind_error);
+        }
+        Ok(move |val1, val2, val3, val4| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4)].into()))
     }
 
     #[inline]
-    pub fn bind5(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str) -> impl Fn(f64, f64, f64, f64, f64) -> Result<f64, EvalError> + 'a {
-        move |val1, val2, val3, val4, val5| self.eval(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5)].into())
+    pub fn bind5(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str) ->  Result<impl Fn(f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
+        let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5]);
+        let missing_vars = self.vars.difference(&variables);
+        if let Some(bind_error) = BindError::from_diff(missing_vars) {
+            yeet!(bind_error);
+        }
+        Ok(move |val1, val2, val3, val4, val5| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5)].into()))
     }
 
     #[inline]
-    pub fn bind6(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str) -> impl Fn(f64, f64, f64, f64, f64, f64) -> Result<f64, EvalError> + 'a {
-        move |val1, val2, val3, val4, val5, val6| self.eval(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5), (var6, val6)].into())
+    pub fn bind6(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str) ->  Result<impl Fn(f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
+        let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6]);
+        let missing_vars = self.vars.difference(&variables);
+        if let Some(bind_error) = BindError::from_diff(missing_vars) {
+            yeet!(bind_error);
+        }
+        Ok(move |val1, val2, val3, val4, val5, val6| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5), (var6, val6)].into()))
     }
 
     #[inline]
-    pub fn bind7(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str) -> impl Fn(f64, f64, f64, f64, f64, f64, f64) -> Result<f64, EvalError> + 'a {
-        move |val1, val2, val3, val4, val5, val6, val7| self.eval(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5), (var6, val6), (var7, val7)].into())
+    pub fn bind7(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str) ->  Result<impl Fn(f64, f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
+        let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6, var7]);
+        let missing_vars = self.vars.difference(&variables);
+        if let Some(bind_error) = BindError::from_diff(missing_vars) {
+            yeet!(bind_error);
+        }
+        Ok(move |val1, val2, val3, val4, val5, val6, val7| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5), (var6, val6), (var7, val7)].into()))
     }
 
     #[inline]
-    pub fn bind8(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str, var8: &'a str) -> impl Fn(f64, f64, f64, f64, f64, f64, f64, f64) -> Result<f64, EvalError> + 'a {
-        move |val1, val2, val3, val4, val5, val6, val7, val8| self.eval(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5), (var6, val6), (var7, val7), (var8, val8)].into())
+    pub fn bind8(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str, var8: &'a str) ->  Result<impl Fn(f64, f64, f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
+        let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6, var7, var8]);
+        let missing_vars = self.vars.difference(&variables);
+        if let Some(bind_error) = BindError::from_diff(missing_vars) {
+            yeet!(bind_error);
+        }
+        Ok(move |val1, val2, val3, val4, val5, val6, val7, val8| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5), (var6, val6), (var7, val7), (var8, val8)].into()))
     }
 
     #[inline]
-    pub fn bind9(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str, var8: &'a str, var9: &'a str) -> impl Fn(f64, f64, f64, f64, f64, f64, f64, f64, f64) -> Result<f64, EvalError> + 'a {
-        move |val1, val2, val3, val4, val5, val6, val7, val8, val9| self.eval(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5), (var6, val6), (var7, val7), (var8, val8), (var9, val9)].into())
+    pub fn bind9(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str, var8: &'a str, var9: &'a str) ->  Result<impl Fn(f64, f64, f64, f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
+        let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6, var7, var8, var9]);
+        let missing_vars = self.vars.difference(&variables);
+        if let Some(bind_error) = BindError::from_diff(missing_vars) {
+            yeet!(bind_error);
+        }
+        Ok(move |val1, val2, val3, val4, val5, val6, val7, val8, val9| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5), (var6, val6), (var7, val7), (var8, val8), (var9, val9)].into()))
     }
 
     // NOTE: Too lazy to implement this for more than 9 variables even with Copilot
     // + I don't really think anyone will need more than 9 variables anyway
     #[inline]
-    pub fn bind_n<const T: usize>(self, vars: [&'a str; T]) -> impl Fn([f64; T]) -> Result<f64, EvalError> + 'a {
-        move |vals| self.eval(&vars.into_iter().zip(vals).collect())
+    pub fn bind_n<const T: usize>(self, vars: [&'a str; T]) -> Result<impl Fn([f64; T]) -> f64 + 'a, BindError> {
+        let variables: HashSet<&str> = HashSet::from(vars);
+        let missing_vars = self.vars.difference(&variables);
+        if let Some(bind_error) = BindError::from_diff(missing_vars) {
+            yeet!(bind_error);
+        }
+        Ok(move |vals| self.eval_unchecked(&vars.into_iter().zip(vals).collect()))
     }
+
+    // no pre-execution checks possible here
+    // cannot guarantee that the slice of var names and the slice of values are of the same length
+    // without returning a Result
     #[inline]
     pub fn bind_n_runtime(self, vars: &'a [&'a str]) -> impl Fn(&[f64]) -> Result<f64, EvalError> + 'a {
         move |vals| self.eval(&vars.iter().copied().zip(vals.iter().copied()).collect())
+    }
+}
+
+#[derive(Debug, Eq, PartialEq, thiserror::Error)]
+#[non_exhaustive]
+pub enum BindError {
+    #[error("Variable '{0}' was not provided")]
+    OneVariable(String),
+    #[error("Variables '{0}' were not provided")]
+    MultipleVariables(String),
+}
+
+use std::collections::{hash_map::RandomState, hash_set::Difference};
+impl BindError {
+    #[inline]
+    #[must_use]
+    pub fn from_diff(
+        missing_vars: Difference<'_, &str, RandomState>,
+    ) -> Option<Self> {
+        let mut peekable = missing_vars.peekable();
+        let mut count: u8 = 0;
+        let mut missing_vars_str = String::new();
+        while let Some(missing_var) = peekable.next() {
+            count += 1;
+            missing_vars_str.push_str(missing_var);
+            if peekable.peek().is_some() {
+                missing_vars_str.push_str(", ");
+            }
+        }
+        match count {
+            0 => None,
+            1 => Some(Self::OneVariable(missing_vars_str)),
+            _ => Some(Self::MultipleVariables(missing_vars_str)),
+        }
     }
 }
