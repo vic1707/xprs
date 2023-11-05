@@ -180,7 +180,7 @@ pub struct EvalError(String);
 #[rustfmt::skip]
 impl<'a> Xprs<'a> {
     #[inline]
-    pub fn bind(self, var: &'a str) -> Result<impl Fn(f64) -> f64 + 'a, BindError>  {
+    pub fn bind(self, var: &'a str) -> Result<impl Fn(f64) -> f64 + 'a, BindError> {
         if let Some(&needed) = self.vars.iter().next() {
             if var != needed {
                 yeet!(BindError::OneVariable(needed.to_owned()));
@@ -190,7 +190,7 @@ impl<'a> Xprs<'a> {
     }
 
     #[inline]
-    pub fn bind2(self, var1: &'a str, var2: &'a str) ->  Result<impl Fn(f64, f64) -> f64 + 'a, BindError> {
+    pub fn bind2(self, var1: &'a str, var2: &'a str) -> Result<impl Fn(f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2]);
         let missing_vars = self.vars.difference(&variables);
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
@@ -200,7 +200,7 @@ impl<'a> Xprs<'a> {
     }
 
     #[inline]
-    pub fn bind3(self, var1: &'a str, var2: &'a str, var3: &'a str) ->  Result<impl Fn(f64, f64, f64) -> f64 + 'a, BindError> {
+    pub fn bind3(self, var1: &'a str, var2: &'a str, var3: &'a str) -> Result<impl Fn(f64, f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3]);
         let missing_vars = self.vars.difference(&variables);
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
@@ -210,7 +210,7 @@ impl<'a> Xprs<'a> {
     }
 
     #[inline]
-    pub fn bind4(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str) ->  Result<impl Fn(f64, f64, f64, f64) -> f64 + 'a, BindError> {
+    pub fn bind4(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str) -> Result<impl Fn(f64, f64, f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4]);
         let missing_vars = self.vars.difference(&variables);
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
@@ -220,7 +220,7 @@ impl<'a> Xprs<'a> {
     }
 
     #[inline]
-    pub fn bind5(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str) ->  Result<impl Fn(f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
+    pub fn bind5(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5]);
         let missing_vars = self.vars.difference(&variables);
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
@@ -230,7 +230,7 @@ impl<'a> Xprs<'a> {
     }
 
     #[inline]
-    pub fn bind6(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str) ->  Result<impl Fn(f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
+    pub fn bind6(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6]);
         let missing_vars = self.vars.difference(&variables);
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
@@ -240,7 +240,7 @@ impl<'a> Xprs<'a> {
     }
 
     #[inline]
-    pub fn bind7(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str) ->  Result<impl Fn(f64, f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
+    pub fn bind7(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6, var7]);
         let missing_vars = self.vars.difference(&variables);
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
@@ -250,7 +250,7 @@ impl<'a> Xprs<'a> {
     }
 
     #[inline]
-    pub fn bind8(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str, var8: &'a str) ->  Result<impl Fn(f64, f64, f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
+    pub fn bind8(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str, var8: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6, var7, var8]);
         let missing_vars = self.vars.difference(&variables);
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
@@ -260,7 +260,7 @@ impl<'a> Xprs<'a> {
     }
 
     #[inline]
-    pub fn bind9(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str, var8: &'a str, var9: &'a str) ->  Result<impl Fn(f64, f64, f64, f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
+    pub fn bind9(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str, var8: &'a str, var9: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6, var7, var8, var9]);
         let missing_vars = self.vars.difference(&variables);
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
