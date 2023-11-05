@@ -19,7 +19,7 @@ mod tests;
 pub use context::Context;
 pub use parser::{ErrorKind, ParseError, Parser};
 pub use token::Function;
-pub use xprs::{EvalError, Xprs};
+pub use xprs::{BindError, EvalError, Xprs};
 
 /* Feature safety */
 #[cfg(all(feature = "pemdas", feature = "pejmdas"))]
