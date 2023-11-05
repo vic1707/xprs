@@ -281,12 +281,17 @@ impl<'a> Xprs<'a> {
         Ok(move |vals| self.eval_unchecked(&vars.into_iter().zip(vals).collect()))
     }
 
-    // no pre-execution checks possible here
-    // cannot guarantee that the slice of var names and the slice of values are of the same length
-    // without returning a Result
     #[inline]
-    pub fn bind_n_runtime(self, vars: &'a [&'a str]) -> impl Fn(&[f64]) -> Result<f64, EvalError> + 'a {
-        move |vals| self.eval(&vars.iter().copied().zip(vals.iter().copied()).collect())
+    pub fn bind_n_runtime(self, vars: &'a [&'a str]) -> Result<impl Fn(&[f64]) -> Result<f64, EvalError> + 'a, BindError> {
+        let variables: HashSet<&str> = vars.iter().copied().collect();
+        let missing_vars = self.vars.difference(&variables);
+        if let Some(bind_error) = BindError::from_diff(missing_vars) {
+            yeet!(bind_error);
+        }
+        // can't drop the closure from returning a result because we can't use the unchecked version
+        // because we don't know the length of the slice at compile time
+        // it could be different from the length of the slice of variables names
+        Ok(move |vals: &[f64]| self.eval(&vars.iter().copied().zip(vals.iter().copied()).collect()))
     }
 }
 
