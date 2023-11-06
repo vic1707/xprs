@@ -197,9 +197,28 @@ impl<'a> ParserImpl<'a> {
     }
 
     fn parse_number(&mut self) -> Result<Element<'a>, ParseError> {
-        let ident = self.take_while(|&ch| {
-            matches!(ch, b'0'..=b'9' | b'.' | b'e' | b'E' | b'_')
-        });
+        let begin = self.cursor;
+        self.skip_while(|&ch| matches!(ch, b'0'..=b'9' | b'.' | b'_'));
+        // make sure to not mistake exponent (10^) with exponential (e = 2.71828..)
+        if matches!(self.current(), Some(&b'e' | &b'E')) {
+            match self.next() {
+                Some(&b'+' | &b'-')
+                    if matches!(self.next_at(2), Some(&(b'0'..=b'9'))) =>
+                {
+                    self.cursor += 2;
+                },
+                Some(&(b'0'..=b'9')) => self.cursor += 1,
+                _ => (),
+            }
+            // take exponent
+            self.skip_while(u8::is_ascii_digit);
+        }
+        let end = self.cursor;
+
+        let ident = trust_me!(
+            #[allow(clippy::indexing_slicing)]
+            str::from_utf8_unchecked(&self.input[begin..end])
+        );
 
         let num = ident.replace('_', "").parse().map_err(
             #[cold]
@@ -302,6 +321,16 @@ impl ParserImpl<'_> {
     fn next_trim(&mut self) -> Option<&u8> {
         self.skip_while(u8::is_ascii_whitespace);
         self.current()
+    }
+
+    #[inline]
+    fn next(&self) -> Option<&u8> {
+        self.input.get(self.cursor + 1)
+    }
+
+    #[inline]
+    fn next_at(&self, offset: usize) -> Option<&u8> {
+        self.input.get(self.cursor + offset)
     }
 
     fn get_operator_infos(
