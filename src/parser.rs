@@ -89,7 +89,7 @@ impl<'a> ParserImpl<'a> {
 
         let root = parser_impl.element(precedence::NO_PRECEDENCE)?;
 
-        if let Some(&tok) = parser_impl.next() {
+        if let Some(&tok) = parser_impl.next_trim() {
             yeet!(ParseError::new_unexpected_token(&parser_impl, tok));
         }
 
@@ -124,7 +124,7 @@ impl<'a> ParserImpl<'a> {
     }
 
     fn atom(&mut self) -> Result<Element<'a>, ParseError> {
-        let Some(&next) = self.next() else {
+        let Some(&next) = self.next_trim() else {
             yeet!(ParseError::new_unexpected_end_of_expression(self));
         };
         let atom = match next {
@@ -226,14 +226,14 @@ impl<'a> ParserImpl<'a> {
                 }
                 // if a comma is followed by a closing parenthesis
                 // it means we have a missing argument
-                if self.next() == Some(&b')') {
+                if self.next_trim() == Some(&b')') {
                     yeet!(ParseError::new_missing_argument(self));
                 }
 
                 Ok(arg)
             })
             .collect::<Result<Vec<Element<'a>>, ParseError>>();
-        if self.next() == Some(&b',') {
+        if self.next_trim() == Some(&b',') {
             yeet!(ParseError::new_too_many_arguments(
                 self,
                 nb_args,
@@ -253,7 +253,7 @@ impl<'a> ParserImpl<'a> {
             args.push(arg);
 
             // expect either a comma or a closing parenthesis
-            match self.next() {
+            match self.next_trim() {
                 Some(&b',') => self.cursor += 1,
                 Some(&b')') => break,
                 Some(&tok) => {
@@ -289,7 +289,7 @@ impl ParserImpl<'_> {
 
     #[inline]
     fn consume_if_eq(&mut self, tok: u8) -> bool {
-        let eq = self.next() == Some(&tok);
+        let eq = self.next_trim() == Some(&tok);
         self.cursor += usize::from(eq);
         eq
     }
@@ -299,7 +299,7 @@ impl ParserImpl<'_> {
         self.input.get(self.cursor)
     }
 
-    fn next(&mut self) -> Option<&u8> {
+    fn next_trim(&mut self) -> Option<&u8> {
         self.skip_while(u8::is_ascii_whitespace);
         self.current()
     }
@@ -311,7 +311,7 @@ impl ParserImpl<'_> {
     ) -> Option<(Operator, usize)> {
         use precedence::IMPLICIT_MULTIPLICATION_INFO;
 
-        let current_byte = *self.next()?;
+        let current_byte = *self.next_trim()?;
         // check for binary operator
         if let Ok(op) = Operator::try_from(current_byte) {
             let op_p = precedence::get_for_op(&op);
