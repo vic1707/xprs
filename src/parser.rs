@@ -232,7 +232,7 @@ impl<'a> ParserImpl<'a> {
     ) -> Result<Vec<Element<'a>>, ParseError> {
         let args = (1..=nb_args)
             .map(|idx| {
-                let arg = self.element(precedence::NO_PRECEDENCE)?;
+                let arg = self.argument()?;
                 // check for comma if not last argument
                 if idx == nb_args {
                     return Ok(arg);
@@ -266,7 +266,7 @@ impl<'a> ParserImpl<'a> {
         let mut args = Vec::new();
 
         loop {
-            let arg = self.element(precedence::NO_PRECEDENCE)?;
+            let arg = self.argument()?;
             args.push(arg);
 
             // expect either a comma or a closing parenthesis
@@ -282,6 +282,22 @@ impl<'a> ParserImpl<'a> {
             }
         }
         Ok(args)
+    }
+
+    fn argument(&mut self) -> Result<Element<'a>, ParseError> {
+        self.element(precedence::NO_PRECEDENCE)
+            .map_err(|err| match err.kind {
+                ErrorKind::UnexpectedToken(_) => {
+                    ParseError::new_missing_argument(self)
+                },
+                ErrorKind::UnexpectedEndOfExpression
+                | ErrorKind::ExpectedToken(_)
+                | ErrorKind::MalformedNumber(_)
+                | ErrorKind::IllegalCharacter(_)
+                | ErrorKind::VariableNotDeclared(_)
+                | ErrorKind::TooManyArguments(..)
+                | ErrorKind::MissingArgument => err,
+            })
     }
 
     #[inline]
