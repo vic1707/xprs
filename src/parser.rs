@@ -200,19 +200,17 @@ impl<'a> ParserImpl<'a> {
         let begin = self.cursor;
         self.skip_while(|&ch| matches!(ch, b'0'..=b'9' | b'.' | b'_'));
         // make sure to not mistake exponent (10^) with exponential (e = 2.71828..)
-        if matches!(self.current(), Some(&b'e' | &b'E')) {
-            match self.next() {
-                Some(&b'+' | &b'-')
-                    if matches!(self.next_at(2), Some(&(b'0'..=b'9'))) =>
-                {
-                    self.cursor += 2;
-                },
-                Some(&(b'0'..=b'9')) => self.cursor += 1,
-                _ => (),
-            }
-            // take exponent
-            self.skip_while(u8::is_ascii_digit);
-        }
+        let might_be_exponent = matches!(self.current(), Some(&b'e' | &b'E'));
+        let is_exponent_with_sign = might_be_exponent
+            && matches!(self.next(), Some(&b'+' | &b'-'))
+            && matches!(self.next_at(2), Some(&(b'0'..=b'9')));
+        let is_exponent =
+            might_be_exponent && matches!(self.next(), Some(&(b'0'..=b'9')));
+
+        self.cursor +=
+            usize::from(is_exponent_with_sign) * 2 + usize::from(is_exponent);
+
+        self.skip_while(u8::is_ascii_digit);
         let end = self.cursor;
 
         let ident = trust_me!(
