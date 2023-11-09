@@ -16,8 +16,6 @@ use crate::{
     },
     xprs::Xprs,
 };
-/* Dependencies imports */
-use miette::{Diagnostic, SourceSpan};
 
 #[derive(Debug, Default, PartialEq)]
 pub struct Parser<'a> {
@@ -372,14 +370,76 @@ impl ParserImpl<'_> {
     }
 }
 
-#[derive(Debug, Eq, PartialEq, thiserror::Error, Diagnostic)]
+#[derive(Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{kind}")]
 pub struct ParseError {
     kind: ErrorKind,
-    #[label("here")]
-    span: SourceSpan,
-    #[source_code]
+    span: miette::SourceSpan,
     src: String,
+}
+
+extern crate alloc;
+use alloc::fmt;
+use std::iter::Iterator;
+impl miette::Diagnostic for ParseError {
+    #[inline]
+    fn help(&self) -> Option<Box<dyn fmt::Display + '_>> {
+        let message = match self.kind {
+            ErrorKind::UnexpectedEndOfExpression => {
+                "Something might be missing here?".to_owned()
+            },
+            ErrorKind::UnexpectedToken(_) => "Try removing it?".to_owned(),
+            ErrorKind::MalformedNumber(_) => {
+                "Did you enter a number with multiple decimal points?"
+                    .to_owned()
+            },
+            ErrorKind::IllegalCharacter(_) => {
+                "Try removing this character.".to_owned()
+            },
+            ErrorKind::ExpectedToken(tok) => {
+                format!("Try adding a `{tok}` here.")
+            },
+            ErrorKind::VariableNotDeclared(_) => {
+                "Try removing this variable.".to_owned()
+            },
+            ErrorKind::TooManyArguments(expected, got) => {
+                let excess = got - usize::from(expected);
+                format!(
+                    "Try removing {excess} argument{}.",
+                    if excess > 1 { "s" } else { "" }
+                )
+            },
+            ErrorKind::TooFewArguments(expected, got) => {
+                let missing = usize::from(expected) - got;
+                format!(
+                    "Try adding {missing} argument{}.",
+                    if missing > 1 { "s" } else { "" }
+                )
+            },
+            ErrorKind::MissingArgument => {
+                "Either remove comma or add argument.".to_owned()
+            },
+        };
+        Some(Box::new(message))
+    }
+
+    #[inline]
+    fn labels(
+        &self,
+    ) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
+        Some(Box::new(
+            <[_]>::into_vec(Box::new([miette::LabeledSpan::new_with_span(
+                Some(fmt::format(format_args!("here"))),
+                self.span,
+            )]))
+            .into_iter(),
+        ))
+    }
+
+    #[inline]
+    fn source_code(&self) -> Option<&dyn miette::SourceCode> {
+        Some(&self.src)
+    }
 }
 
 #[derive(Debug, Eq, PartialEq, thiserror::Error)]
