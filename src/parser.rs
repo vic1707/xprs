@@ -167,7 +167,7 @@ impl<'a> ParserImpl<'a> {
             .get_var(name)
             .map(|&value| Identifier::Constant(value))
             .or_else(|| self.ctx.get_func(name).map(Identifier::Function))
-            .unwrap_or_else(|| name.into());
+            .unwrap_or_else(|| Identifier::from_str(name));
 
         let el = match ident {
             Identifier::Constant(val) => Element::Number(val),

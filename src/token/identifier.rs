@@ -10,8 +10,9 @@ pub enum Identifier<'a> {
     Variable(&'a str),
 }
 
-impl<'a> From<&'a str> for Identifier<'a> {
-    fn from(value: &'a str) -> Self {
+// FromStr doesn't work for this because it doesn't allow for lifetimes
+impl<'a> Identifier<'a> {
+    pub fn from_str(value: &'a str) -> Self {
         match value {
             /* Constants */
             "pi" => f64::consts::PI.into(),
