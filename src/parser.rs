@@ -51,10 +51,7 @@ impl<'a> Parser<'a> {
             .get_expected_vars()
             .and_then(|expected| xprs.vars.difference(expected).next())
         {
-            yeet!(ParseError::new_variable_not_declared(
-                &ParserImpl::new(input, &self.ctx),
-                unknown_var,
-            ))
+            yeet!(ParseError::new_variable_not_declared(input, unknown_var,))
         }
 
         Ok(xprs)
@@ -515,11 +512,11 @@ impl ParseError {
     }
 
     #[cold]
-    fn new_variable_not_declared(parser: &ParserImpl, var: &str) -> Self {
+    fn new_variable_not_declared(input: &str, var: &str) -> Self {
         Self {
             kind: ErrorKind::VariableNotDeclared(var.to_owned()),
-            span: (0, parser.input.len()).into(),
-            src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
+            span: (0, input.len()).into(),
+            src: input.to_owned(),
         }
     }
 
