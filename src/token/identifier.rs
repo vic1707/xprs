@@ -61,9 +61,12 @@ impl<'a> Identifier<'a> {
     }
 }
 
-impl From<f64> for Identifier<'_> {
-    fn from(value: f64) -> Self {
-        Identifier::Constant(value)
+impl<T> From<T> for Identifier<'_>
+where
+    T: Into<f64>,
+{
+    fn from(value: T) -> Self {
+        Identifier::Constant(value.into())
     }
 }
 
