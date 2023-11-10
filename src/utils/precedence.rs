@@ -7,8 +7,7 @@ pub const UNOP_PRECEDENCE: usize = 3;
 #[cfg(feature = "pejmdas")]
 const IMPLICIT_MULTIPLICATION_PRECEDENCE: usize = 3;
 #[cfg(feature = "pemdas")]
-const IMPLICIT_MULTIPLICATION_PRECEDENCE: usize =
-    get_for_op(&Operator::Times);
+const IMPLICIT_MULTIPLICATION_PRECEDENCE: usize = get_for_op(&Operator::Times);
 
 pub const IMPLICIT_MULTIPLICATION_INFO: (Operator, usize) =
     (Operator::Times, IMPLICIT_MULTIPLICATION_PRECEDENCE);
