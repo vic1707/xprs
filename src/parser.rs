@@ -42,12 +42,11 @@ impl<'ctx> Parser<'ctx> {
 
     #[inline]
     pub fn parse<'input, 'xprs>(
-        &'ctx self,
+        &self,
         input: &'input str,
     ) -> Result<Xprs<'xprs>, ParseError>
     where
         'input: 'xprs,
-        'ctx: 'xprs,
     {
         let xprs = ParserImpl::parse(input, &self.ctx)?;
 
@@ -85,7 +84,6 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     ) -> Result<Xprs<'xprs>, ParseError>
     where
         'input: 'xprs,
-        'ctx: 'xprs,
     {
         let mut parser_impl = Self::new(input, ctx);
 
@@ -110,7 +108,6 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     ) -> Result<Element<'element>, ParseError>
     where
         'input: 'element,
-        'ctx: 'element,
     {
         let mut el = self.atom()?;
 
@@ -132,7 +129,6 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     fn atom<'element>(&mut self) -> Result<Element<'element>, ParseError>
     where
         'input: 'element,
-        'ctx: 'element,
     {
         let Some(&next) = self.next_trim() else {
             yeet!(ParseError::new_unexpected_end_of_expression(self));
@@ -176,7 +172,6 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     ) -> Result<Element<'element>, ParseError>
     where
         'input: 'element,
-        'ctx: 'element,
     {
         let identifier_start = self.cursor;
         let name = self.take_while(u8::is_ascii_lowercase);
@@ -269,7 +264,6 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     ) -> Result<Vec<Element<'element>>, ParseError>
     where
         'input: 'element,
-        'ctx: 'element,
     {
         let mut args = Vec::new();
 
@@ -295,7 +289,6 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     fn argument<'element>(&mut self) -> Result<Element<'element>, ParseError>
     where
         'input: 'element,
-        'ctx: 'element,
     {
         self.element(precedence::NO_PRECEDENCE)
             .map_err(|err| match err.kind {
