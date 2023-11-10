@@ -10,7 +10,7 @@ pub struct UnOp<'a> {
 }
 
 impl<'a> UnOp<'a> {
-    pub const fn new(op: Operator, operand: Element<'a>) -> Self {
+    const fn new(op: Operator, operand: Element<'a>) -> Self {
         Self { op, operand }
     }
 

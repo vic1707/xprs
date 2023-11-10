@@ -71,7 +71,7 @@ impl<'a> Simplify<'a> for BinOp<'a> {
                 lhs,
                 rhs,
             } if lhs == Number(0.0_f64) => {
-                UnOp::new(Operator::Minus, rhs).simplify()
+                UnOp::new_element(Operator::Minus, rhs)
             },
             // .. - 0 => ..
             BinOp {
