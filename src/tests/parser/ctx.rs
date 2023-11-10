@@ -63,7 +63,7 @@ fn get_valid_test_cases() -> [(&'static str, Element<'static>); 6] {
         (
             "double(2 + phi * x)",
             FunctionCall::new_element(
-                &DOUBLE,
+                DOUBLE,
                 vec![BinOp::new_element(
                     Operator::Plus,
                     Element::Number(2.0),
@@ -78,14 +78,14 @@ fn get_valid_test_cases() -> [(&'static str, Element<'static>); 6] {
         (
             "add(2, 3)",
             FunctionCall::new_element(
-                &ADD,
+                ADD,
                 vec![Element::Number(2.0), Element::Number(3.0)],
             ),
         ),
         (
             "mean(2, 3, 4)",
             FunctionCall::new_element(
-                &MEAN,
+                MEAN,
                 vec![
                     Element::Number(2.0),
                     Element::Number(3.0),

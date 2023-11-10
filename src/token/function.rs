@@ -1,14 +1,14 @@
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
-pub struct Function<'a> {
-    pub(crate) name: &'a str,
+pub struct Function {
+    pub(crate) name: &'static str,
     pub(crate) func: fn(&[f64]) -> f64,
     pub(crate) nb_args: Option<u8>,
 }
 
-impl<'a> Function<'a> {
+impl Function {
     #[inline]
     pub const fn new(
-        name: &'a str,
+        name: &'static str,
         func: fn(&[f64]) -> f64,
         nb_args: Option<u8>,
     ) -> Self {

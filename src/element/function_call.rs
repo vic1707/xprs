@@ -5,17 +5,17 @@ use crate::{element::Element, token::Function};
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct FunctionCall<'a> {
-    pub(crate) desc: Function<'a>,
+    pub(crate) desc: Function,
     pub(crate) args: Vec<Element<'a>>,
 }
 
 impl<'a> FunctionCall<'a> {
-    const fn new(desc: Function<'a>, args: Vec<Element<'a>>) -> Self {
+    const fn new(desc: Function, args: Vec<Element<'a>>) -> Self {
         Self { desc, args }
     }
 
     pub fn new_element(
-        desc: Function<'a>,
+        desc: Function,
         args: Vec<Element<'a>>,
     ) -> Element<'a> {
         Element::Function(Box::new(Self::new(desc, args)))

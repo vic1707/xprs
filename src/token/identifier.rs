@@ -5,7 +5,7 @@ use crate::{token::Function, utils::built_in_functions};
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub enum Identifier<'a> {
-    Function(Function<'a>),
+    Function(Function),
     Constant(f64),
     Variable(&'a str),
 }
@@ -70,8 +70,8 @@ where
     }
 }
 
-impl<'a> From<Function<'a>> for Identifier<'a> {
-    fn from(value: Function<'a>) -> Self {
+impl<'a> From<Function> for Identifier<'a> {
+    fn from(value: Function) -> Self {
         Identifier::Function(value)
     }
 }

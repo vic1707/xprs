@@ -7,7 +7,7 @@ use crate::{
 #[derive(Debug, Default, PartialEq)]
 pub struct Context<'a> {
     vars: HashMap<&'a str, f64>,
-    funcs: HashMap<&'a str, Function<'a>>,
+    funcs: HashMap<&'a str, Function>,
     expected_vars: Option<HashSet<&'a str>>,
 }
 
@@ -38,7 +38,7 @@ impl<'a> Context<'a> {
     }
 
     #[inline]
-    pub fn add_func(&mut self, name: &'a str, func: Function<'a>) {
+    pub fn add_func(&mut self, name: &'a str, func: Function) {
         self.funcs.insert(name, func);
     }
 
