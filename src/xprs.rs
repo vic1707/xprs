@@ -79,8 +79,7 @@ struct XprsImpl<'a> {
 }
 
 impl XprsImpl<'_> {
-    #[inline]
-    pub const fn new<'a>(variables: &'a HashMap<&'a str, f64>) -> XprsImpl<'a> {
+    const fn new<'a>(variables: &'a HashMap<&'a str, f64>) -> XprsImpl<'a> {
         XprsImpl { variables }
     }
 
@@ -308,7 +307,7 @@ use std::collections::{hash_map::RandomState, hash_set::Difference};
 impl BindError {
     #[inline]
     #[must_use]
-    pub fn from_diff(
+    fn from_diff(
         missing_vars: Difference<'_, &str, RandomState>,
     ) -> Option<Self> {
         let mut peekable = missing_vars.peekable();

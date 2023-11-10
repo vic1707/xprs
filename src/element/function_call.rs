@@ -10,7 +10,7 @@ pub struct FunctionCall<'a> {
 }
 
 impl<'a> FunctionCall<'a> {
-    pub const fn new(desc: &'a Function<'a>, args: Vec<Element<'a>>) -> Self {
+    const fn new(desc: &'a Function<'a>, args: Vec<Element<'a>>) -> Self {
         Self { desc, args }
     }
 

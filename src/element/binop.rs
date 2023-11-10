@@ -11,7 +11,7 @@ pub struct BinOp<'a> {
 }
 
 impl<'a> BinOp<'a> {
-    pub const fn new(op: Operator, lhs: Element<'a>, rhs: Element<'a>) -> Self {
+    const fn new(op: Operator, lhs: Element<'a>, rhs: Element<'a>) -> Self {
         Self { op, lhs, rhs }
     }
 
