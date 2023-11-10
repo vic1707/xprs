@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub struct Function<'a> {
     pub(crate) name: &'a str,
     pub(crate) func: fn(&[f64]) -> f64,

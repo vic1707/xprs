@@ -187,7 +187,9 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
             .ctx
             .get_var(name)
             .map(|&value| Identifier::Constant(value))
-            .or_else(|| self.ctx.get_func(name).map(Identifier::Function))
+            .or_else(|| {
+                self.ctx.get_func(name).copied().map(Identifier::Function)
+            })
             .unwrap_or_else(|| Identifier::from_str(name));
 
         let el = match ident {
