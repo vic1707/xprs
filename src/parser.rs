@@ -18,14 +18,14 @@ use crate::{
 };
 
 #[derive(Debug, Default, PartialEq)]
-pub struct Parser<'a> {
-    ctx: Context<'a>,
+pub struct Parser<'ctx> {
+    ctx: Context<'ctx>,
 }
 
-impl<'a> Parser<'a> {
+impl<'ctx> Parser<'ctx> {
     #[inline]
     #[must_use]
-    pub const fn new_with_ctx(ctx: Context<'a>) -> Self {
+    pub const fn new_with_ctx(ctx: Context<'ctx>) -> Self {
         Self { ctx }
     }
 
@@ -36,7 +36,7 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
-    pub fn ctx_mut(&mut self) -> &mut Context<'a> {
+    pub fn ctx_mut(&mut self) -> &mut Context<'ctx> {
         &mut self.ctx
     }
 
