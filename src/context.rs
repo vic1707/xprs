@@ -5,13 +5,13 @@ use crate::{
 };
 
 #[derive(Debug, Default, PartialEq)]
-pub struct Context<'a> {
-    vars: HashMap<&'a str, f64>,
-    funcs: HashMap<&'a str, Function>,
-    expected_vars: Option<HashSet<&'a str>>,
+pub struct Context<'names> {
+    vars: HashMap<&'names str, f64>,
+    funcs: HashMap<&'names str, Function>,
+    expected_vars: Option<HashSet<&'names str>>,
 }
 
-impl<'a> Context<'a> {
+impl<'names> Context<'names> {
     #[inline]
     #[must_use]
     pub fn new() -> Self {
@@ -26,24 +26,24 @@ impl<'a> Context<'a> {
     #[must_use]
     pub fn with_expected_vars(
         mut self,
-        expected_vars: HashSet<&'a str>,
+        expected_vars: HashSet<&'names str>,
     ) -> Self {
         self.expected_vars = Some(expected_vars);
         self
     }
 
     #[inline]
-    pub fn add_var<T: Into<f64>>(&mut self, name: &'a str, value: T) {
+    pub fn add_var<T: Into<f64>>(&mut self, name: &'names str, value: T) {
         self.vars.insert(name, value.into());
     }
 
     #[inline]
-    pub fn add_func(&mut self, name: &'a str, func: Function) {
+    pub fn add_func(&mut self, name: &'names str, func: Function) {
         self.funcs.insert(name, func);
     }
 
     #[inline]
-    pub fn set_expected_vars(&mut self, expected_vars: HashSet<&'a str>) {
+    pub fn set_expected_vars(&mut self, expected_vars: HashSet<&'names str>) {
         self.expected_vars = Some(expected_vars);
     }
 
