@@ -41,7 +41,13 @@ impl<'ctx> Parser<'ctx> {
     }
 
     #[inline]
-    pub fn parse<'b>(&'b self, input: &'b str) -> Result<Xprs<'b>, ParseError> {
+    pub fn parse<'input, 'xprs>(
+        &'xprs self,
+        input: &'input str,
+    ) -> Result<Xprs<'xprs>, ParseError>
+    where
+        'input: 'xprs,
+    {
         let xprs = ParserImpl::parse(input, &self.ctx)?;
 
         // Check if no unknown variable was found
