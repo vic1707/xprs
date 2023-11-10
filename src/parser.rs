@@ -36,7 +36,7 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
-    pub fn ctx_mut<'b>(&'b mut self) -> &'b mut Context<'a> {
+    pub fn ctx_mut(&mut self) -> &mut Context<'a> {
         &mut self.ctx
     }
 
