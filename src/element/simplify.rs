@@ -10,7 +10,6 @@ pub trait Simplify<'a> {
 }
 
 impl<'a> Simplify<'a> for Element<'a> {
-    #[inline]
     fn simplify_for(self, var: (&str, f64)) -> Self {
         match self {
             Self::BinOp(binop) => binop.simplify_for(var),
@@ -21,7 +20,6 @@ impl<'a> Simplify<'a> for Element<'a> {
         }
     }
 
-    #[inline]
     fn simplify(self) -> Self {
         match self {
             Self::BinOp(binop) => binop.simplify(),
@@ -33,14 +31,12 @@ impl<'a> Simplify<'a> for Element<'a> {
 }
 
 impl<'a> Simplify<'a> for BinOp<'a> {
-    #[inline]
     fn simplify_for(mut self, var: (&str, f64)) -> Element<'a> {
         self.lhs = self.lhs.simplify_for(var);
         self.rhs = self.rhs.simplify_for(var);
         self.simplify()
     }
 
-    #[inline]
     #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
     fn simplify(mut self) -> Element<'a> {
         use Element::Number;
@@ -219,13 +215,11 @@ impl<'a> Simplify<'a> for BinOp<'a> {
 }
 
 impl<'a> Simplify<'a> for UnOp<'a> {
-    #[inline]
     fn simplify_for(mut self, var: (&str, f64)) -> Element<'a> {
         self.operand = self.operand.simplify_for(var);
         self.simplify()
     }
 
-    #[inline]
     fn simplify(mut self) -> Element<'a> {
         self.operand = self.operand.simplify();
         #[allow(clippy::unreachable)]
@@ -256,7 +250,6 @@ impl<'a> Simplify<'a> for UnOp<'a> {
 }
 
 impl<'a> Simplify<'a> for FunctionCall<'a> {
-    #[inline]
     fn simplify_for(mut self, var: (&str, f64)) -> Element<'a> {
         self.args = self
             .args
@@ -266,7 +259,6 @@ impl<'a> Simplify<'a> for FunctionCall<'a> {
         self.simplify()
     }
 
-    #[inline]
     fn simplify(mut self) -> Element<'a> {
         // TODO: Not a big fan of the second vector.
         // We need to simplify the arguments in all cases, but

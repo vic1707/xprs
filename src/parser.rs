@@ -36,7 +36,6 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
-    #[must_use]
     pub fn ctx_mut<'b>(&'b mut self) -> &'b mut Context<'a> {
         &mut self.ctx
     }
@@ -65,8 +64,6 @@ struct ParserImpl<'a> {
 }
 
 impl<'a> ParserImpl<'a> {
-    #[inline]
-    #[must_use]
     const fn new(input: &'a str, ctx: &'a Context) -> Self {
         Self {
             input: input.as_bytes(),
@@ -75,7 +72,6 @@ impl<'a> ParserImpl<'a> {
         }
     }
 
-    #[inline]
     pub fn parse(
         input: &'a str,
         ctx: &'a Context,
@@ -278,7 +274,6 @@ impl<'a> ParserImpl<'a> {
             })
     }
 
-    #[inline]
     fn take_while(&mut self, predicate: fn(&u8) -> bool) -> &'a str {
         let start = self.cursor;
         self.skip_while(predicate);
@@ -291,21 +286,18 @@ impl<'a> ParserImpl<'a> {
 }
 
 impl ParserImpl<'_> {
-    #[inline]
     fn skip_while(&mut self, predicate: fn(&u8) -> bool) {
         while self.current().is_some_and(predicate) {
             self.cursor += 1;
         }
     }
 
-    #[inline]
     fn consume_if_eq(&mut self, tok: u8) -> bool {
         let eq = self.next_trim() == Some(&tok);
         self.cursor += usize::from(eq);
         eq
     }
 
-    #[inline]
     fn current(&self) -> Option<&u8> {
         self.input.get(self.cursor)
     }
@@ -315,12 +307,10 @@ impl ParserImpl<'_> {
         self.current()
     }
 
-    #[inline]
     fn next(&self) -> Option<&u8> {
         self.input.get(self.cursor + 1)
     }
 
-    #[inline]
     fn next_at(&self, offset: usize) -> Option<&u8> {
         self.input.get(self.cursor + offset)
     }

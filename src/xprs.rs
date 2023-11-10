@@ -305,8 +305,6 @@ pub enum BindError {
 
 use std::collections::{hash_map::RandomState, hash_set::Difference};
 impl BindError {
-    #[inline]
-    #[must_use]
     fn from_diff(
         missing_vars: Difference<'_, &str, RandomState>,
     ) -> Option<Self> {
