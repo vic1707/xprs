@@ -14,10 +14,7 @@ impl<'a> FunctionCall<'a> {
         Self { desc, args }
     }
 
-    pub fn new_element(
-        desc: Function,
-        args: Vec<Element<'a>>,
-    ) -> Element<'a> {
+    pub fn new_element(desc: Function, args: Vec<Element<'a>>) -> Element<'a> {
         Element::Function(Box::new(Self::new(desc, args)))
     }
 
