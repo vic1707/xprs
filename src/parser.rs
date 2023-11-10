@@ -41,13 +41,10 @@ impl<'ctx> Parser<'ctx> {
     }
 
     #[inline]
-    pub fn parse<'input, 'xprs>(
+    pub fn parse<'input>(
         &self,
         input: &'input str,
-    ) -> Result<Xprs<'xprs>, ParseError>
-    where
-        'input: 'xprs,
-    {
+    ) -> Result<Xprs<'input>, ParseError> {
         let xprs = ParserImpl::parse(input, &self.ctx)?;
 
         // Check if no unknown variable was found
@@ -78,13 +75,10 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         }
     }
 
-    pub fn parse<'xprs>(
+    pub fn parse(
         input: &'input str,
         ctx: &'ctx Context<'ctx>,
-    ) -> Result<Xprs<'xprs>, ParseError>
-    where
-        'input: 'xprs,
-    {
+    ) -> Result<Xprs<'input>, ParseError> {
         let mut parser_impl = Self::new(input, ctx);
 
         let root = parser_impl.element(precedence::NO_PRECEDENCE)?;
@@ -102,13 +96,10 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         Ok(Xprs { root, vars })
     }
 
-    fn element<'element>(
+    fn element(
         &mut self,
         precedence: usize,
-    ) -> Result<Element<'element>, ParseError>
-    where
-        'input: 'element,
-    {
+    ) -> Result<Element<'input>, ParseError> {
         let mut el = self.atom()?;
 
         while let Some((op, op_precedence)) =
@@ -126,10 +117,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         Ok(el)
     }
 
-    fn atom<'element>(&mut self) -> Result<Element<'element>, ParseError>
-    where
-        'input: 'element,
-    {
+    fn atom(&mut self) -> Result<Element<'input>, ParseError> {
         let Some(&next) = self.next_trim() else {
             yeet!(ParseError::new_unexpected_end_of_expression(self));
         };
@@ -167,12 +155,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         Ok(atom)
     }
 
-    fn parse_identifier<'element>(
-        &mut self,
-    ) -> Result<Element<'element>, ParseError>
-    where
-        'input: 'element,
-    {
+    fn parse_identifier(&mut self) -> Result<Element<'input>, ParseError> {
         let identifier_start = self.cursor;
         let name = self.take_while(u8::is_ascii_lowercase);
 
@@ -227,9 +210,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         Ok(el)
     }
 
-    fn parse_number<'element>(
-        &mut self,
-    ) -> Result<Element<'element>, ParseError> {
+    fn parse_number(&mut self) -> Result<Element<'input>, ParseError> {
         let begin = self.cursor;
         self.skip_while(|&ch| matches!(ch, b'0'..=b'9' | b'.' | b'_'));
         // make sure to not mistake exponent (10^) with exponential (e = 2.71828..)
@@ -259,12 +240,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         Ok(Element::Number(num))
     }
 
-    fn parse_arguments<'element>(
-        &mut self,
-    ) -> Result<Vec<Element<'element>>, ParseError>
-    where
-        'input: 'element,
-    {
+    fn parse_arguments(&mut self) -> Result<Vec<Element<'input>>, ParseError> {
         let mut args = Vec::new();
 
         loop {
@@ -286,10 +262,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         Ok(args)
     }
 
-    fn argument<'element>(&mut self) -> Result<Element<'element>, ParseError>
-    where
-        'input: 'element,
-    {
+    fn argument(&mut self) -> Result<Element<'input>, ParseError> {
         self.element(precedence::NO_PRECEDENCE)
             .map_err(|err| match err.kind {
                 ErrorKind::UnexpectedToken(_) => {
