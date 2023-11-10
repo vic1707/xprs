@@ -18,6 +18,17 @@ pub struct Xprs<'a> {
     pub vars: HashSet<&'a str>,
 }
 
+impl<'input> TryFrom<&'input str> for Xprs<'input> {
+    type Error = crate::ParseError;
+
+    #[inline]
+    fn try_from(value: &'input str) -> Result<Self, Self::Error> {
+        let parser = crate::Parser::default();
+        let xprs = parser.parse(value);
+        xprs
+    }
+}
+
 impl fmt::Display for Xprs<'_> {
     #[inline]
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
