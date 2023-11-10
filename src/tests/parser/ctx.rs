@@ -20,7 +20,7 @@ fn mean(args: &[f64]) -> f64 {
 }
 const MEAN: Function = xprs_fn!("MEAN", mean);
 
-fn get_parser_with_ctx<'a>() -> Parser<'a> {
+fn get_parser_with_ctx() -> Parser<'static> {
     let mut ctx = Context::default();
 
     ctx.add_var("x", 2.0_f64);
@@ -37,7 +37,7 @@ fn get_parser_with_ctx<'a>() -> Parser<'a> {
     parser
 }
 
-fn get_valid_test_cases<'a>() -> [(&'static str, Element<'a>); 6] {
+fn get_valid_test_cases() -> [(&'static str, Element<'static>); 6] {
     [
         ("y", Element::Number(1.0)),
         (
@@ -63,7 +63,7 @@ fn get_valid_test_cases<'a>() -> [(&'static str, Element<'a>); 6] {
         (
             "double(2 + phi * x)",
             FunctionCall::new_element(
-                &DOUBLE,
+                DOUBLE,
                 vec![BinOp::new_element(
                     Operator::Plus,
                     Element::Number(2.0),
@@ -78,14 +78,14 @@ fn get_valid_test_cases<'a>() -> [(&'static str, Element<'a>); 6] {
         (
             "add(2, 3)",
             FunctionCall::new_element(
-                &ADD,
+                ADD,
                 vec![Element::Number(2.0), Element::Number(3.0)],
             ),
         ),
         (
             "mean(2, 3, 4)",
             FunctionCall::new_element(
-                &MEAN,
+                MEAN,
                 vec![
                     Element::Number(2.0),
                     Element::Number(3.0),

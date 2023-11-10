@@ -24,7 +24,7 @@ use crate::{
 ////// Commutativity
 /// (a + b) - (b + a)
 #[allow(clippy::too_many_lines)]
-fn get_valid_test_cases<'a>() -> [(&'static str, Xprs<'a>); 13] {
+fn get_valid_test_cases() -> [(&'static str, Xprs<'static>); 13] {
     [
         (
             "2 + pi",

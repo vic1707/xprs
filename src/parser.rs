@@ -18,14 +18,14 @@ use crate::{
 };
 
 #[derive(Debug, Default, PartialEq)]
-pub struct Parser<'a> {
-    ctx: Context<'a>,
+pub struct Parser<'ctx> {
+    ctx: Context<'ctx>,
 }
 
-impl<'a> Parser<'a> {
+impl<'ctx> Parser<'ctx> {
     #[inline]
     #[must_use]
-    pub const fn new_with_ctx(ctx: Context<'a>) -> Self {
+    pub const fn new_with_ctx(ctx: Context<'ctx>) -> Self {
         Self { ctx }
     }
 
@@ -36,12 +36,15 @@ impl<'a> Parser<'a> {
     }
 
     #[inline]
-    pub fn ctx_mut<'b>(&'b mut self) -> &'b mut Context<'a> {
+    pub fn ctx_mut(&mut self) -> &mut Context<'ctx> {
         &mut self.ctx
     }
 
     #[inline]
-    pub fn parse<'b>(&'b self, input: &'b str) -> Result<Xprs<'b>, ParseError> {
+    pub fn parse<'input>(
+        &self,
+        input: &'input str,
+    ) -> Result<Xprs<'input>, ParseError> {
         let xprs = ParserImpl::parse(input, &self.ctx)?;
 
         // Check if no unknown variable was found
@@ -57,14 +60,14 @@ impl<'a> Parser<'a> {
     }
 }
 
-struct ParserImpl<'a> {
-    input: &'a [u8],
+struct ParserImpl<'input, 'ctx> {
+    input: &'input [u8],
     cursor: usize,
-    ctx: &'a Context<'a>,
+    ctx: &'ctx Context<'ctx>,
 }
 
-impl<'a> ParserImpl<'a> {
-    const fn new(input: &'a str, ctx: &'a Context) -> Self {
+impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
+    const fn new(input: &'input str, ctx: &'ctx Context<'ctx>) -> Self {
         Self {
             input: input.as_bytes(),
             cursor: 0,
@@ -73,9 +76,9 @@ impl<'a> ParserImpl<'a> {
     }
 
     pub fn parse(
-        input: &'a str,
-        ctx: &'a Context,
-    ) -> Result<Xprs<'a>, ParseError> {
+        input: &'input str,
+        ctx: &'ctx Context<'ctx>,
+    ) -> Result<Xprs<'input>, ParseError> {
         let mut parser_impl = Self::new(input, ctx);
 
         let root = parser_impl.element(precedence::NO_PRECEDENCE)?;
@@ -96,7 +99,7 @@ impl<'a> ParserImpl<'a> {
     fn element(
         &mut self,
         precedence: usize,
-    ) -> Result<Element<'a>, ParseError> {
+    ) -> Result<Element<'input>, ParseError> {
         let mut el = self.atom()?;
 
         while let Some((op, op_precedence)) =
@@ -114,7 +117,7 @@ impl<'a> ParserImpl<'a> {
         Ok(el)
     }
 
-    fn atom(&mut self) -> Result<Element<'a>, ParseError> {
+    fn atom(&mut self) -> Result<Element<'input>, ParseError> {
         let Some(&next) = self.next_trim() else {
             yeet!(ParseError::new_unexpected_end_of_expression(self));
         };
@@ -152,7 +155,7 @@ impl<'a> ParserImpl<'a> {
         Ok(atom)
     }
 
-    fn parse_identifier(&mut self) -> Result<Element<'a>, ParseError> {
+    fn parse_identifier(&mut self) -> Result<Element<'input>, ParseError> {
         let identifier_start = self.cursor;
         let name = self.take_while(u8::is_ascii_lowercase);
 
@@ -162,7 +165,9 @@ impl<'a> ParserImpl<'a> {
             .ctx
             .get_var(name)
             .map(|&value| Identifier::Constant(value))
-            .or_else(|| self.ctx.get_func(name).map(Identifier::Function))
+            .or_else(|| {
+                self.ctx.get_func(name).copied().map(Identifier::Function)
+            })
             .unwrap_or_else(|| Identifier::from_str(name));
 
         let el = match ident {
@@ -205,7 +210,7 @@ impl<'a> ParserImpl<'a> {
         Ok(el)
     }
 
-    fn parse_number(&mut self) -> Result<Element<'a>, ParseError> {
+    fn parse_number(&mut self) -> Result<Element<'input>, ParseError> {
         let begin = self.cursor;
         self.skip_while(|&ch| matches!(ch, b'0'..=b'9' | b'.' | b'_'));
         // make sure to not mistake exponent (10^) with exponential (e = 2.71828..)
@@ -235,7 +240,7 @@ impl<'a> ParserImpl<'a> {
         Ok(Element::Number(num))
     }
 
-    fn parse_arguments(&mut self) -> Result<Vec<Element<'a>>, ParseError> {
+    fn parse_arguments(&mut self) -> Result<Vec<Element<'input>>, ParseError> {
         let mut args = Vec::new();
 
         loop {
@@ -257,7 +262,7 @@ impl<'a> ParserImpl<'a> {
         Ok(args)
     }
 
-    fn argument(&mut self) -> Result<Element<'a>, ParseError> {
+    fn argument(&mut self) -> Result<Element<'input>, ParseError> {
         self.element(precedence::NO_PRECEDENCE)
             .map_err(|err| match err.kind {
                 ErrorKind::UnexpectedToken(_) => {
@@ -274,7 +279,7 @@ impl<'a> ParserImpl<'a> {
             })
     }
 
-    fn take_while(&mut self, predicate: fn(&u8) -> bool) -> &'a str {
+    fn take_while(&mut self, predicate: fn(&u8) -> bool) -> &'input str {
         let start = self.cursor;
         self.skip_while(predicate);
         let end = self.cursor;
@@ -285,7 +290,7 @@ impl<'a> ParserImpl<'a> {
     }
 }
 
-impl ParserImpl<'_> {
+impl ParserImpl<'_, '_> {
     fn skip_while(&mut self, predicate: fn(&u8) -> bool) {
         while self.current().is_some_and(predicate) {
             self.cursor += 1;
