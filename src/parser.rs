@@ -42,11 +42,12 @@ impl<'ctx> Parser<'ctx> {
 
     #[inline]
     pub fn parse<'input, 'xprs>(
-        &'xprs self,
+        &'ctx self,
         input: &'input str,
     ) -> Result<Xprs<'xprs>, ParseError>
     where
         'input: 'xprs,
+        'ctx: 'xprs,
     {
         let xprs = ParserImpl::parse(input, &self.ctx)?;
 
@@ -63,14 +64,14 @@ impl<'ctx> Parser<'ctx> {
     }
 }
 
-struct ParserImpl<'a> {
-    input: &'a [u8],
+struct ParserImpl<'input, 'ctx> {
+    input: &'input [u8],
     cursor: usize,
-    ctx: &'a Context<'a>,
+    ctx: &'ctx Context<'ctx>,
 }
 
-impl<'a> ParserImpl<'a> {
-    const fn new(input: &'a str, ctx: &'a Context) -> Self {
+impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
+    const fn new(input: &'input str, ctx: &'ctx Context<'ctx>) -> Self {
         Self {
             input: input.as_bytes(),
             cursor: 0,
@@ -78,10 +79,14 @@ impl<'a> ParserImpl<'a> {
         }
     }
 
-    pub fn parse(
-        input: &'a str,
-        ctx: &'a Context,
-    ) -> Result<Xprs<'a>, ParseError> {
+    pub fn parse<'xprs>(
+        input: &'input str,
+        ctx: &'ctx Context<'ctx>,
+    ) -> Result<Xprs<'xprs>, ParseError>
+    where
+        'input: 'xprs,
+        'ctx: 'xprs,
+    {
         let mut parser_impl = Self::new(input, ctx);
 
         let root = parser_impl.element(precedence::NO_PRECEDENCE)?;
@@ -99,10 +104,14 @@ impl<'a> ParserImpl<'a> {
         Ok(Xprs { root, vars })
     }
 
-    fn element(
+    fn element<'element>(
         &mut self,
         precedence: usize,
-    ) -> Result<Element<'a>, ParseError> {
+    ) -> Result<Element<'element>, ParseError>
+    where
+        'input: 'element,
+        'ctx: 'element,
+    {
         let mut el = self.atom()?;
 
         while let Some((op, op_precedence)) =
@@ -120,7 +129,11 @@ impl<'a> ParserImpl<'a> {
         Ok(el)
     }
 
-    fn atom(&mut self) -> Result<Element<'a>, ParseError> {
+    fn atom<'element>(&mut self) -> Result<Element<'element>, ParseError>
+    where
+        'input: 'element,
+        'ctx: 'element,
+    {
         let Some(&next) = self.next_trim() else {
             yeet!(ParseError::new_unexpected_end_of_expression(self));
         };
@@ -158,7 +171,13 @@ impl<'a> ParserImpl<'a> {
         Ok(atom)
     }
 
-    fn parse_identifier(&mut self) -> Result<Element<'a>, ParseError> {
+    fn parse_identifier<'element>(
+        &mut self,
+    ) -> Result<Element<'element>, ParseError>
+    where
+        'input: 'element,
+        'ctx: 'element,
+    {
         let identifier_start = self.cursor;
         let name = self.take_while(u8::is_ascii_lowercase);
 
@@ -211,7 +230,9 @@ impl<'a> ParserImpl<'a> {
         Ok(el)
     }
 
-    fn parse_number(&mut self) -> Result<Element<'a>, ParseError> {
+    fn parse_number<'element>(
+        &mut self,
+    ) -> Result<Element<'element>, ParseError> {
         let begin = self.cursor;
         self.skip_while(|&ch| matches!(ch, b'0'..=b'9' | b'.' | b'_'));
         // make sure to not mistake exponent (10^) with exponential (e = 2.71828..)
@@ -241,7 +262,13 @@ impl<'a> ParserImpl<'a> {
         Ok(Element::Number(num))
     }
 
-    fn parse_arguments(&mut self) -> Result<Vec<Element<'a>>, ParseError> {
+    fn parse_arguments<'element>(
+        &mut self,
+    ) -> Result<Vec<Element<'element>>, ParseError>
+    where
+        'input: 'element,
+        'ctx: 'element,
+    {
         let mut args = Vec::new();
 
         loop {
@@ -263,7 +290,11 @@ impl<'a> ParserImpl<'a> {
         Ok(args)
     }
 
-    fn argument(&mut self) -> Result<Element<'a>, ParseError> {
+    fn argument<'element>(&mut self) -> Result<Element<'element>, ParseError>
+    where
+        'input: 'element,
+        'ctx: 'element,
+    {
         self.element(precedence::NO_PRECEDENCE)
             .map_err(|err| match err.kind {
                 ErrorKind::UnexpectedToken(_) => {
@@ -280,7 +311,7 @@ impl<'a> ParserImpl<'a> {
             })
     }
 
-    fn take_while(&mut self, predicate: fn(&u8) -> bool) -> &'a str {
+    fn take_while(&mut self, predicate: fn(&u8) -> bool) -> &'input str {
         let start = self.cursor;
         self.skip_while(predicate);
         let end = self.cursor;
@@ -291,7 +322,7 @@ impl<'a> ParserImpl<'a> {
     }
 }
 
-impl ParserImpl<'_> {
+impl ParserImpl<'_, '_> {
     fn skip_while(&mut self, predicate: fn(&u8) -> bool) {
         while self.current().is_some_and(predicate) {
             self.cursor += 1;
