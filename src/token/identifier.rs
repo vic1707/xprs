@@ -70,8 +70,8 @@ where
     }
 }
 
-impl<'a> From<&'a Function<'a>> for Identifier<'a> {
-    fn from(value: &'a Function<'a>) -> Self {
+impl<'a> From<&'a Function<'_>> for Identifier<'a> {
+    fn from(value: &'a Function) -> Self {
         Identifier::Function(value)
     }
 }

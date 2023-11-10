@@ -10,12 +10,12 @@ pub struct FunctionCall<'a> {
 }
 
 impl<'a> FunctionCall<'a> {
-    const fn new(desc: &'a Function<'a>, args: Vec<Element<'a>>) -> Self {
+    const fn new(desc: &'a Function, args: Vec<Element<'a>>) -> Self {
         Self { desc, args }
     }
 
     pub fn new_element(
-        desc: &'a Function<'a>,
+        desc: &'a Function,
         args: Vec<Element<'a>>,
     ) -> Element<'a> {
         Element::Function(Box::new(Self::new(desc, args)))

@@ -20,7 +20,7 @@ fn mean(args: &[f64]) -> f64 {
 }
 const MEAN: Function = xprs_fn!("MEAN", mean);
 
-fn get_parser_with_ctx<'a>() -> Parser<'a> {
+fn get_parser_with_ctx() -> Parser<'static> {
     let mut ctx = Context::default();
 
     ctx.add_var("x", 2.0_f64);
@@ -37,7 +37,7 @@ fn get_parser_with_ctx<'a>() -> Parser<'a> {
     parser
 }
 
-fn get_valid_test_cases<'a>() -> [(&'static str, Element<'a>); 6] {
+fn get_valid_test_cases() -> [(&'static str, Element<'static>); 6] {
     [
         ("y", Element::Number(1.0)),
         (

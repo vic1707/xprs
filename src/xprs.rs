@@ -79,7 +79,7 @@ struct XprsImpl<'a> {
 }
 
 impl XprsImpl<'_> {
-    const fn new<'a>(variables: &'a HashMap<&'a str, f64>) -> XprsImpl<'a> {
+    const fn new<'a>(variables: &'a HashMap<&str, f64>) -> XprsImpl<'a> {
         XprsImpl { variables }
     }
 

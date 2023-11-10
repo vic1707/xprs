@@ -49,19 +49,19 @@ impl<'a> Context<'a> {
 
     #[inline]
     #[must_use]
-    pub fn get_var(&self, name: &'a str) -> Option<&f64> {
+    pub fn get_var(&self, name: &str) -> Option<&f64> {
         self.vars.get(name)
     }
 
     #[inline]
     #[must_use]
-    pub fn get_func(&self, name: &'a str) -> Option<&Function<'a>> {
+    pub fn get_func(&self, name: &str) -> Option<&Function> {
         self.funcs.get(name)
     }
 
     #[inline]
     #[must_use]
-    pub const fn get_expected_vars(&self) -> Option<&HashSet<&'a str>> {
+    pub const fn get_expected_vars(&self) -> Option<&HashSet<&str>> {
         self.expected_vars.as_ref()
     }
 }

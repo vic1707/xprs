@@ -38,7 +38,7 @@ use crate::{
 /// 1 ^ -2
 /// -2 ^ 2
 #[allow(clippy::too_many_lines)]
-fn get_valid_test_cases<'a>() -> [(&'static str, Xprs<'a>); 27] {
+fn get_valid_test_cases() -> [(&'static str, Xprs<'static>); 27] {
     [
         (
             "2",
