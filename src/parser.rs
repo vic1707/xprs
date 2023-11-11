@@ -263,8 +263,9 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     }
 
     fn argument(&mut self) -> Result<Element<'input>, ParseError> {
-        self.element(precedence::NO_PRECEDENCE)
-            .map_err(|err| match err.kind {
+        self.element(precedence::NO_PRECEDENCE).map_err(
+            #[cold]
+            |err| match err.kind {
                 ErrorKind::UnexpectedToken(_) => {
                     ParseError::new_missing_argument(self)
                 },
@@ -276,7 +277,8 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
                 | ErrorKind::TooFewArguments(..)
                 | ErrorKind::TooManyArguments(..)
                 | ErrorKind::MissingArgument => err,
-            })
+            },
+        )
     }
 
     fn take_while(&mut self, predicate: fn(&u8) -> bool) -> &'input str {
