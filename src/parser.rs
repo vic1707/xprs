@@ -53,7 +53,7 @@ impl<'ctx> Parser<'ctx> {
             .get_expected_vars()
             .and_then(|expected| xprs.vars.difference(expected).next())
         {
-            yeet!(ParseError::new_variable_not_declared(input, unknown_var,))
+            yeet!(ParseError::new_variable_not_declared(input, unknown_var))
         }
 
         Ok(xprs)
