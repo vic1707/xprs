@@ -7,7 +7,7 @@ use crate::{
 };
 
 fn double(x: f64) -> f64 {
-    x * 2.0_f64
+    x * 2.0
 }
 const DOUBLE: Function = xprs_fn!("DOUBLE", double, 1);
 fn add(x: f64, y: f64) -> f64 {
@@ -23,15 +23,15 @@ const MEAN: Function = xprs_fn!("MEAN", mean);
 fn get_parser_with_ctx() -> Parser<'static> {
     let mut ctx = Context::default();
 
-    ctx.add_var("x", 2.0_f64);
-    ctx.add_var("phi", 1.618_033_988_749_895_f64);
+    ctx.add_var("x", 2.0);
+    ctx.add_var("phi", 1.618_033_988_749_895);
 
     ctx.add_func("double", DOUBLE);
     ctx.add_func("add", ADD);
 
     let mut parser = Parser::new_with_ctx(ctx);
 
-    parser.ctx_mut().add_var("y", 1.0_f64);
+    parser.ctx_mut().add_var("y", 1.0);
     parser.ctx_mut().add_func("mean", MEAN);
 
     parser

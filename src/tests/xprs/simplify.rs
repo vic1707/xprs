@@ -3,15 +3,20 @@ use crate::Parser;
 
 #[test]
 fn test_simplify() {
+    // these vars need to be declared here because of clippy and default numeric fallback
+    // https://github.com/rust-lang/rust-clippy/issues/11535
+    const X_VAR: (&str, f64) = ("x", 2.0);
+    const Y_VAR: (&str, f64) = ("y", 3.0);
+    const UNKNOWN_VAR: (&str, f64) = ("unknown", 4.0);
     let parser = Parser::default();
     let mut xprs = parser.parse("2x + 3y + 4x + 5z").unwrap();
     // simplify for x
-    xprs = xprs.simplify_for(("x", 2.0_f64));
+    xprs = xprs.simplify_for(X_VAR);
     assert_eq!(xprs, parser.parse("4 + 3y + 8 + 5z").unwrap());
     // simplify for y
-    xprs.simplify_for_inplace(("y", 3.0_f64));
+    xprs.simplify_for_inplace(Y_VAR);
     assert_eq!(xprs, parser.parse("21 + 5z").unwrap());
     // try simplifying for an unknown variable
-    xprs.simplify_for_inplace(("unknown", 4.0_f64));
+    xprs.simplify_for_inplace(UNKNOWN_VAR);
     assert_eq!(xprs, parser.parse("21 + 5z").unwrap());
 }

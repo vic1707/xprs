@@ -46,9 +46,9 @@ impl<'a> Simplify<'a> for BinOp<'a> {
         match self {
             /////////////////////////// Additions ///////////////////////////
             // 0 + .. => ..
-            BinOp { op: Plus, lhs, rhs } if lhs == Number(0.0_f64) => rhs,
+            BinOp { op: Plus, lhs, rhs } if lhs == Number(0.0) => rhs,
             // .. + 0 => ..
-            BinOp { op: Plus, lhs, rhs } if rhs == Number(0.0_f64) => lhs,
+            BinOp { op: Plus, lhs, rhs } if rhs == Number(0.0) => lhs,
             ////// NIGHTLY FEATURES //////
             #[cfg(NIGHTLY)]
             // (-..) + .. => 0
@@ -56,35 +56,33 @@ impl<'a> Simplify<'a> for BinOp<'a> {
                 op: Plus,
                 lhs: Element::UnOp(box UnOp { op: Minus, operand }),
                 rhs,
-            } if operand == rhs => Number(0.0_f64),
+            } if operand == rhs => Number(0.0),
             #[cfg(NIGHTLY)]
             // .. + (-..) => 0
             BinOp {
                 op: Plus,
                 lhs,
                 rhs: Element::UnOp(box UnOp { op: Minus, operand }),
-            } if lhs == operand => Number(0.0_f64),
+            } if lhs == operand => Number(0.0),
             ////////////////////////// Subtractions /////////////////////////
             // 0 - .. => -..
             BinOp {
                 op: Minus,
                 lhs,
                 rhs,
-            } if lhs == Number(0.0_f64) => {
-                UnOp::new_element(Operator::Minus, rhs)
-            },
+            } if lhs == Number(0.0) => UnOp::new_element(Operator::Minus, rhs),
             // .. - 0 => ..
             BinOp {
                 op: Minus,
                 lhs,
                 rhs,
-            } if rhs == Number(0.0_f64) => lhs,
+            } if rhs == Number(0.0) => lhs,
             // .. - .. => 0
             BinOp {
                 op: Minus,
                 lhs,
                 rhs,
-            } if lhs == rhs => Number(0.0_f64),
+            } if lhs == rhs => Number(0.0),
             ////// NIGHTLY FEATURES //////
             #[cfg(NIGHTLY)]
             // .. - (-..) => .. + ..
@@ -95,104 +93,92 @@ impl<'a> Simplify<'a> for BinOp<'a> {
             } => BinOp::new_element(Operator::Plus, lhs, operand),
             //////////////////////// Multiplications ////////////////////////
             // 0 * .. => 0
-            BinOp { op: Times, lhs, .. } if lhs == Number(0.0_f64) => {
-                Number(0.0_f64)
-            },
+            BinOp { op: Times, lhs, .. } if lhs == Number(0.0) => Number(0.0),
             // .. * 0 => 0
-            BinOp { op: Times, rhs, .. } if rhs == Number(0.0_f64) => {
-                Number(0.0_f64)
-            },
+            BinOp { op: Times, rhs, .. } if rhs == Number(0.0) => Number(0.0),
             // 1 * .. => ..
             BinOp {
                 op: Times,
                 lhs,
                 rhs,
-            } if lhs == Number(1.0_f64) => rhs,
+            } if lhs == Number(1.0) => rhs,
             // .. * 1 => ..
             BinOp {
                 op: Times,
                 lhs,
                 rhs,
-            } if rhs == Number(1.0_f64) => lhs,
+            } if rhs == Number(1.0) => lhs,
             /////////////////////////// Divisions ///////////////////////////
             // 0/0 => NaN // special case
             BinOp {
                 op: Divide,
                 lhs,
                 rhs,
-            } if lhs == Number(0.0_f64) && rhs == Number(0.0_f64) => {
-                Number(f64::NAN)
-            },
+            } if lhs == Number(0.0) && rhs == Number(0.0) => Number(f64::NAN),
             // 0 / .. => 0
             BinOp {
                 op: Divide, lhs, ..
-            } if lhs == Number(0.0_f64) => Number(0.0_f64),
+            } if lhs == Number(0.0) => Number(0.0),
             // .. / 0 => inf
             BinOp {
                 op: Divide, rhs, ..
-            } if rhs == Number(0.0_f64) => Number(f64::INFINITY),
+            } if rhs == Number(0.0) => Number(f64::INFINITY),
             // .. / 1 => ..
             BinOp {
                 op: Divide,
                 lhs,
                 rhs,
-            } if rhs == Number(1.0_f64) => lhs,
+            } if rhs == Number(1.0) => lhs,
             // .. / .. => 1
             BinOp {
                 op: Divide,
                 lhs,
                 rhs,
-            } if lhs == rhs => Number(1.0_f64),
+            } if lhs == rhs => Number(1.0),
             ///////////////////////////// Powers ////////////////////////////
             // 0 ^ 0 => 1 // special case
             BinOp {
                 op: Power,
                 lhs,
                 rhs,
-            } if lhs == Number(0.0_f64) && rhs == Number(0.0_f64) => {
-                Number(1.0_f64)
-            },
+            } if lhs == Number(0.0) && rhs == Number(0.0) => Number(1.0),
             // 0 ^ .. => 0
-            BinOp { op: Power, lhs, .. } if lhs == Number(0.0_f64) => {
-                Number(0.0_f64)
-            },
+            BinOp { op: Power, lhs, .. } if lhs == Number(0.0) => Number(0.0),
             // .. ^ 0 => 1
             BinOp {
                 op: Divide, rhs, ..
-            } if rhs == Number(0.0_f64) => Number(1.0_f64),
+            } if rhs == Number(0.0) => Number(1.0),
             // .. ^ 1 => ..
             BinOp {
                 op: Power,
                 lhs,
                 rhs,
-            } if rhs == Number(1.0_f64) => lhs,
+            } if rhs == Number(1.0) => lhs,
             //////////////////////////// Modulos ////////////////////////////
             // 0 % 0 => NaN // special case
             BinOp {
                 op: Modulo,
                 lhs,
                 rhs,
-            } if lhs == Number(0.0_f64) && rhs == Number(0.0_f64) => {
-                Number(f64::NAN)
-            },
+            } if lhs == Number(0.0) && rhs == Number(0.0) => Number(f64::NAN),
             // 0 % .. => 0
             BinOp {
                 op: Modulo, lhs, ..
-            } if lhs == Number(0.0_f64) => Number(0.0_f64),
+            } if lhs == Number(0.0) => Number(0.0),
             // .. % 0 => NaN
             BinOp {
                 op: Modulo, rhs, ..
-            } if rhs == Number(0.0_f64) => Number(f64::NAN),
+            } if rhs == Number(0.0) => Number(f64::NAN),
             // .. % 1 => 0
             BinOp {
                 op: Modulo, rhs, ..
-            } if rhs == Number(1.0_f64) => Number(0.0_f64),
+            } if rhs == Number(1.0) => Number(0.0),
             // .. % .. => 0
             BinOp {
                 op: Modulo,
                 lhs,
                 rhs,
-            } if lhs == rhs => Number(0.0_f64),
+            } if lhs == rhs => Number(0.0),
             /////////////////////////// 2 Numbers ///////////////////////////
             BinOp {
                 op,
