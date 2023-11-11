@@ -7,7 +7,6 @@
 /* Modules */
 mod context;
 mod element;
-mod misc;
 mod parser;
 mod token;
 mod utils;

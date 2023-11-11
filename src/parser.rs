@@ -2,13 +2,13 @@
 #![allow(clippy::std_instead_of_core)]
 /* Built-in imports */
 use core::str;
+use std::collections::HashSet;
 /* Crate imports */
 #[cfg(feature = "compile-time-optimizations")]
 use crate::element::Simplify;
 use crate::{
     context::Context,
     element::{BinOp, Element, FunctionCall, UnOp},
-    misc::HashSet,
     token::{Identifier, Operator},
     utils::{
         macros::{trust_me, yeet},

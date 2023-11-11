@@ -1,8 +1,7 @@
+/* Built-in imports */
+use std::collections::{HashMap, HashSet};
 /* Crate imports */
-use crate::{
-    misc::{HashMap, HashSet},
-    token::Function,
-};
+use crate::token::Function;
 
 #[derive(Debug, Default, PartialEq)]
 pub struct Context<'names> {
