@@ -279,8 +279,8 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
                 | ErrorKind::MalformedNumber(_)
                 | ErrorKind::IllegalCharacter(_)
                 | ErrorKind::VariableNotDeclared(_, _)
-                | ErrorKind::TooFewArguments(..)
-                | ErrorKind::TooManyArguments(..)
+                | ErrorKind::TooFewArguments(_, _)
+                | ErrorKind::TooManyArguments(_, _)
                 | ErrorKind::MissingArgument => err,
             },
         )
