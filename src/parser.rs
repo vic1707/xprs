@@ -163,7 +163,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     fn parse_identifier(&mut self) -> Result<Element<'input>, ParseError> {
         let identifier_start = self.cursor;
         let name =
-            self.take_while(|&ch| matches!(ch, b'_' | b'\'' | b'A'..=b'z'));
+            self.take_while(|&ch| matches!(ch, b'_' | b'\'' | b'A'..=b'z' | b'0'..=b'9'));
 
         // checks for contexts or built-in functions
         // else defaults to variable
