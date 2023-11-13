@@ -130,7 +130,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
             /* Number */
             b'0'..=b'9' | b'.' => self.parse_number()?,
             /* Identifier */
-            b'a'..=b'z' => self.parse_identifier()?,
+            b'A'..=b'z' => self.parse_identifier()?,
             /* Unary expression */
             op @ (b'+' | b'-') => {
                 self.cursor += 1;
@@ -162,7 +162,8 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
 
     fn parse_identifier(&mut self) -> Result<Element<'input>, ParseError> {
         let identifier_start = self.cursor;
-        let name = self.take_while(u8::is_ascii_lowercase);
+        let name =
+            self.take_while(|&ch| matches!(ch, b'_' | b'\'' | b'A'..=b'z'));
 
         // checks for contexts or built-in functions
         // else defaults to variable
