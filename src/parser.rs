@@ -48,12 +48,12 @@ impl<'ctx> Parser<'ctx> {
         let xprs = ParserImpl::parse(input, &self.ctx)?;
 
         // Check if no unknown variable was found
-        if let Some(expected_vars) = self.ctx.get_expected_vars() {
-            if let Some (unknown_var) = xprs.vars.difference(expected_vars).next() {
+        if let Some(expected) = self.ctx.get_expected_vars() {
+            if let Some(unknown_var) = xprs.vars.difference(expected).next() {
                 yeet!(ParseError::new_variable_not_declared(
                     input,
                     unknown_var,
-                    expected_vars
+                    expected
                         .iter()
                         .map(|&str| str.to_owned())
                         .collect::<Vec<_>>()
