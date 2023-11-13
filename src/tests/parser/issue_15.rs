@@ -33,7 +33,7 @@ fn parse_number() {
         let value = result.unwrap();
         assert!(
             (value - expected).abs() < ERROR_MARGIN,
-            "{input}\nExpected: {expected}, got: {value}" 
+            "{input}\nExpected: {expected}, got: {value}"
         );
     }
 
