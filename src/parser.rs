@@ -48,12 +48,17 @@ impl<'ctx> Parser<'ctx> {
         let xprs = ParserImpl::parse(input, &self.ctx)?;
 
         // Check if no unknown variable was found
-        if let Some(unknown_var) = self
-            .ctx
-            .get_expected_vars()
-            .and_then(|expected| xprs.vars.difference(expected).next())
-        {
-            yeet!(ParseError::new_variable_not_declared(input, unknown_var))
+        if let Some(expected_vars) = self.ctx.get_expected_vars() {
+            if let Some (unknown_var) = xprs.vars.difference(expected_vars).next() {
+                yeet!(ParseError::new_variable_not_declared(
+                    input,
+                    unknown_var,
+                    expected_vars
+                        .iter()
+                        .map(|&str| str.to_owned())
+                        .collect::<Vec<_>>()
+                ))
+            }
         }
 
         Ok(xprs)
@@ -273,7 +278,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
                 | ErrorKind::ExpectedToken(_)
                 | ErrorKind::MalformedNumber(_)
                 | ErrorKind::IllegalCharacter(_)
-                | ErrorKind::VariableNotDeclared(_)
+                | ErrorKind::VariableNotDeclared(_, _)
                 | ErrorKind::TooFewArguments(..)
                 | ErrorKind::TooManyArguments(..)
                 | ErrorKind::MissingArgument => err,
@@ -393,8 +398,11 @@ impl miette::Diagnostic for ParseError {
             ErrorKind::ExpectedToken(tok) => {
                 format!("Try adding a `{tok}` here.")
             },
-            ErrorKind::VariableNotDeclared(_) => {
-                "Try removing this variable.".to_owned()
+            ErrorKind::VariableNotDeclared(_, ref availables) => {
+                format!(
+                    "Try replacing it with one of the following: `{}`.",
+                    availables.join("`, `")
+                )
             },
             ErrorKind::TooManyArguments(expected, got) => {
                 let excess = got - usize::from(expected);
@@ -450,7 +458,7 @@ pub enum ErrorKind {
     #[error("Expected token: `{0}`")]
     ExpectedToken(char),
     #[error("Variable not previously declared: `{0}`")]
-    VariableNotDeclared(String),
+    VariableNotDeclared(String, Vec<String>),
     #[error("Too few arguments for function call, expected {0} got {1}")]
     TooFewArguments(u8, usize),
     #[error("Too many arguments for function call, expected {0} got {1}")]
@@ -509,9 +517,13 @@ impl ParseError {
     }
 
     #[cold]
-    fn new_variable_not_declared(input: &str, var: &str) -> Self {
+    fn new_variable_not_declared(
+        input: &str,
+        var: &str,
+        availables: Vec<String>,
+    ) -> Self {
         Self {
-            kind: ErrorKind::VariableNotDeclared(var.to_owned()),
+            kind: ErrorKind::VariableNotDeclared(var.to_owned(), availables),
             span: (0, input.len()).into(),
             src: input.to_owned(),
         }
