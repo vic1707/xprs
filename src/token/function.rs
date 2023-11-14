@@ -47,42 +47,42 @@ macro_rules! xprs_fn {
 
     //// closure wraping ////
     (wrap $function:expr, 0) => {
-        move |_| $function()
+        |_| $function()
     };
     (wrap $function:expr, 1) => {
         #[allow(clippy::indexing_slicing)]
-        move |args| $function(args[0])
+        |args| $function(args[0])
     };
     (wrap $function:expr, 2) => {
         #[allow(clippy::indexing_slicing)]
-        move |args| $function(args[0], args[1])
+        |args| $function(args[0], args[1])
     };
     (wrap $function:expr, 3) => {
         #[allow(clippy::indexing_slicing)]
-        move |args| $function(args[0], args[1], args[2])
+        |args| $function(args[0], args[1], args[2])
     };
     (wrap $function:expr, 4) => {
         #[allow(clippy::indexing_slicing)]
-        move |args| $function(args[0], args[1], args[2], args[3])
+        |args| $function(args[0], args[1], args[2], args[3])
     };
     (wrap $function:expr, 5) => {
         #[allow(clippy::indexing_slicing)]
-        move |args| $function(args[0], args[1], args[2], args[3], args[4])
+        |args| $function(args[0], args[1], args[2], args[3], args[4])
     };
     (wrap $function:expr, 6) => {
         #[allow(clippy::indexing_slicing)]
-        move |args| $function(args[0], args[1], args[2], args[3], args[4], args[5])
+        |args| $function(args[0], args[1], args[2], args[3], args[4], args[5])
     };
     (wrap $function:expr, 7) => {
         #[allow(clippy::indexing_slicing)]
-        move |args| $function(args[0], args[1], args[2], args[3], args[4], args[5], args[6])
+        |args| $function(args[0], args[1], args[2], args[3], args[4], args[5], args[6])
     };
     (wrap $function:expr, 8) => {
         #[allow(clippy::indexing_slicing)]
-        move |args| $function(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7])
+        |args| $function(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7])
     };
     (wrap $function:expr, 9) => {
         #[allow(clippy::indexing_slicing)]
-        move |args| $function(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8])
+        |args| $function(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8])
     };
 }
