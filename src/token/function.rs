@@ -1,4 +1,4 @@
-/// Represents a mathematical function.
+/// Represents a mathematical function core informations.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 #[non_exhaustive]
 pub struct Function {
@@ -7,21 +7,12 @@ pub struct Function {
     /// The function's implementation.
     pub func: fn(&[f64]) -> f64,
     /// The optional number of arguments the function accepts.
+    /// If `None`, the function is variadic.
     pub nb_args: Option<u8>,
 }
 
 impl Function {
-    /// Creates a new `Function` instance.
-    ///
-    /// # Parameters
-    ///
-    /// - `name`: The name of the function.
-    /// - `func`: The function's implementation.
-    /// - `nb_args`: The optional number of arguments the function accepts.
-    ///
-    /// # Returns
-    ///
-    /// A new `Function` instance.
+    /// Creates a new `Function` from the function components.
     #[inline]
     pub const fn new(
         name: &'static str,

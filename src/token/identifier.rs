@@ -16,14 +16,7 @@ pub enum Identifier<'a> {
 
 impl<'a> Identifier<'a> {
     /// Converts a string into an `Identifier`.
-    ///
-    /// # Parameters
-    ///
-    /// - `value`: The string representation of the identifier.
-    ///
-    /// # Returns
-    ///
-    /// An `Identifier` instance.
+    /// Cannot fail because unknown identifiers are treated as variables.
     pub fn from_str(value: &'a str) -> Self {
         match value {
             /* Constants */
@@ -77,30 +70,12 @@ impl<T> From<T> for Identifier<'_>
 where
     T: Into<f64>,
 {
-    /// Converts a value into a constant `Identifier`.
-    ///
-    /// # Parameters
-    ///
-    /// - `value`: The value to convert.
-    ///
-    /// # Returns
-    ///
-    /// An `Identifier` instance.
     fn from(value: T) -> Self {
         Identifier::Constant(value.into())
     }
 }
 
 impl From<Function> for Identifier<'_> {
-    /// Converts a `Function` into an `Identifier`.
-    ///
-    /// # Parameters
-    ///
-    /// - `value`: The function to convert.
-    ///
-    /// # Returns
-    ///
-    /// An `Identifier` instance.
     fn from(value: Function) -> Self {
         Identifier::Function(value)
     }
