@@ -27,7 +27,7 @@ use crate::{
 ///
 /// ```
 /// # use xprs::{Parser, Context};
-/// let mut context = Context::new();
+/// let mut context = Context::default();
 /// let parser = Parser::new_with_ctx(context);
 /// let expression = "2 * (x + 1)";
 /// let result = parser.parse(expression);
@@ -45,7 +45,7 @@ impl<'ctx> Parser<'ctx> {
     ///
     /// ```
     /// # use xprs::{Parser, Context};
-    /// let context = Context::new();
+    /// let context = Context::default();
     /// let parser = Parser::new_with_ctx(context);
     /// ```
     #[inline]
@@ -60,9 +60,9 @@ impl<'ctx> Parser<'ctx> {
     ///
     /// ```
     /// # use xprs::{Parser, Context};
-    /// let context = Context::new();
+    /// let context = Context::default();
     /// let parser = Parser::new_with_ctx(context);
-    /// assert_eq!(parser.ctx(), &Context::new());
+    /// assert_eq!(parser.ctx(), &Context::default());
     /// ```
     #[inline]
     #[must_use]
@@ -76,7 +76,7 @@ impl<'ctx> Parser<'ctx> {
     ///
     /// ```
     /// # use xprs::{Parser, Context};
-    /// let mut context = Context::new();
+    /// let mut context = Context::default();
     /// let mut parser = Parser::new_with_ctx(context);
     /// parser.ctx_mut().set_var("x", 42.0);
     /// ```
@@ -100,7 +100,7 @@ impl<'ctx> Parser<'ctx> {
     ///
     /// ```
     /// # use xprs::{Parser, Context};
-    /// let mut context = Context::new();
+    /// let mut context = Context::default();
     /// let parser = Parser::new_with_ctx(context);
     /// let expression = "2 * (x + 1)";
     /// let result = parser.parse(expression);
@@ -176,7 +176,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     ///
     /// ```
     /// # use xprs::{Parser, Context};
-    /// let mut context = Context::new();
+    /// let mut context = Context::default();
     /// let parser = Parser::new_with_ctx(context);
     /// let expression = "2 * (x + 1)";
     /// let result = parser.parse(expression);
