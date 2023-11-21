@@ -1,31 +1,28 @@
-//! This module defines the `Context` struct, which represents the execution context
-//! for a mathematical expression evaluator.
-//!
-//! # Examples
-//!
-//! ```
-//! use xprs::{xprs_fn, Context};
-//!
-//! let mut context = Context::default();
-//!
-//! context.set_var("x", 42.0);
-//! let sin_func = xprs_fn!("sin", f64::sin, 1);
-//! context.set_func(sin_func);
-//!
-//! let result = context.get_var("x").unwrap();
-//! assert_eq!(*result, 42.0);
-//!
-//! let sin_func_result = context.get_func("sin").unwrap();
-//! assert_eq!(sin_func_result.name, "sin");
-//! assert_eq!(sin_func_result.nb_args, Some(1));
-//! ```
-
 /* Built-in imports */
 use std::collections::{HashMap, HashSet};
 /* Crate imports */
 use crate::token::Function;
 
 /// Represents the context for the mathematical expression parser.
+///
+/// # Examples
+///
+/// ```
+/// use xprs::{Context, xprs_fn};
+///
+/// let sin_func = xprs_fn!("sin", f64::sin, 1);
+/// let mut context = Context::default()
+///     .with_expected_vars(["y"].into())
+///     .with_var("x", 42.0)
+///     .with_func(sin_func);
+///
+/// let x_var = context.get_var("x").unwrap();
+/// assert_eq!(*x_var, 42.0);
+///
+/// let sin_func = context.get_func("sin").unwrap();
+/// assert_eq!(sin_func.name, "sin");
+/// assert_eq!(sin_func.nb_args, Some(1));
+/// ```
 #[derive(Debug, Default, PartialEq)]
 pub struct Context<'names> {
     /// Variables defined in the context.
