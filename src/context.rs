@@ -32,12 +32,12 @@ impl<'names> Context<'names> {
     }
 
     #[inline]
-    pub fn add_var<T: Into<f64>>(&mut self, name: &'names str, value: T) {
+    pub fn set_var<T: Into<f64>>(&mut self, name: &'names str, value: T) {
         self.vars.insert(name, value.into());
     }
 
     #[inline]
-    pub fn add_func(&mut self, name: &'names str, func: Function) {
+    pub fn set_func(&mut self, name: &'names str, func: Function) {
         self.funcs.insert(name, func);
     }
 
