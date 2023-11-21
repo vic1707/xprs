@@ -46,7 +46,11 @@ impl<'names> Context<'names> {
     /// Sets the value of a variable in the context, returning the context.
     #[inline]
     #[must_use]
-    pub fn with_var<T: Into<f64>>(mut self, name: &'names str, value: T) -> Self {
+    pub fn with_var<T: Into<f64>>(
+        mut self,
+        name: &'names str,
+        value: T,
+    ) -> Self {
         self.vars.insert(name, value.into());
         self
     }
@@ -74,7 +78,10 @@ impl<'names> Context<'names> {
     /// Sets the expected variables for the context, returning the context.
     #[inline]
     #[must_use]
-    pub fn with_expected_vars(mut self, expected_vars: HashSet<&'names str>) -> Self {
+    pub fn with_expected_vars(
+        mut self,
+        expected_vars: HashSet<&'names str>,
+    ) -> Self {
         self.expected_vars = Some(expected_vars);
         self
     }
