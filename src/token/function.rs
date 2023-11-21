@@ -1,11 +1,27 @@
+/// Represents a mathematical function.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+#[non_exhaustive]
 pub struct Function {
-    pub(crate) name: &'static str,
-    pub(crate) func: fn(&[f64]) -> f64,
-    pub(crate) nb_args: Option<u8>,
+    /// The name of the function.
+    pub name: &'static str,
+    /// The function's implementation.
+    pub func: fn(&[f64]) -> f64,
+    /// The optional number of arguments the function accepts.
+    pub nb_args: Option<u8>,
 }
 
 impl Function {
+    /// Creates a new `Function` instance.
+    ///
+    /// # Parameters
+    ///
+    /// - `name`: The name of the function.
+    /// - `func`: The function's implementation.
+    /// - `nb_args`: The optional number of arguments the function accepts.
+    ///
+    /// # Returns
+    ///
+    /// A new `Function` instance.
     #[inline]
     pub const fn new(
         name: &'static str,
@@ -20,6 +36,7 @@ impl Function {
     }
 }
 
+/// Macro for defining functions easily, with optional variadic support.
 #[macro_export]
 macro_rules! xprs_fn {
     // variadics

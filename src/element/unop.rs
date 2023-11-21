@@ -3,6 +3,7 @@ use core::fmt;
 /* Crate imports */
 use crate::{element::Element, token::Operator};
 
+/// Represents a unary operation in the abstract syntax tree (AST).
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct UnOp<'a> {
     pub(crate) op: Operator,
@@ -14,6 +15,7 @@ impl<'a> UnOp<'a> {
         Self { op, operand }
     }
 
+    /// Creates a new `Element::UnOp` from the unary operation components.
     pub fn new_element(op: Operator, operand: Element<'a>) -> Element<'a> {
         Element::UnOp(Box::new(Self::new(op, operand)))
     }

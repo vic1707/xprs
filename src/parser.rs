@@ -17,29 +17,95 @@ use crate::{
     xprs::Xprs,
 };
 
+/// Parses mathematical expressions and returns an expression tree.
+///
+/// The parser takes a mathematical expression as input and produces an
+/// expression tree (`Xprs`) as output. It supports various mathematical
+/// operations, variables, functions, and constants.
+///
+/// # Example
+///
+/// ```
+/// # use xprs::{Parser, Context};
+/// let mut context = Context::new();
+/// let parser = Parser::new_with_ctx(context);
+/// let expression = "2 * (x + 1)";
+/// let result = parser.parse(expression);
+/// assert!(result.is_ok());
+/// ```
 #[derive(Debug, Default, PartialEq)]
 pub struct Parser<'ctx> {
     ctx: Context<'ctx>,
 }
 
 impl<'ctx> Parser<'ctx> {
+    /// Creates a new parser with the given context.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use xprs::{Parser, Context};
+    /// let context = Context::new();
+    /// let parser = Parser::new_with_ctx(context);
+    /// ```
     #[inline]
     #[must_use]
     pub const fn new_with_ctx(ctx: Context<'ctx>) -> Self {
         Self { ctx }
     }
 
+    /// Returns a reference to the parser's context.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use xprs::{Parser, Context};
+    /// let context = Context::new();
+    /// let parser = Parser::new_with_ctx(context);
+    /// assert_eq!(parser.ctx(), &Context::new());
+    /// ```
     #[inline]
     #[must_use]
     pub const fn ctx(&self) -> &Context {
         &self.ctx
     }
 
+    /// Returns a mutable reference to the parser's context.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use xprs::{Parser, Context};
+    /// let mut context = Context::new();
+    /// let mut parser = Parser::new_with_ctx(context);
+    /// parser.ctx_mut().set_var("x", 42.0);
+    /// ```
     #[inline]
     pub fn ctx_mut(&mut self) -> &mut Context<'ctx> {
         &mut self.ctx
     }
 
+    /// Parses the input mathematical expression and returns the expression tree.
+    ///
+    /// # Arguments
+    ///
+    /// * `input` - The mathematical expression to parse.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the expression tree (`Xprs`) if parsing is
+    /// successful, or a `ParseError` if an error occurs during parsing.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use xprs::{Parser, Context};
+    /// let mut context = Context::new();
+    /// let parser = Parser::new_with_ctx(context);
+    /// let expression = "2 * (x + 1)";
+    /// let result = parser.parse(expression);
+    /// assert!(result.is_ok());
+    /// ```
     #[inline]
     pub fn parse<'input>(
         &self,
@@ -65,6 +131,10 @@ impl<'ctx> Parser<'ctx> {
     }
 }
 
+/// Internal implementation of the parser.
+///
+/// This structure holds the state and methods for parsing a mathematical
+/// expression.
 struct ParserImpl<'input, 'ctx> {
     input: &'input [u8],
     cursor: usize,
@@ -72,6 +142,16 @@ struct ParserImpl<'input, 'ctx> {
 }
 
 impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
+    /// Creates a new parser implementation.
+    ///
+    /// # Arguments
+    ///
+    /// * `input` - The mathematical expression to parse.
+    /// * `ctx` - The context containing variable and function information.
+    ///
+    /// # Returns
+    ///
+    /// A new instance of `ParserImpl`.
     const fn new(input: &'input str, ctx: &'ctx Context<'ctx>) -> Self {
         Self {
             input: input.as_bytes(),
@@ -80,6 +160,28 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         }
     }
 
+    /// Parses the input mathematical expression and returns the expression tree.
+    ///
+    /// # Arguments
+    ///
+    /// * `input` - The mathematical expression to parse.
+    /// * `ctx` - The context containing variable and function information.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the expression tree (`Xprs`) if parsing is
+    /// successful, or a `ParseError` if an error occurs during parsing.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use xprs::{Parser, Context};
+    /// let mut context = Context::new();
+    /// let parser = Parser::new_with_ctx(context);
+    /// let expression = "2 * (x + 1)";
+    /// let result = parser.parse(expression);
+    /// assert!(result.is_ok());
+    /// ```
     pub fn parse(
         input: &'input str,
         ctx: &'ctx Context<'ctx>,
@@ -101,6 +203,16 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         Ok(Xprs { root, vars })
     }
 
+    /// Parses an element of the mathematical expression based on precedence.
+    ///
+    /// # Arguments
+    ///
+    /// * `precedence` - The precedence level to guide parsing.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the parsed element (`Element`) if parsing is
+    /// successful, or a `ParseError` if an error occurs during parsing.
     fn element(
         &mut self,
         precedence: usize,
@@ -122,6 +234,12 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         Ok(el)
     }
 
+    /// Parses an atomic element of the mathematical expression.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the parsed element (`Element`) if parsing is
+    /// successful, or a `ParseError` if an error occurs during parsing.
     fn atom(&mut self) -> Result<Element<'input>, ParseError> {
         let Some(&next) = self.next_trim() else {
             yeet!(ParseError::new_unexpected_end_of_expression(self));
@@ -160,6 +278,12 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         Ok(atom)
     }
 
+    /// Parses an identifier in the mathematical expression.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the parsed element (`Element`) if parsing is
+    /// successful, or a `ParseError` if an error occurs during parsing.
     fn parse_identifier(&mut self) -> Result<Element<'input>, ParseError> {
         let identifier_start = self.cursor;
         let name = self.take_while(
@@ -172,9 +296,9 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
             .ctx
             .get_var(name)
             .map(|&value| Identifier::Constant(value))
-            .or_else(|| {
-                self.ctx.get_func(name).copied().map(Identifier::Function)
-            })
+            .or_else(
+                || self.ctx.get_func(name).copied().map(Identifier::Function)
+            )
             .unwrap_or_else(|| Identifier::from_str(name));
 
         let el = match ident {
@@ -217,6 +341,12 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         Ok(el)
     }
 
+    /// Parses a number in the mathematical expression.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the parsed element (`Element`) if parsing is
+    /// successful, or a `ParseError` if an error occurs during parsing.
     fn parse_number(&mut self) -> Result<Element<'input>, ParseError> {
         let begin = self.cursor;
         self.skip_while(|&ch| matches!(ch, b'0'..=b'9' | b'.' | b'_'));
@@ -247,6 +377,12 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         Ok(Element::Number(num))
     }
 
+    /// Parses a list of arguments in a function call.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the vector of parsed elements (`Vec<Element>`) if
+    /// parsing is successful, or a `ParseError` if an error occurs during parsing.
     fn parse_arguments(&mut self) -> Result<Vec<Element<'input>>, ParseError> {
         let mut args = Vec::new();
 
@@ -269,6 +405,12 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         Ok(args)
     }
 
+    /// Parses a single argument in a function call.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the parsed element (`Element`) if parsing is
+    /// successful, or a `ParseError` if an error occurs during parsing.
     fn argument(&mut self) -> Result<Element<'input>, ParseError> {
         self.element(precedence::NO_PRECEDENCE).map_err(
             #[cold]
@@ -288,6 +430,16 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         )
     }
 
+    /// Takes characters while the given predicate is true and returns the
+    /// corresponding substring.
+    ///
+    /// # Arguments
+    ///
+    /// * `predicate` - The predicate function to determine when to stop taking characters.
+    ///
+    /// # Returns
+    ///
+    /// A substring containing characters that satisfy the given predicate.
     fn take_while(&mut self, predicate: fn(&u8) -> bool) -> &'input str {
         let start = self.cursor;
         self.skip_while(predicate);
@@ -371,62 +523,71 @@ impl ParserImpl<'_, '_> {
     }
 }
 
+/// Represents an error that occurred during parsing.
 #[derive(Debug, Eq, PartialEq, thiserror::Error)]
 #[error("{kind}")]
 pub struct ParseError {
+    /// The kind of parsing error.
     kind: ErrorKind,
+    /// The span of the error in the source input.
     span: miette::SourceSpan,
+    /// The source input string.
     src: String,
 }
 
+// Import necessary modules and traits.
 extern crate alloc;
 use alloc::fmt;
 use std::iter::Iterator;
+
 impl miette::Diagnostic for ParseError {
+    /// Provides help messages for specific parsing errors.
     #[inline]
     fn help(&self) -> Option<Box<dyn fmt::Display + '_>> {
-        let message = match self.kind {
-            ErrorKind::UnexpectedEndOfExpression => {
-                "Something might be missing here?".to_owned()
-            },
-            ErrorKind::UnexpectedToken(_) => "Try removing it?".to_owned(),
-            ErrorKind::MalformedNumber(_) => {
-                "Did you enter a number with multiple decimal points?"
-                    .to_owned()
-            },
-            ErrorKind::IllegalCharacter(_) => {
-                "Try removing this character.".to_owned()
-            },
-            ErrorKind::ExpectedToken(tok) => {
-                format!("Try adding a `{tok}` here.")
-            },
-            ErrorKind::VariableNotDeclared(_, ref availables) => {
-                format!(
-                    "Try replacing it with one of the following: `{}`.",
-                    availables.join("`, `")
-                )
-            },
-            ErrorKind::TooManyArguments(expected, got) => {
-                let excess = got - usize::from(expected);
-                format!(
-                    "Try removing {excess} argument{}.",
-                    if excess > 1 { "s" } else { "" }
-                )
-            },
-            ErrorKind::TooFewArguments(expected, got) => {
-                let missing = usize::from(expected) - got;
-                format!(
-                    "Try adding {missing} argument{}.",
-                    if missing > 1 { "s" } else { "" }
-                )
-            },
-            ErrorKind::MissingArgument => {
-                "Either remove comma or add argument.".to_owned()
-            },
-        };
+        let message =
+            match self.kind {
+                ErrorKind::UnexpectedEndOfExpression => {
+                    "Something might be missing here?".to_owned()
+                },
+                ErrorKind::UnexpectedToken(_) => "Try removing it?".to_owned(),
+                ErrorKind::MalformedNumber(_) => {
+                    "Did you enter a number with multiple decimal points?"
+                        .to_owned()
+                },
+                ErrorKind::IllegalCharacter(_) => {
+                    "Try removing this character.".to_owned()
+                },
+                ErrorKind::ExpectedToken(tok) => {
+                    format!("Try adding a `{tok}` here.")
+                },
+                ErrorKind::VariableNotDeclared(_, ref availables) => {
+                    format!(
+                        "Try replacing it with one of the following: `{}`.",
+                        availables.join("`, `")
+                    )
+                },
+                ErrorKind::TooManyArguments(expected, got) => {
+                    let excess = got - usize::from(expected);
+                    format!(
+                        "Try removing {excess} argument{}.",
+                        if excess > 1 { "s" } else { "" }
+                    )
+                },
+                ErrorKind::TooFewArguments(expected, got) => {
+                    let missing = usize::from(expected) - got;
+                    format!(
+                        "Try adding {missing} argument{}.",
+                        if missing > 1 { "s" } else { "" }
+                    )
+                },
+                ErrorKind::MissingArgument => {
+                    "Either remove comma or add argument.".to_owned()
+                },
+            };
         Some(Box::new(message))
     }
 
+    /// Provides labeled spans for highlighting the error in the source code.
     #[inline]
     fn labels(
         &self,
@@ -440,47 +601,60 @@ impl miette::Diagnostic for ParseError {
         ))
     }
 
+    /// Returns the source code associated with the error.
     #[inline]
     fn source_code(&self) -> Option<&dyn miette::SourceCode> {
         Some(&self.src)
     }
 }
 
+/// Represents the kind of error that occurred during parsing.
 #[derive(Debug, Eq, PartialEq, thiserror::Error)]
 #[non_exhaustive]
 pub enum ErrorKind {
+    /// Unexpected end of expression error.
     #[error("Unexpected end of expression")]
     UnexpectedEndOfExpression,
+    /// Unexpected token error with a specified character.
     #[error("Unexpected token: `{0}`")]
     UnexpectedToken(char),
+    /// Malformed number error with a specified string.
     #[error("Malformed number: `{0}`")]
     MalformedNumber(String),
+    /// Illegal character error with a specified character.
     #[error("Illegal character: `{0}`")]
     IllegalCharacter(char),
+    /// Expected token error with a specified character.
     #[error("Expected token: `{0}`")]
     ExpectedToken(char),
+    /// Variable not previously declared error with variable name and available suggestions.
     #[error("Variable not previously declared: `{0}`")]
     VariableNotDeclared(String, Vec<String>),
+    /// Too few arguments for function call error with expected and actual argument counts.
     #[error("Too few arguments for function call, expected {0} got {1}")]
     TooFewArguments(u8, usize),
+    /// Too many arguments for function call error with expected and actual argument counts.
     #[error("Too many arguments for function call, expected {0} got {1}")]
     TooManyArguments(u8, usize),
+    /// Missing argument for function call error.
     #[error("Missing argument for function call")]
     MissingArgument,
 }
 
 impl ParseError {
+    /// Creates a new `ParseError` for an unexpected end of expression.
     #[cold]
     fn new_unexpected_end_of_expression(parser: &ParserImpl) -> Self {
         Self {
             kind: ErrorKind::UnexpectedEndOfExpression,
             // - 1 because we want to point to the last character
-            // (without it we would point to a `None` value)
+            // (without it, we would point to a `None` value)
             span: (parser.cursor - 1).into(),
             src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
         }
     }
 
+    /// Creates a new `ParseError` for an unexpected token.
     #[cold]
     fn new_unexpected_token(parser: &ParserImpl, tok: u8) -> Self {
         Self {
@@ -490,6 +664,7 @@ impl ParseError {
         }
     }
 
+    /// Creates a new `ParseError` for a malformed number.
     #[cold]
     fn new_malformed_number(parser: &ParserImpl, ident: &str) -> Self {
         let num_len = ident.len();
@@ -500,6 +675,7 @@ impl ParseError {
         }
     }
 
+    /// Creates a new `ParseError` for an illegal character.
     #[cold]
     fn new_illegal_character(parser: &ParserImpl, tok: u8) -> Self {
         Self {
@@ -509,6 +685,7 @@ impl ParseError {
         }
     }
 
+    /// Creates a new `ParseError` for an expected token error.
     #[cold]
     fn new_expected_token(parser: &ParserImpl, tok: u8) -> Self {
         Self {
@@ -518,6 +695,7 @@ impl ParseError {
         }
     }
 
+    /// Creates a new `ParseError` for a variable not declared error.
     #[cold]
     fn new_variable_not_declared(
         input: &str,
@@ -531,6 +709,7 @@ impl ParseError {
         }
     }
 
+    /// Creates a new `ParseError` for too few arguments error.
     #[cold]
     fn new_too_few_arguments(
         parser: &ParserImpl,
@@ -545,6 +724,7 @@ impl ParseError {
         }
     }
 
+    /// Creates a new `ParseError` for too many arguments error.
     #[cold]
     fn new_too_many_arguments(
         parser: &ParserImpl,
@@ -559,6 +739,7 @@ impl ParseError {
         }
     }
 
+    /// Creates a new `ParseError` for a missing argument error.
     #[cold]
     fn new_missing_argument(parser: &ParserImpl) -> Self {
         Self {

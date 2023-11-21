@@ -3,6 +3,7 @@ use core::fmt;
 /* Crate imports */
 use crate::{element::Element, token::Function};
 
+/// Represents a function call in the abstract syntax tree (AST).
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct FunctionCall<'a> {
     pub(crate) desc: Function,
@@ -14,10 +15,12 @@ impl<'a> FunctionCall<'a> {
         Self { desc, args }
     }
 
+    /// Creates a new `Element::Function` from the function call components.
     pub fn new_element(desc: Function, args: Vec<Element<'a>>) -> Element<'a> {
         Element::Function(Box::new(Self::new(desc, args)))
     }
 
+    /// Calls the function with the provided arguments.
     pub fn call(&self, args: &[f64]) -> f64 {
         (self.desc.func)(args)
     }

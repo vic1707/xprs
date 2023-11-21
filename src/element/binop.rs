@@ -3,6 +3,7 @@ use core::fmt;
 /* Crate imports */
 use crate::{element::Element, token::Operator};
 
+/// Represents a binary operation in the abstract syntax tree (AST).
 #[derive(Debug, PartialOrd)]
 pub struct BinOp<'a> {
     pub(crate) op: Operator,
@@ -15,6 +16,7 @@ impl<'a> BinOp<'a> {
         Self { op, lhs, rhs }
     }
 
+    /// Creates a new `Element::BinOp` from the binary operation components.
     pub fn new_element(
         op: Operator,
         lhs: Element<'a>,

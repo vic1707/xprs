@@ -11,10 +11,13 @@ use crate::{
     utils::macros::{trust_me, yeet},
 };
 
+/// Represents a mathematical expression and its variables.
 #[derive(Debug, PartialEq)]
 #[non_exhaustive]
 pub struct Xprs<'a> {
+    /// The root element of the expression.
     pub root: Element<'a>,
+    /// The set of variables present in the expression.
     pub vars: HashSet<&'a str>,
 }
 
@@ -37,6 +40,32 @@ impl fmt::Display for Xprs<'_> {
 }
 
 impl Xprs<'_> {
+    /// Evaluates the expression using the provided variable values.
+    ///
+    /// # Arguments
+    ///
+    /// * `variables` - A reference to a `HashMap` containing variable names and their corresponding values.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the result of the expression evaluation if successful, or an `EvalError` if an error occurs.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use xprs::{Xprs, EvalError};
+    /// use std::collections::HashMap;
+    ///
+    /// let expression = "2 * x + y";
+    /// let xprs = Xprs::try_from(expression).unwrap();
+    ///
+    /// let mut variable_values = HashMap::new();
+    /// variable_values.insert("x", 3.0);
+    /// variable_values.insert("y", 2.0);
+    ///
+    /// let result = xprs.eval(&variable_values);
+    /// assert_eq!(result, Ok(8.0));
+    /// ```
     #[inline]
     pub fn eval(
         &self,
@@ -45,12 +74,57 @@ impl Xprs<'_> {
         XprsImpl::new(variables).eval_element(&self.root)
     }
 
+    /// Evaluates the expression using the provided variable values without error handling.
+    ///
+    /// # Arguments
+    ///
+    /// * `variables` - A reference to a `HashMap` containing variable names and their corresponding values.
+    ///
+    /// # Returns
+    ///
+    /// The result of the expression evaluation. Use with caution, as it may panic if variables are not present.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use xprs::Xprs;
+    /// use std::collections::HashMap;
+    ///
+    /// let expression = "2 * x + y";
+    /// let xprs = Xprs::try_from(expression).unwrap();
+    ///
+    /// let mut variable_values = HashMap::new();
+    /// variable_values.insert("x", 3.0);
+    /// variable_values.insert("y", 2.0);
+    ///
+    /// let result = xprs.eval_unchecked(&variable_values);
+    /// assert_eq!(result, 8.0);
+    /// ```
     #[inline]
     #[must_use]
     pub fn eval_unchecked(&self, variables: &HashMap<&str, f64>) -> f64 {
         XprsImpl::new(variables).eval_element_unchecked(&self.root)
     }
 
+    /// Simplifies the expression in-place for a single variable.
+    ///
+    /// # Arguments
+    ///
+    /// * `var` - A tuple containing the variable name and its corresponding value.
+    ///
+    /// # Returns
+    ///
+    /// `true` if the variable was successfully removed from the set of variables; `false` otherwise.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use xprs::Xprs;
+    ///
+    /// let mut expression = Xprs::try_from("2 * x + y").unwrap();
+    /// let removed = expression.simplify_for_inplace(("x", 3.0));
+    /// assert_eq!(removed, true);
+    /// ```
     #[inline]
     pub fn simplify_for_inplace(&mut self, var: (&str, f64)) -> bool {
         let mut tmp = trust_me!(ptr::read(&self.root));
@@ -59,6 +133,24 @@ impl Xprs<'_> {
         self.vars.remove(var.0)
     }
 
+    /// Creates a new expression by simplifying the current expression for a single variable.
+    ///
+    /// # Arguments
+    ///
+    /// * `var` - A tuple containing the variable name and its corresponding value.
+    ///
+    /// # Returns
+    ///
+    /// A new `Xprs` instance representing the simplified expression.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use xprs::Xprs;
+    ///
+    /// let expression = Xprs::try_from("2 * x + y").unwrap();
+    /// let simplified_expression = expression.simplify_for(("x", 3.0));
+    /// ```
     #[inline]
     #[must_use]
     pub fn simplify_for(mut self, var: (&str, f64)) -> Self {
@@ -66,6 +158,20 @@ impl Xprs<'_> {
         self
     }
 
+    /// Simplifies the expression in-place for multiple variables.
+    ///
+    /// # Arguments
+    ///
+    /// * `vars` - A slice of tuples, each containing a variable name and its corresponding value.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use xprs::Xprs;
+    ///
+    /// let mut expression = Xprs::try_from("2 * x + y + z").unwrap();
+    /// expression.simplify_for_multiple_inplace(&[("x", 3.0), ("y", 2.0)]);
+    /// ```
     #[inline]
     pub fn simplify_for_multiple_inplace(&mut self, vars: &[(&str, f64)]) {
         // rewriting `simplify_for_inplace` to avoid dozens of `ptr::read` and `ptr::write`
@@ -77,6 +183,24 @@ impl Xprs<'_> {
         trust_me!(ptr::write(&mut self.root, tmp););
     }
 
+    /// Creates a new expression by simplifying the current expression for multiple variables.
+    ///
+    /// # Arguments
+    ///
+    /// * `vars` - A slice of tuples, each containing a variable name and its corresponding value.
+    ///
+    /// # Returns
+    ///
+    /// A new `Xprs` instance representing the simplified expression.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use xprs::Xprs;
+    ///
+    /// let expression = Xprs::try_from("2 * x + y + z").unwrap();
+    /// let simplified_expression = expression.simplify_for_multiple(&[("x", 3.0), ("y", 2.0)]);
+    /// ```
     #[inline]
     #[must_use]
     pub fn simplify_for_multiple(mut self, vars: &[(&str, f64)]) -> Self {
@@ -85,15 +209,38 @@ impl Xprs<'_> {
     }
 }
 
+/// An internal struct used for evaluating expressions.
+///
+/// This struct is responsible for handling the evaluation of individual elements within an expression.
+/// It is used by the `Xprs` struct to perform evaluations with respect to a given set of variable values.
 struct XprsImpl<'a> {
+    /// A reference to the map of variables and their corresponding values.
     variables: &'a HashMap<&'a str, f64>,
 }
 
 impl XprsImpl<'_> {
+    /// Creates a new `XprsImpl` instance with a reference to a set of variables.
+    ///
+    /// # Arguments
+    ///
+    /// * `variables` - A reference to the map of variables and their corresponding values.
+    ///
+    /// # Returns
+    ///
+    /// A new `XprsImpl` instance.
     const fn new<'a>(variables: &'a HashMap<&str, f64>) -> XprsImpl<'a> {
         XprsImpl { variables }
     }
 
+    /// Evaluates an element within an expression and returns the result.
+    ///
+    /// # Arguments
+    ///
+    /// * `element` - The element to be evaluated.
+    ///
+    /// # Returns
+    ///
+    /// The result of the evaluation as a `Result` containing the numeric value or an `EvalError` if an error occurs.
     fn eval_element(&self, element: &Element) -> Result<f64, EvalError> {
         let res = match *element {
             Element::Number(n) => n,
@@ -138,6 +285,15 @@ impl XprsImpl<'_> {
         Ok(res)
     }
 
+    /// Evaluates an element within an expression without checking for errors.
+    ///
+    /// # Arguments
+    ///
+    /// * `element` - The element to be evaluated.
+    ///
+    /// # Returns
+    ///
+    /// The result of the evaluation as a numeric value. This method assumes that no errors will occur during evaluation.
     fn eval_element_unchecked(&self, element: &Element) -> f64 {
         match *element {
             Element::Number(n) => n,
@@ -179,6 +335,7 @@ impl XprsImpl<'_> {
     }
 }
 
+/// Represents an error that occurs during expression evaluation, indicating that a variable was not provided.
 #[derive(Debug, Eq, PartialEq, thiserror::Error)]
 #[error("Evaluation error: '{0}' was not provided")]
 pub struct EvalError(String);
@@ -189,6 +346,36 @@ pub struct EvalError(String);
 #[allow(clippy::too_many_arguments)]
 #[rustfmt::skip]
 impl<'a> Xprs<'a> {
+    /// Binds a single variable for expression evaluation, returning a function that takes a value for the bound variable.
+    ///
+    /// # Arguments
+    ///
+    /// * `var` - The variable to bind.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a closure that takes a single `f64` argument and returns an `f64`. The closure represents
+    /// the bound expression. If the variable is not present in the original expression, an error of type `BindError::OneVariable`
+    /// is returned.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use xprs::{Parser, BindError};
+    /// let expression = Parser::default().parse("x + 2").unwrap();
+    /// let bound_expression = expression.bind("x");
+    ///
+    /// match bound_expression {
+    ///     Ok(bound_fn) => {
+    ///         let result = bound_fn(5.0);
+    ///         assert_eq!(result, 7.0); // x + 2, where x is bound to 5.0
+    ///     }
+    ///     Err(BindError::OneVariable(var)) => {
+    ///         println!("Failed to bind: Variable '{}' was not provided.", var);
+    ///     }
+    ///     _ => {}
+    /// }
+    /// ```
     #[inline]
     pub fn bind(self, var: &'a str) -> Result<impl Fn(f64) -> f64 + 'a, BindError> {
         if let Some(&needed) = self.vars.iter().next() {
@@ -199,6 +386,37 @@ impl<'a> Xprs<'a> {
         Ok(move |val| self.eval_unchecked(&[(var, val)].into()))
     }
 
+    /// Binds two variables for expression evaluation, returning a function that takes two values for the bound variables.
+    ///
+    /// # Arguments
+    ///
+    /// * `var1` - The first variable to bind.
+    /// * `var2` - The second variable to bind.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a closure that takes two `f64` arguments and returns an `f64`. The closure represents
+    /// the bound expression. If any of the variables are not present in the original expression, an error of type `BindError::MultipleVariables`
+    /// is returned.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use xprs::{Parser, BindError};
+    /// let expression = Parser::default().parse("x + y").unwrap();
+    /// let bound_expression = expression.bind2("x", "y");
+    ///
+    /// match bound_expression {
+    ///     Ok(bound_fn) => {
+    ///         let result = bound_fn(3.0, 4.0);
+    ///         assert_eq!(result, 7.0); // x + y, where x is bound to 3.0 and y is bound to 4.0
+    ///     }
+    ///     Err(BindError::MultipleVariables(vars)) => {
+    ///         println!("Failed to bind: Variables '{}' were not provided.", vars);
+    ///     }
+    ///     _ => {}
+    /// }
+    /// ```
     #[inline]
     pub fn bind2(self, var1: &'a str, var2: &'a str) -> Result<impl Fn(f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2]);
@@ -281,6 +499,27 @@ impl<'a> Xprs<'a> {
 
     // NOTE: Too lazy to implement this for more than 9 variables even with Copilot
     // + I don't really think anyone will need more than 9 variables anyway
+
+        /// Binds a variable for an arbitrary number of arguments, returning a closure that takes an array of values and evaluates the expression.
+    ///
+    /// # Arguments
+    ///
+    /// * `vars` - An array of variable names to bind.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a closure that takes an array of `f64` values for the variables and returns the result of the evaluation,
+    /// or an error if the variables do not match the expected variables in the expression.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use xprs::Parser;
+    ///
+    /// let expression = Parser::default().parse("x + y + z").unwrap();
+    /// let bound_expression = expression.bind_n(["x", "y", "z"]).unwrap();
+    /// let result = bound_expression([1.0, 2.0, 3.0]);
+    /// ```
     #[inline]
     pub fn bind_n<const T: usize>(self, vars: [&'a str; T]) -> Result<impl Fn([f64; T]) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from(vars);
@@ -291,6 +530,26 @@ impl<'a> Xprs<'a> {
         Ok(move |vals| self.eval_unchecked(&vars.into_iter().zip(vals).collect()))
     }
 
+    /// Binds variables for an arbitrary number of arguments at runtime, returning a closure that takes a slice of values and evaluates the expression.
+    ///
+    /// # Arguments
+    ///
+    /// * `vars` - A slice of variable names to bind.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a closure that takes a slice of `f64` values for the variables and returns the result of the evaluation,
+    /// or an error if the variables do not match the expected variables in the expression.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use xprs::Parser;
+    ///
+    /// let expression = Parser::default().parse("x + y + z").unwrap();
+    /// let bound_expression = expression.bind_n_runtime(&["x", "y", "z"]).unwrap();
+    /// let result = bound_expression(&[1.0, 2.0, 3.0]);
+    /// ```
     #[inline]
     pub fn bind_n_runtime(self, vars: &'a [&'a str]) -> Result<impl Fn(&[f64]) -> Result<f64, EvalError> + 'a, BindError> {
         let variables: HashSet<&str> = vars.iter().copied().collect();
@@ -305,6 +564,7 @@ impl<'a> Xprs<'a> {
     }
 }
 
+/// Represents errors that occur when binding variables for expression evaluation.
 #[derive(Debug, Eq, PartialEq, thiserror::Error)]
 #[non_exhaustive]
 pub enum BindError {
@@ -316,6 +576,15 @@ pub enum BindError {
 
 use std::collections::{hash_map::RandomState, hash_set::Difference};
 impl BindError {
+    /// Converts a `Difference` iterator of missing variables into a `BindError`.
+    ///
+    /// # Arguments
+    ///
+    /// * `missing_vars` - The `Difference` iterator containing missing variables.
+    ///
+    /// # Returns
+    ///
+    /// An optional `BindError`, representing the error if there are missing variables, or `None` if there are none.
     fn from_diff(
         missing_vars: Difference<'_, &str, RandomState>,
     ) -> Option<Self> {

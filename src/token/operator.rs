@@ -1,20 +1,35 @@
 /* Built-in imports */
 use core::fmt;
 
+/// Represents a mathematical operator.
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum Operator {
-    // Factorial,
+    /// Addition operator.
     Plus,
+    /// Subtraction operator.
     Minus,
+    /// Multiplication operator.
     Times,
+    /// Division operator.
     Divide,
+    /// Exponentiation operator.
     Power,
+    /// Modulo operator.
     Modulo,
 }
 
 impl TryFrom<u8> for Operator {
     type Error = &'static str;
 
+    /// Attempts to convert a byte value into an `Operator`.
+    ///
+    /// # Parameters
+    ///
+    /// - `value`: The byte value to convert.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the `Operator` or an error message.
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
             // b'!' => Ok(Self::Factorial),
@@ -30,6 +45,15 @@ impl TryFrom<u8> for Operator {
 }
 
 impl fmt::Display for Operator {
+    /// Formats the operator for display.
+    ///
+    /// # Parameters
+    ///
+    /// - `fmt`: The formatter.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` indicating whether formatting was successful.
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             // Self::Factorial => write!(f, "!"),

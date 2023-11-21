@@ -12,6 +12,7 @@ pub use function_call::FunctionCall;
 pub use simplify::Simplify;
 pub use unop::UnOp;
 
+/// Represents an element in the abstract syntax tree (AST).
 #[derive(Debug, PartialEq, PartialOrd)]
 #[non_exhaustive]
 pub enum Element<'a> {
@@ -62,6 +63,7 @@ impl<'a> From<FunctionCall<'a>> for Element<'a> {
 }
 
 impl<'a> Element<'a> {
+    /// Finds variables in the element and adds them to the provided set.
     pub fn find_variables(&self, vars: &mut HashSet<&'a str>) {
         match *self {
             Self::Variable(var) => {
