@@ -27,7 +27,7 @@ impl Function {
     }
 }
 
-/// Macro for defining functions easily, with optional variadic support.
+/// Macro for defining functions for xprs' context easily, with optional variadic support.
 #[macro_export]
 macro_rules! xprs_fn {
     // variadics
