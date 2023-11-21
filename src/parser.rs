@@ -296,9 +296,9 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
             .ctx
             .get_var(name)
             .map(|&value| Identifier::Constant(value))
-            .or_else(
-                || self.ctx.get_func(name).copied().map(Identifier::Function)
-            )
+            .or_else(|| {
+                self.ctx.get_func(name).copied().map(Identifier::Function)
+            })
             .unwrap_or_else(|| Identifier::from_str(name));
 
         let el = match ident {
@@ -544,46 +544,45 @@ impl miette::Diagnostic for ParseError {
     /// Provides help messages for specific parsing errors.
     #[inline]
     fn help(&self) -> Option<Box<dyn fmt::Display + '_>> {
-        let message =
-            match self.kind {
-                ErrorKind::UnexpectedEndOfExpression => {
-                    "Something might be missing here?".to_owned()
-                },
-                ErrorKind::UnexpectedToken(_) => "Try removing it?".to_owned(),
-                ErrorKind::MalformedNumber(_) => {
-                    "Did you enter a number with multiple decimal points?"
-                        .to_owned()
-                },
-                ErrorKind::IllegalCharacter(_) => {
-                    "Try removing this character.".to_owned()
-                },
-                ErrorKind::ExpectedToken(tok) => {
-                    format!("Try adding a `{tok}` here.")
-                },
-                ErrorKind::VariableNotDeclared(_, ref availables) => {
-                    format!(
-                        "Try replacing it with one of the following: `{}`.",
-                        availables.join("`, `")
-                    )
-                },
-                ErrorKind::TooManyArguments(expected, got) => {
-                    let excess = got - usize::from(expected);
-                    format!(
-                        "Try removing {excess} argument{}.",
-                        if excess > 1 { "s" } else { "" }
-                    )
-                },
-                ErrorKind::TooFewArguments(expected, got) => {
-                    let missing = usize::from(expected) - got;
-                    format!(
-                        "Try adding {missing} argument{}.",
-                        if missing > 1 { "s" } else { "" }
-                    )
-                },
-                ErrorKind::MissingArgument => {
-                    "Either remove comma or add argument.".to_owned()
-                },
-            };
+        let message = match self.kind {
+            ErrorKind::UnexpectedEndOfExpression => {
+                "Something might be missing here?".to_owned()
+            },
+            ErrorKind::UnexpectedToken(_) => "Try removing it?".to_owned(),
+            ErrorKind::MalformedNumber(_) => {
+                "Did you enter a number with multiple decimal points?"
+                    .to_owned()
+            },
+            ErrorKind::IllegalCharacter(_) => {
+                "Try removing this character.".to_owned()
+            },
+            ErrorKind::ExpectedToken(tok) => {
+                format!("Try adding a `{tok}` here.")
+            },
+            ErrorKind::VariableNotDeclared(_, ref availables) => {
+                format!(
+                    "Try replacing it with one of the following: `{}`.",
+                    availables.join("`, `")
+                )
+            },
+            ErrorKind::TooManyArguments(expected, got) => {
+                let excess = got - usize::from(expected);
+                format!(
+                    "Try removing {excess} argument{}.",
+                    if excess > 1 { "s" } else { "" }
+                )
+            },
+            ErrorKind::TooFewArguments(expected, got) => {
+                let missing = usize::from(expected) - got;
+                format!(
+                    "Try adding {missing} argument{}.",
+                    if missing > 1 { "s" } else { "" }
+                )
+            },
+            ErrorKind::MissingArgument => {
+                "Either remove comma or add argument.".to_owned()
+            },
+        };
         Some(Box::new(message))
     }
 

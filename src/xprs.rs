@@ -402,8 +402,8 @@ impl<'a> Xprs<'a> {
     /// # Example
     ///
     /// ```
-    /// # use xprs::{Parser, BindError};
-    /// let expression = Parser::default().parse("x + y").unwrap();
+    /// # use xprs::{Xprs, BindError};
+    /// let expression = Xprs::try_from("x + y").unwrap();
     /// let bound_expression = expression.bind2("x", "y");
     ///
     /// match bound_expression {
@@ -514,9 +514,9 @@ impl<'a> Xprs<'a> {
     /// # Example
     ///
     /// ```
-    /// # use xprs::Parser;
+    /// # use xprs::Xprs;
     ///
-    /// let expression = Parser::default().parse("x + y + z").unwrap();
+    /// let expression = Xprs::try_from("x + y + z").unwrap();
     /// let bound_expression = expression.bind_n(["x", "y", "z"]).unwrap();
     /// let result = bound_expression([1.0, 2.0, 3.0]);
     /// ```
@@ -544,9 +544,9 @@ impl<'a> Xprs<'a> {
     /// # Example
     ///
     /// ```
-    /// # use xprs::Parser;
+    /// # use xprs::Xprs;
     ///
-    /// let expression = Parser::default().parse("x + y + z").unwrap();
+    /// let expression = Xprs::try_from("x + y + z").unwrap();
     /// let bound_expression = expression.bind_n_runtime(&["x", "y", "z"]).unwrap();
     /// let result = bound_expression(&[1.0, 2.0, 3.0]);
     /// ```

@@ -20,10 +20,11 @@
 //! Here's a simple example of using **Xprs**:
 //!
 //! ```rust
-//! use xprs::{Parser, Xprs, BindError};
+//! use xprs::{Parser, BindError};
 //!
 //!     // Parse a mathematical expression
 //!     let expression = Parser::default().parse("2 * x + 3").unwrap();
+//!     // or `let expression = Xprs::try_from("2 * x + 3")?``
 //!
 //!     // Bind a variable and evaluate the expression
 //!     match expression.bind("x") {

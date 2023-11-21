@@ -255,17 +255,17 @@ impl<'a> Simplify<'a> for FunctionCall<'a> {
         // if they are all numbers, we can call the function.
         let mut args_values: Vec<f64> = Vec::with_capacity(self.args.len());
 
-        self.args =
-            self.args
-                .into_iter()
-                .map(|arg| {
-                    let simplified = arg.simplify();
-                    if let Element::Number(num) = simplified {
-                        args_values.push(num);
-                    }
-                    simplified
-                })
-                .collect();
+        self.args = self
+            .args
+            .into_iter()
+            .map(|arg| {
+                let simplified = arg.simplify();
+                if let Element::Number(num) = simplified {
+                    args_values.push(num);
+                }
+                simplified
+            })
+            .collect();
 
         if args_values.len() == self.args.len() {
             self.call(&args_values).into()
