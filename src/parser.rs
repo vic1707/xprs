@@ -40,14 +40,6 @@ pub struct Parser<'ctx> {
 
 impl<'ctx> Parser<'ctx> {
     /// Creates a new parser with the given context.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # use xprs::{Parser, Context};
-    /// let context = Context::default();
-    /// let parser = Parser::new_with_ctx(context);
-    /// ```
     #[inline]
     #[must_use]
     pub const fn new_with_ctx(ctx: Context<'ctx>) -> Self {
@@ -55,15 +47,6 @@ impl<'ctx> Parser<'ctx> {
     }
 
     /// Returns a reference to the parser's context.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # use xprs::{Parser, Context};
-    /// let context = Context::default();
-    /// let parser = Parser::new_with_ctx(context);
-    /// assert_eq!(parser.ctx(), &Context::default());
-    /// ```
     #[inline]
     #[must_use]
     pub const fn ctx(&self) -> &Context {
@@ -71,25 +54,12 @@ impl<'ctx> Parser<'ctx> {
     }
 
     /// Returns a mutable reference to the parser's context.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # use xprs::{Parser, Context};
-    /// let mut context = Context::default();
-    /// let mut parser = Parser::new_with_ctx(context);
-    /// parser.ctx_mut().set_var("x", 42.0);
-    /// ```
     #[inline]
     pub fn ctx_mut(&mut self) -> &mut Context<'ctx> {
         &mut self.ctx
     }
 
-    /// Parses the input mathematical expression and returns the expression tree.
-    ///
-    /// # Arguments
-    ///
-    /// * `input` - The mathematical expression to parse.
+    /// Parses the input mathematical expression using precedence climbing.
     ///
     /// # Returns
     ///
@@ -99,12 +69,14 @@ impl<'ctx> Parser<'ctx> {
     /// # Example
     ///
     /// ```
-    /// # use xprs::{Parser, Context};
-    /// let mut context = Context::default();
-    /// let parser = Parser::new_with_ctx(context);
+    /// use xprs::Parser;
+    /// let parser = Parser::default();
     /// let expression = "2 * (x + 1)";
     /// let result = parser.parse(expression);
     /// assert!(result.is_ok());
+    /// let invalid_expression = "(x + 1";
+    /// let result = parser.parse(invalid_expression);
+    /// assert!(result.is_err());
     /// ```
     #[inline]
     pub fn parse<'input>(
@@ -143,15 +115,6 @@ struct ParserImpl<'input, 'ctx> {
 
 impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     /// Creates a new parser implementation.
-    ///
-    /// # Arguments
-    ///
-    /// * `input` - The mathematical expression to parse.
-    /// * `ctx` - The context containing variable and function information.
-    ///
-    /// # Returns
-    ///
-    /// A new instance of `ParserImpl`.
     const fn new(input: &'input str, ctx: &'ctx Context<'ctx>) -> Self {
         Self {
             input: input.as_bytes(),
@@ -160,28 +123,12 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         }
     }
 
-    /// Parses the input mathematical expression and returns the expression tree.
-    ///
-    /// # Arguments
-    ///
-    /// * `input` - The mathematical expression to parse.
-    /// * `ctx` - The context containing variable and function information.
+    /// Parses the input mathematical expression using precedence climbing.
     ///
     /// # Returns
     ///
     /// A `Result` containing the expression tree (`Xprs`) if parsing is
     /// successful, or a `ParseError` if an error occurs during parsing.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # use xprs::{Parser, Context};
-    /// let mut context = Context::default();
-    /// let parser = Parser::new_with_ctx(context);
-    /// let expression = "2 * (x + 1)";
-    /// let result = parser.parse(expression);
-    /// assert!(result.is_ok());
-    /// ```
     pub fn parse(
         input: &'input str,
         ctx: &'ctx Context<'ctx>,
@@ -203,11 +150,12 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         Ok(Xprs { root, vars })
     }
 
-    /// Parses an element of the mathematical expression based on precedence.
-    ///
-    /// # Arguments
-    ///
-    /// * `precedence` - The precedence level to guide parsing.
+    /// Parses an element of the mathematical expression.
+    /// And checks for binary operators with higher precedence.
+    /// If a binary operator with higher precedence is found, it parses the
+    /// right-hand side of the expression and creates a new binary operation
+    /// with the current element as left-hand side and the parsed element as
+    /// right-hand side.
     ///
     /// # Returns
     ///
@@ -432,14 +380,6 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
 
     /// Takes characters while the given predicate is true and returns the
     /// corresponding substring.
-    ///
-    /// # Arguments
-    ///
-    /// * `predicate` - The predicate function to determine when to stop taking characters.
-    ///
-    /// # Returns
-    ///
-    /// A substring containing characters that satisfy the given predicate.
     fn take_while(&mut self, predicate: fn(&u8) -> bool) -> &'input str {
         let start = self.cursor;
         self.skip_while(predicate);
@@ -452,35 +392,42 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
 }
 
 impl ParserImpl<'_, '_> {
+    /// Skips characters while the given predicate is true.
     fn skip_while(&mut self, predicate: fn(&u8) -> bool) {
         while self.current().is_some_and(predicate) {
             self.cursor += 1;
         }
     }
 
+    /// Consumes the next character if it matches the given one.
     fn consume_if_eq(&mut self, tok: u8) -> bool {
         let eq = self.next_trim() == Some(&tok);
         self.cursor += usize::from(eq);
         eq
     }
 
+    /// Returns the current character.
     fn current(&self) -> Option<&u8> {
         self.input.get(self.cursor)
     }
 
+    /// Returns the current character after trimming whitespaces.
     fn next_trim(&mut self) -> Option<&u8> {
         self.skip_while(u8::is_ascii_whitespace);
         self.current()
     }
 
+    /// Returns the next character.
     fn next(&self) -> Option<&u8> {
         self.input.get(self.cursor + 1)
     }
 
+    /// Returns the character at the given offset.
     fn next_at(&self, offset: usize) -> Option<&u8> {
         self.input.get(self.cursor + offset)
     }
 
+    /// Returns the operator and its precedence if it's a valid operator.
     fn get_operator_infos(
         &mut self,
         current_atom: &Element<'_>,
@@ -515,6 +462,8 @@ impl ParserImpl<'_, '_> {
         }
     }
 
+    /// Asserts that the next character is equal to the given one and consumes
+    /// it if it is.
     fn assert_eq_consume(&mut self, tok: u8) -> Result<(), ParseError> {
         if !self.consume_if_eq(tok) {
             yeet!(ParseError::new_expected_token(self, tok));
@@ -541,7 +490,6 @@ use alloc::fmt;
 use std::iter::Iterator;
 
 impl miette::Diagnostic for ParseError {
-    /// Provides help messages for specific parsing errors.
     #[inline]
     fn help(&self) -> Option<Box<dyn fmt::Display + '_>> {
         let message = match self.kind {
@@ -586,7 +534,6 @@ impl miette::Diagnostic for ParseError {
         Some(Box::new(message))
     }
 
-    /// Provides labeled spans for highlighting the error in the source code.
     #[inline]
     fn labels(
         &self,
@@ -600,7 +547,6 @@ impl miette::Diagnostic for ParseError {
         ))
     }
 
-    /// Returns the source code associated with the error.
     #[inline]
     fn source_code(&self) -> Option<&dyn miette::SourceCode> {
         Some(&self.src)
