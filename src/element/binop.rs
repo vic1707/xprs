@@ -12,7 +12,7 @@ pub struct BinOp<'a> {
 }
 
 impl<'a> BinOp<'a> {
-    /// Creates a new `BinOp` from the binary operation components.
+    /// Creates a new [`BinOp`] from the binary operation components.
     const fn new(op: Operator, lhs: Element<'a>, rhs: Element<'a>) -> Self {
         Self { op, lhs, rhs }
     }

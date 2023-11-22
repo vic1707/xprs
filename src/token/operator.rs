@@ -21,7 +21,7 @@ pub enum Operator {
 impl TryFrom<u8> for Operator {
     type Error = &'static str;
 
-    /// Attempts to convert a byte value into an `Operator`.
+    /// Attempts to convert a byte value into an [`Operator`].
     /// Returns an error if the byte value does not correspond to a valid operator.
     /// Valid operators are: '+', '-', '*', '/', '^', '%'.
     fn try_from(value: u8) -> Result<Self, Self::Error> {

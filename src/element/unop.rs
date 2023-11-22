@@ -11,7 +11,7 @@ pub struct UnOp<'a> {
 }
 
 impl<'a> UnOp<'a> {
-    /// Creates a new `UnOp` from the unary operation components.
+    /// Creates a new [`UnOp`] from the unary operation components.
     const fn new(op: Operator, operand: Element<'a>) -> Self {
         Self { op, operand }
     }

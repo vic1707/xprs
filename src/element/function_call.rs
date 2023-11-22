@@ -11,7 +11,7 @@ pub struct FunctionCall<'a> {
 }
 
 impl<'a> FunctionCall<'a> {
-    /// Creates a new `FunctionCall` from the function call components.
+    /// Creates a new [`FunctionCall`] from the function call components.
     const fn new(desc: Function, args: Vec<Element<'a>>) -> Self {
         Self { desc, args }
     }

@@ -7,12 +7,12 @@ pub struct Function {
     /// The function's implementation.
     pub func: fn(&[f64]) -> f64,
     /// The optional number of arguments the function accepts.
-    /// If `None`, the function is variadic.
+    /// If [`None`], the function is variadic.
     pub nb_args: Option<u8>,
 }
 
 impl Function {
-    /// Creates a new `Function` from the function components.
+    /// Creates a new [`Function`] from the function components.
     #[inline]
     pub const fn new(
         name: &'static str,

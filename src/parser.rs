@@ -20,7 +20,7 @@ use crate::{
 /// Parses mathematical expressions and returns an expression tree.
 ///
 /// The parser takes a mathematical expression as input and produces an
-/// expression tree (`Xprs`) as output. It supports various mathematical
+/// expression tree ([`Xprs`]) as output. It supports various mathematical
 /// operations, variables, functions, and constants.
 ///
 /// # Example
@@ -63,8 +63,8 @@ impl<'ctx> Parser<'ctx> {
     ///
     /// # Returns
     ///
-    /// A `Result` containing the expression tree (`Xprs`) if parsing is
-    /// successful, or a `ParseError` if an error occurs during parsing.
+    /// A `Result` containing the expression tree ([`Xprs`]) if parsing is
+    /// successful, or a [`ParseError`] if an error occurs during parsing.
     ///
     /// # Example
     ///
@@ -127,8 +127,8 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     ///
     /// # Returns
     ///
-    /// A `Result` containing the expression tree (`Xprs`) if parsing is
-    /// successful, or a `ParseError` if an error occurs during parsing.
+    /// A `Result` containing the expression tree ([`Xprs`]) if parsing is
+    /// successful, or a [`ParseError`] if an error occurs during parsing.
     pub fn parse(
         input: &'input str,
         ctx: &'ctx Context<'ctx>,
@@ -159,8 +159,8 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     ///
     /// # Returns
     ///
-    /// A `Result` containing the parsed element (`Element`) if parsing is
-    /// successful, or a `ParseError` if an error occurs during parsing.
+    /// A `Result` containing the parsed element ([`Element`]) if parsing is
+    /// successful, or a [`ParseError`] if an error occurs during parsing.
     fn element(
         &mut self,
         precedence: usize,
@@ -186,8 +186,8 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     ///
     /// # Returns
     ///
-    /// A `Result` containing the parsed element (`Element`) if parsing is
-    /// successful, or a `ParseError` if an error occurs during parsing.
+    /// A `Result` containing the parsed element ([`Element`]) if parsing is
+    /// successful, or a [`ParseError`] if an error occurs during parsing.
     fn atom(&mut self) -> Result<Element<'input>, ParseError> {
         let Some(&next) = self.next_trim() else {
             yeet!(ParseError::new_unexpected_end_of_expression(self));
@@ -230,8 +230,8 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     ///
     /// # Returns
     ///
-    /// A `Result` containing the parsed element (`Element`) if parsing is
-    /// successful, or a `ParseError` if an error occurs during parsing.
+    /// A `Result` containing the parsed element ([`Element`]) if parsing is
+    /// successful, or a [`ParseError`] if an error occurs during parsing.
     fn parse_identifier(&mut self) -> Result<Element<'input>, ParseError> {
         let identifier_start = self.cursor;
         let name = self.take_while(
@@ -293,8 +293,8 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     ///
     /// # Returns
     ///
-    /// A `Result` containing the parsed element (`Element`) if parsing is
-    /// successful, or a `ParseError` if an error occurs during parsing.
+    /// A `Result` containing the parsed element ([`Element`]) if parsing is
+    /// successful, or a [`ParseError`] if an error occurs during parsing.
     fn parse_number(&mut self) -> Result<Element<'input>, ParseError> {
         let begin = self.cursor;
         self.skip_while(|&ch| matches!(ch, b'0'..=b'9' | b'.' | b'_'));
@@ -329,8 +329,8 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     ///
     /// # Returns
     ///
-    /// A `Result` containing the vector of parsed elements (`Vec<Element>`) if
-    /// parsing is successful, or a `ParseError` if an error occurs during parsing.
+    /// A [`Result`] containing the vector of parsed elements (`Vec<Element>`) if
+    /// parsing is successful, or a [`ParseError`] if an error occurs during parsing.
     fn parse_arguments(&mut self) -> Result<Vec<Element<'input>>, ParseError> {
         let mut args = Vec::new();
 
@@ -357,8 +357,8 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     ///
     /// # Returns
     ///
-    /// A `Result` containing the parsed element (`Element`) if parsing is
-    /// successful, or a `ParseError` if an error occurs during parsing.
+    /// A `Result` containing the parsed element ([`Element`]) if parsing is
+    /// successful, or a [`ParseError`] if an error occurs during parsing.
     fn argument(&mut self) -> Result<Element<'input>, ParseError> {
         self.element(precedence::NO_PRECEDENCE).map_err(
             #[cold]
@@ -587,7 +587,7 @@ pub enum ErrorKind {
 }
 
 impl ParseError {
-    /// Creates a new `ParseError` for an unexpected end of expression.
+    /// Creates a new [`ParseError`] for an unexpected end of expression.
     #[cold]
     fn new_unexpected_end_of_expression(parser: &ParserImpl) -> Self {
         Self {
@@ -599,7 +599,7 @@ impl ParseError {
         }
     }
 
-    /// Creates a new `ParseError` for an unexpected token.
+    /// Creates a new [`ParseError`] for an unexpected token.
     #[cold]
     fn new_unexpected_token(parser: &ParserImpl, tok: u8) -> Self {
         Self {
@@ -609,7 +609,7 @@ impl ParseError {
         }
     }
 
-    /// Creates a new `ParseError` for a malformed number.
+    /// Creates a new [`ParseError`] for a malformed number.
     #[cold]
     fn new_malformed_number(parser: &ParserImpl, ident: &str) -> Self {
         let num_len = ident.len();
@@ -620,7 +620,7 @@ impl ParseError {
         }
     }
 
-    /// Creates a new `ParseError` for an illegal character.
+    /// Creates a new [`ParseError`] for an illegal character.
     #[cold]
     fn new_illegal_character(parser: &ParserImpl, tok: u8) -> Self {
         Self {
@@ -630,7 +630,7 @@ impl ParseError {
         }
     }
 
-    /// Creates a new `ParseError` for an expected token error.
+    /// Creates a new [`ParseError`] for an expected token error.
     #[cold]
     fn new_expected_token(parser: &ParserImpl, tok: u8) -> Self {
         Self {
@@ -640,7 +640,7 @@ impl ParseError {
         }
     }
 
-    /// Creates a new `ParseError` for a variable not declared error.
+    /// Creates a new [`ParseError`] for a variable not declared error.
     #[cold]
     fn new_variable_not_declared(
         input: &str,
@@ -654,7 +654,7 @@ impl ParseError {
         }
     }
 
-    /// Creates a new `ParseError` for too few arguments error.
+    /// Creates a new [`ParseError`] for too few arguments error.
     #[cold]
     fn new_too_few_arguments(
         parser: &ParserImpl,
@@ -669,7 +669,7 @@ impl ParseError {
         }
     }
 
-    /// Creates a new `ParseError` for too many arguments error.
+    /// Creates a new [`ParseError`] for too many arguments error.
     #[cold]
     fn new_too_many_arguments(
         parser: &ParserImpl,
@@ -684,7 +684,7 @@ impl ParseError {
         }
     }
 
-    /// Creates a new `ParseError` for a missing argument error.
+    /// Creates a new [`ParseError`] for a missing argument error.
     #[cold]
     fn new_missing_argument(parser: &ParserImpl) -> Self {
         Self {

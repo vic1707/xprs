@@ -44,11 +44,11 @@ impl Xprs<'_> {
     ///
     /// # Arguments
     ///
-    /// * `variables` - A reference to a `HashMap` containing variable names and their corresponding values.
+    /// * `variables` - A reference to a [`HashMap`] containing variable names and their corresponding values.
     ///
     /// # Returns
     ///
-    /// A `Result` containing the result of the expression evaluation if successful, or an `EvalError` if an error occurs.
+    /// A `Result` containing the result of the expression evaluation if successful, or an [`EvalError`] if an error occurs.
     ///
     /// # Example
     ///
@@ -78,7 +78,7 @@ impl Xprs<'_> {
     ///
     /// # Arguments
     ///
-    /// * `variables` - A reference to a `HashMap` containing variable names and their corresponding values.
+    /// * `variables` - A reference to a [`HashMap`] containing variable names and their corresponding values.
     ///
     /// # Returns
     ///
@@ -110,11 +110,11 @@ impl Xprs<'_> {
     ///
     /// # Arguments
     ///
-    /// * `var` - A tuple containing the variable name and its corresponding value.
+    /// * [`var`] - A tuple containing the variable name and its corresponding value.
     ///
     /// # Returns
     ///
-    /// `true` if the variable was successfully removed from the set of variables; `false` otherwise.
+    /// `true` if the variable was successfully removed from the set of variables; [`false`] otherwise.
     ///
     /// # Example
     ///
@@ -137,11 +137,11 @@ impl Xprs<'_> {
     ///
     /// # Arguments
     ///
-    /// * `var` - A tuple containing the variable name and its corresponding value.
+    /// * [`var`] - A tuple containing the variable name and its corresponding value.
     ///
     /// # Returns
     ///
-    /// A new `Xprs` instance representing the simplified expression.
+    /// A new [`Xprs`] instance representing the simplified expression.
     ///
     /// # Example
     ///
@@ -162,7 +162,7 @@ impl Xprs<'_> {
     ///
     /// # Arguments
     ///
-    /// * `vars` - A slice of tuples, each containing a variable name and its corresponding value.
+    /// * [`vars`] - A slice of tuples, each containing a variable name and its corresponding value.
     ///
     /// # Example
     ///
@@ -187,11 +187,11 @@ impl Xprs<'_> {
     ///
     /// # Arguments
     ///
-    /// * `vars` - A slice of tuples, each containing a variable name and its corresponding value.
+    /// * [`vars`] - A slice of tuples, each containing a variable name and its corresponding value.
     ///
     /// # Returns
     ///
-    /// A new `Xprs` instance representing the simplified expression.
+    /// A new [`Xprs`] instance representing the simplified expression.
     ///
     /// # Example
     ///
@@ -212,22 +212,22 @@ impl Xprs<'_> {
 /// An internal struct used for evaluating expressions.
 ///
 /// This struct is responsible for handling the evaluation of individual elements within an expression.
-/// It is used by the `Xprs` struct to perform evaluations with respect to a given set of variable values.
+/// It is used by the [`Xprs`] struct to perform evaluations with respect to a given set of variable values.
 struct XprsImpl<'a> {
     /// A reference to the map of variables and their corresponding values.
     variables: &'a HashMap<&'a str, f64>,
 }
 
 impl XprsImpl<'_> {
-    /// Creates a new `XprsImpl` instance with a reference to a set of variables.
+    /// Creates a new [`XprsImpl`] instance with a reference to a set of variables.
     ///
     /// # Arguments
     ///
-    /// * `variables` - A reference to the map of variables and their corresponding values.
+    /// * [`variables`] - A reference to the map of variables and their corresponding values.
     ///
     /// # Returns
     ///
-    /// A new `XprsImpl` instance.
+    /// A new [`XprsImpl`] instance.
     const fn new<'a>(variables: &'a HashMap<&str, f64>) -> XprsImpl<'a> {
         XprsImpl { variables }
     }
@@ -236,11 +236,11 @@ impl XprsImpl<'_> {
     ///
     /// # Arguments
     ///
-    /// * `element` - The element to be evaluated.
+    /// * [`element`] - The element to be evaluated.
     ///
     /// # Returns
     ///
-    /// The result of the evaluation as a `Result` containing the numeric value or an `EvalError` if an error occurs.
+    /// The result of the evaluation as a `Result` containing the numeric value or an [`EvalError`] if an error occurs.
     fn eval_element(&self, element: &Element) -> Result<f64, EvalError> {
         let res = match *element {
             Element::Number(n) => n,
@@ -289,7 +289,7 @@ impl XprsImpl<'_> {
     ///
     /// # Arguments
     ///
-    /// * `element` - The element to be evaluated.
+    /// * [`element`] - The element to be evaluated.
     ///
     /// # Returns
     ///
@@ -350,11 +350,11 @@ impl<'a> Xprs<'a> {
     ///
     /// # Arguments
     ///
-    /// * `var` - The variable to bind.
+    /// * [`var`] - The variable to bind.
     ///
     /// # Returns
     ///
-    /// A `Result` containing a closure that takes a single `f64` argument and returns an `f64`. The closure represents
+    /// A [`Result`] containing a closure that takes a single `f64` argument and returns an `f64`. The closure represents
     /// the bound expression. If the variable is not present in the original expression, an error of type `BindError::OneVariable`
     /// is returned.
     ///
@@ -395,7 +395,7 @@ impl<'a> Xprs<'a> {
     ///
     /// # Returns
     ///
-    /// A `Result` containing a closure that takes two `f64` arguments and returns an `f64`. The closure represents
+    /// A [`Result`] containing a closure that takes two `f64` arguments and returns an `f64`. The closure represents
     /// the bound expression. If any of the variables are not present in the original expression, an error of type `BindError::MultipleVariables`
     /// is returned.
     ///
@@ -504,11 +504,11 @@ impl<'a> Xprs<'a> {
     ///
     /// # Arguments
     ///
-    /// * `vars` - An array of variable names to bind.
+    /// * [`vars`] - An array of variable names to bind.
     ///
     /// # Returns
     ///
-    /// A `Result` containing a closure that takes an array of `f64` values for the variables and returns the result of the evaluation,
+    /// A [`Result`] containing a closure that takes an array of `f64` values for the variables and returns the result of the evaluation,
     /// or an error if the variables do not match the expected variables in the expression.
     ///
     /// # Example
@@ -534,11 +534,11 @@ impl<'a> Xprs<'a> {
     ///
     /// # Arguments
     ///
-    /// * `vars` - A slice of variable names to bind.
+    /// * [`vars`] - A slice of variable names to bind.
     ///
     /// # Returns
     ///
-    /// A `Result` containing a closure that takes a slice of `f64` values for the variables and returns the result of the evaluation,
+    /// A [`Result`] containing a closure that takes a slice of `f64` values for the variables and returns the result of the evaluation,
     /// or an error if the variables do not match the expected variables in the expression.
     ///
     /// # Example
@@ -576,15 +576,15 @@ pub enum BindError {
 
 use std::collections::{hash_map::RandomState, hash_set::Difference};
 impl BindError {
-    /// Converts a `Difference` iterator of missing variables into a `BindError`.
+    /// Converts a `Difference` iterator of missing variables into a [`BindError`].
     ///
     /// # Arguments
     ///
-    /// * `missing_vars` - The `Difference` iterator containing missing variables.
+    /// * `missing_vars` - The [`Difference`] iterator containing missing variables.
     ///
     /// # Returns
     ///
-    /// An optional `BindError`, representing the error if there are missing variables, or `None` if there are none.
+    /// An optional `BindError`, representing the error if there are missing variables, or [`None`] if there are none.
     fn from_diff(
         missing_vars: Difference<'_, &str, RandomState>,
     ) -> Option<Self> {
