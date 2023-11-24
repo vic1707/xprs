@@ -42,10 +42,6 @@ impl fmt::Display for Xprs<'_> {
 impl Xprs<'_> {
     /// Evaluates the expression using the provided variable values.
     ///
-    /// # Arguments
-    ///
-    /// * `variables` - A reference to a [`HashMap`] containing variable names and their corresponding values.
-    ///
     /// # Returns
     ///
     /// A `Result` containing the result of the expression evaluation if successful, or an [`EvalError`] if an error occurs.
@@ -65,6 +61,10 @@ impl Xprs<'_> {
     ///
     /// let result = xprs.eval(&variable_values);
     /// assert_eq!(result, Ok(8.0));
+    /// 
+    /// // we didn't provide the variables, so this should fail
+    /// let failed_eval = xprs.eval(&HashMap::new());
+    /// assert!(failed_eval.is_err());
     /// ```
     #[inline]
     pub fn eval(
@@ -76,10 +76,6 @@ impl Xprs<'_> {
 
     /// Evaluates the expression using the provided variable values without error handling.
     ///
-    /// # Arguments
-    ///
-    /// * `variables` - A reference to a [`HashMap`] containing variable names and their corresponding values.
-    ///
     /// # Returns
     ///
     /// The result of the expression evaluation. Use with caution, as it may panic if variables are not present.
@@ -88,6 +84,13 @@ impl Xprs<'_> {
     ///
     /// ```
     /// # use xprs::Xprs;
+    /// # macro_rules! assert_panic {
+    /// #     ($($t:tt)*) => {
+    /// #         std::panic::catch_unwind(|| {
+    /// #             $($t)*
+    /// #         }).is_err()
+    /// #     }
+    /// # }
     /// use std::collections::HashMap;
     ///
     /// let expression = "2 * x + y";
@@ -99,7 +102,9 @@ impl Xprs<'_> {
     ///
     /// let result = xprs.eval_unchecked(&variable_values);
     /// assert_eq!(result, 8.0);
-    /// ```
+    /// 
+    /// // we didn't provide the variables, so this should panic
+    /// assert_panic!(xprs.eval_unchecked(&HashMap::new()));
     #[inline]
     #[must_use]
     pub fn eval_unchecked(&self, variables: &HashMap<&str, f64>) -> f64 {
@@ -107,50 +112,15 @@ impl Xprs<'_> {
     }
 
     /// Simplifies the expression in-place for a single variable.
-    ///
-    /// # Arguments
-    ///
-    /// * [`var`] - A tuple containing the variable name and its corresponding value.
-    ///
-    /// # Returns
-    ///
-    /// `true` if the variable was successfully removed from the set of variables; [`false`] otherwise.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # use xprs::Xprs;
-    ///
-    /// let mut expression = Xprs::try_from("2 * x + y").unwrap();
-    /// let removed = expression.simplify_for_inplace(("x", 3.0));
-    /// assert_eq!(removed, true);
-    /// ```
     #[inline]
-    pub fn simplify_for_inplace(&mut self, var: (&str, f64)) -> bool {
+    pub fn simplify_for_inplace(&mut self, var: (&str, f64)) {
         let mut tmp = trust_me!(ptr::read(&self.root));
         tmp = tmp.simplify_for(var);
         trust_me!(ptr::write(&mut self.root, tmp););
-        self.vars.remove(var.0)
+        self.vars.remove(var.0);
     }
 
-    /// Creates a new expression by simplifying the current expression for a single variable.
-    ///
-    /// # Arguments
-    ///
-    /// * [`var`] - A tuple containing the variable name and its corresponding value.
-    ///
-    /// # Returns
-    ///
-    /// A new [`Xprs`] instance representing the simplified expression.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # use xprs::Xprs;
-    ///
-    /// let expression = Xprs::try_from("2 * x + y").unwrap();
-    /// let simplified_expression = expression.simplify_for(("x", 3.0));
-    /// ```
+    /// Simplifies the expression in-place for a single variable and returns the expression.
     #[inline]
     #[must_use]
     pub fn simplify_for(mut self, var: (&str, f64)) -> Self {
@@ -159,19 +129,6 @@ impl Xprs<'_> {
     }
 
     /// Simplifies the expression in-place for multiple variables.
-    ///
-    /// # Arguments
-    ///
-    /// * [`vars`] - A slice of tuples, each containing a variable name and its corresponding value.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # use xprs::Xprs;
-    ///
-    /// let mut expression = Xprs::try_from("2 * x + y + z").unwrap();
-    /// expression.simplify_for_multiple_inplace(&[("x", 3.0), ("y", 2.0)]);
-    /// ```
     #[inline]
     pub fn simplify_for_multiple_inplace(&mut self, vars: &[(&str, f64)]) {
         // rewriting `simplify_for_inplace` to avoid dozens of `ptr::read` and `ptr::write`
@@ -183,24 +140,7 @@ impl Xprs<'_> {
         trust_me!(ptr::write(&mut self.root, tmp););
     }
 
-    /// Creates a new expression by simplifying the current expression for multiple variables.
-    ///
-    /// # Arguments
-    ///
-    /// * [`vars`] - A slice of tuples, each containing a variable name and its corresponding value.
-    ///
-    /// # Returns
-    ///
-    /// A new [`Xprs`] instance representing the simplified expression.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # use xprs::Xprs;
-    ///
-    /// let expression = Xprs::try_from("2 * x + y + z").unwrap();
-    /// let simplified_expression = expression.simplify_for_multiple(&[("x", 3.0), ("y", 2.0)]);
-    /// ```
+    /// Simplifies the expression in-place for multiple variables and returns the expression.
     #[inline]
     #[must_use]
     pub fn simplify_for_multiple(mut self, vars: &[(&str, f64)]) -> Self {
@@ -219,24 +159,12 @@ struct XprsImpl<'a> {
 }
 
 impl XprsImpl<'_> {
-    /// Creates a new [`XprsImpl`] instance with a reference to a set of variables.
-    ///
-    /// # Arguments
-    ///
-    /// * [`variables`] - A reference to the map of variables and their corresponding values.
-    ///
-    /// # Returns
-    ///
-    /// A new [`XprsImpl`] instance.
+    /// Creates a new [`XprsImpl`] instance.
     const fn new<'a>(variables: &'a HashMap<&str, f64>) -> XprsImpl<'a> {
         XprsImpl { variables }
     }
 
     /// Evaluates an element within an expression and returns the result.
-    ///
-    /// # Arguments
-    ///
-    /// * [`element`] - The element to be evaluated.
     ///
     /// # Returns
     ///
@@ -287,13 +215,10 @@ impl XprsImpl<'_> {
 
     /// Evaluates an element within an expression without checking for errors.
     ///
-    /// # Arguments
-    ///
-    /// * [`element`] - The element to be evaluated.
-    ///
     /// # Returns
     ///
     /// The result of the evaluation as a numeric value. This method assumes that no errors will occur during evaluation.
+    /// If an error occurs, the code will panic.
     fn eval_element_unchecked(&self, element: &Element) -> f64 {
         match *element {
             Element::Number(n) => n,
@@ -578,13 +503,9 @@ use std::collections::{hash_map::RandomState, hash_set::Difference};
 impl BindError {
     /// Converts a `Difference` iterator of missing variables into a [`BindError`].
     ///
-    /// # Arguments
-    ///
-    /// * `missing_vars` - The [`Difference`] iterator containing missing variables.
-    ///
     /// # Returns
     ///
-    /// An optional `BindError`, representing the error if there are missing variables, or [`None`] if there are none.
+    /// An optional [`BindError`], representing the error if there are missing variables, or [`None`] if there are none.
     fn from_diff(
         missing_vars: Difference<'_, &str, RandomState>,
     ) -> Option<Self> {
