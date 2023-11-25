@@ -273,10 +273,6 @@ pub struct EvalError(String);
 impl<'a> Xprs<'a> {
     /// Binds a single variable for expression evaluation, returning a function that takes a value for the bound variable.
     ///
-    /// # Arguments
-    ///
-    /// * [`var`] - The variable to bind.
-    ///
     /// # Returns
     ///
     /// A [`Result`] containing a closure that takes a single `f64` argument and returns an `f64`. The closure represents
@@ -288,18 +284,13 @@ impl<'a> Xprs<'a> {
     /// ```
     /// # use xprs::{Parser, BindError};
     /// let expression = Parser::default().parse("x + 2").unwrap();
-    /// let bound_expression = expression.bind("x");
+    /// let func = expression.bind("x");
     ///
-    /// match bound_expression {
-    ///     Ok(bound_fn) => {
-    ///         let result = bound_fn(5.0);
-    ///         assert_eq!(result, 7.0); // x + 2, where x is bound to 5.0
-    ///     }
-    ///     Err(BindError::OneVariable(var)) => {
-    ///         println!("Failed to bind: Variable '{}' was not provided.", var);
-    ///     }
-    ///     _ => {}
-    /// }
+    /// assert!(func.is_ok());
+    /// let func = func.unwrap();
+    /// 
+    /// let result = func(3.0);
+    /// assert_eq!(result, 5.0);
     /// ```
     #[inline]
     pub fn bind(self, var: &'a str) -> Result<impl Fn(f64) -> f64 + 'a, BindError> {
@@ -312,35 +303,25 @@ impl<'a> Xprs<'a> {
     }
 
     /// Binds two variables for expression evaluation, returning a function that takes two values for the bound variables.
-    ///
-    /// # Arguments
-    ///
-    /// * `var1` - The first variable to bind.
-    /// * `var2` - The second variable to bind.
-    ///
+    /// 
     /// # Returns
-    ///
+    /// 
     /// A [`Result`] containing a closure that takes two `f64` arguments and returns an `f64`. The closure represents
-    /// the bound expression. If any of the variables are not present in the original expression, an error of type `BindError::MultipleVariables`
+    /// the bound expression. If either variable is not present in the original expression, an error of type `BindError::MultipleVariables`
     /// is returned.
-    ///
+    /// 
     /// # Example
-    ///
+    /// 
     /// ```
-    /// # use xprs::{Xprs, BindError};
-    /// let expression = Xprs::try_from("x + y").unwrap();
-    /// let bound_expression = expression.bind2("x", "y");
-    ///
-    /// match bound_expression {
-    ///     Ok(bound_fn) => {
-    ///         let result = bound_fn(3.0, 4.0);
-    ///         assert_eq!(result, 7.0); // x + y, where x is bound to 3.0 and y is bound to 4.0
-    ///     }
-    ///     Err(BindError::MultipleVariables(vars)) => {
-    ///         println!("Failed to bind: Variables '{}' were not provided.", vars);
-    ///     }
-    ///     _ => {}
-    /// }
+    /// # use xprs::{Parser, BindError};
+    /// let expression = Parser::default().parse("x + y").unwrap();
+    /// let func = expression.bind2("x", "y");
+    /// 
+    /// assert!(func.is_ok());
+    /// let func = func.unwrap();
+    /// 
+    /// let result = func(3.0, 2.0);
+    /// assert_eq!(result, 5.0);
     /// ```
     #[inline]
     pub fn bind2(self, var1: &'a str, var2: &'a str) -> Result<impl Fn(f64, f64) -> f64 + 'a, BindError> {
@@ -352,6 +333,27 @@ impl<'a> Xprs<'a> {
         Ok(move |val1, val2| self.eval_unchecked(&[(var1, val1), (var2, val2)].into()))
     }
 
+    /// Binds three variables for expression evaluation, returning a function that takes three values for the bound variables.
+    /// 
+    /// # Returns
+    /// 
+    /// A [`Result`] containing a closure that takes three `f64` arguments and returns an `f64`. The closure represents
+    /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
+    /// is returned.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// # use xprs::{Parser, BindError};
+    /// let expression = Parser::default().parse("x + y + z").unwrap();
+    /// let func = expression.bind3("x", "y", "z");
+    /// 
+    /// assert!(func.is_ok());
+    /// let func = func.unwrap();
+    /// 
+    /// let result = func(3.0, 2.0, 1.0);
+    /// assert_eq!(result, 6.0);
+    /// ```
     #[inline]
     pub fn bind3(self, var1: &'a str, var2: &'a str, var3: &'a str) -> Result<impl Fn(f64, f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3]);
@@ -362,6 +364,27 @@ impl<'a> Xprs<'a> {
         Ok(move |val1, val2, val3| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3)].into()))
     }
 
+    /// Binds four variables for expression evaluation, returning a function that takes four values for the bound variables.
+    /// 
+    /// # Returns
+    /// 
+    /// A [`Result`] containing a closure that takes four `f64` arguments and returns an `f64`. The closure represents
+    /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
+    /// is returned.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// # use xprs::{Parser, BindError};
+    /// let expression = Parser::default().parse("w + x + y + z").unwrap();
+    /// let func = expression.bind4("w", "x", "y", "z");
+    /// 
+    /// assert!(func.is_ok());
+    /// let func = func.unwrap();
+    /// 
+    /// let result = func(1.0, 2.0, 3.0, 4.0);
+    /// assert_eq!(result, 10.0);
+    /// ```
     #[inline]
     pub fn bind4(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str) -> Result<impl Fn(f64, f64, f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4]);
@@ -372,6 +395,27 @@ impl<'a> Xprs<'a> {
         Ok(move |val1, val2, val3, val4| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4)].into()))
     }
 
+    /// Binds five variables for expression evaluation, returning a function that takes five values for the bound variables.
+    /// 
+    /// # Returns
+    /// 
+    /// A [`Result`] containing a closure that takes five `f64` arguments and returns an `f64`. The closure represents
+    /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
+    /// is returned.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// # use xprs::{Parser, BindError};
+    /// let expression = Parser::default().parse("v + w + x + y + z").unwrap();
+    /// let func = expression.bind5("v", "w", "x", "y", "z");
+    /// 
+    /// assert!(func.is_ok());
+    /// let func = func.unwrap();
+    /// 
+    /// let result = func(1.0, 2.0, 3.0, 4.0, 5.0);
+    /// assert_eq!(result, 15.0);
+    /// ```
     #[inline]
     pub fn bind5(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5]);
@@ -382,6 +426,27 @@ impl<'a> Xprs<'a> {
         Ok(move |val1, val2, val3, val4, val5| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5)].into()))
     }
 
+    /// Binds six variables for expression evaluation, returning a function that takes six values for the bound variables.
+    /// 
+    /// # Returns
+    /// 
+    /// A [`Result`] containing a closure that takes six `f64` arguments and returns an `f64`. The closure represents
+    /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
+    /// is returned.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// # use xprs::{Parser, BindError};
+    /// let expression = Parser::default().parse("u + v + w + x + y + z").unwrap();
+    /// let func = expression.bind6("u", "v", "w", "x", "y", "z");
+    /// 
+    /// assert!(func.is_ok());
+    /// let func = func.unwrap();
+    /// 
+    /// let result = func(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
+    /// assert_eq!(result, 21.0);
+    /// ```
     #[inline]
     pub fn bind6(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6]);
@@ -392,6 +457,27 @@ impl<'a> Xprs<'a> {
         Ok(move |val1, val2, val3, val4, val5, val6| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5), (var6, val6)].into()))
     }
 
+    /// Binds seven variables for expression evaluation, returning a function that takes seven values for the bound variables.
+    /// 
+    /// # Returns
+    /// 
+    /// A [`Result`] containing a closure that takes seven `f64` arguments and returns an `f64`. The closure represents
+    /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
+    /// is returned.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// # use xprs::{Parser, BindError};
+    /// let expression = Parser::default().parse("t + u + v + w + x + y + z").unwrap();
+    /// let func = expression.bind7("t", "u", "v", "w", "x", "y", "z");
+    /// 
+    /// assert!(func.is_ok());
+    /// let func = func.unwrap();
+    /// 
+    /// let result = func(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0);
+    /// assert_eq!(result, 28.0);
+    /// ```
     #[inline]
     pub fn bind7(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6, var7]);
@@ -402,6 +488,27 @@ impl<'a> Xprs<'a> {
         Ok(move |val1, val2, val3, val4, val5, val6, val7| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5), (var6, val6), (var7, val7)].into()))
     }
 
+    /// Binds eight variables for expression evaluation, returning a function that takes eight values for the bound variables.
+    /// 
+    /// # Returns
+    /// 
+    /// A [`Result`] containing a closure that takes eight `f64` arguments and returns an `f64`. The closure represents
+    /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
+    /// is returned.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// # use xprs::{Parser, BindError};
+    /// let expression = Parser::default().parse("s + t + u + v + w + x + y + z").unwrap();
+    /// let func = expression.bind8("s", "t", "u", "v", "w", "x", "y", "z");
+    /// 
+    /// assert!(func.is_ok());
+    /// let func = func.unwrap();
+    /// 
+    /// let result = func(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0);
+    /// assert_eq!(result, 36.0);
+    /// ```
     #[inline]
     pub fn bind8(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str, var8: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6, var7, var8]);
@@ -412,6 +519,27 @@ impl<'a> Xprs<'a> {
         Ok(move |val1, val2, val3, val4, val5, val6, val7, val8| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5), (var6, val6), (var7, val7), (var8, val8)].into()))
     }
 
+    /// Binds nine variables for expression evaluation, returning a function that takes nine values for the bound variables.
+    /// 
+    /// # Returns
+    /// 
+    /// A [`Result`] containing a closure that takes nine `f64` arguments and returns an `f64`. The closure represents
+    /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
+    /// is returned.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// # use xprs::{Parser, BindError};
+    /// let expression = Parser::default().parse("r + s + t + u + v + w + x + y + z").unwrap();
+    /// let func = expression.bind9("r", "s", "t", "u", "v", "w", "x", "y", "z");
+    /// 
+    /// assert!(func.is_ok());
+    /// let func = func.unwrap();
+    /// 
+    /// let result = func(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);
+    /// assert_eq!(result, 45.0);
+    /// ```
     #[inline]
     pub fn bind9(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str, var8: &'a str, var9: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6, var7, var8, var9]);
