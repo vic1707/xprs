@@ -6,7 +6,9 @@ use crate::{element::Element, token::Function};
 /// Represents a function call in the abstract syntax tree (AST).
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct FunctionCall<'a> {
+    /// The function being called.
     pub(crate) desc: Function,
+    /// The arguments of the function call.
     pub(crate) args: Vec<Element<'a>>,
 }
 

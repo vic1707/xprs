@@ -67,11 +67,17 @@
 #![deny(warnings)]
 #![allow(clippy::pub_use)]
 /* Modules */
+/// The context of the parser.
 mod context;
+/// The element of the abstract syntax tree (AST).
 mod element;
+/// The parser module.
 mod parser;
+/// The token module.
 mod token;
+/// The utilities module.
 mod utils;
+/// The expression module.
 mod xprs;
 /* Tests */
 #[cfg(test)]

@@ -2,9 +2,13 @@
 use core::fmt;
 use std::collections::HashSet;
 /* Modules */
+/// Binary operation module.
 mod binop;
+/// Function call module.
 mod function_call;
+/// Simplification's trait module.
 mod simplify;
+/// Unary operation module.
 mod unop;
 /* Exports */
 pub use binop::BinOp;
@@ -16,10 +20,15 @@ pub use unop::UnOp;
 #[derive(Debug, PartialEq, PartialOrd)]
 #[non_exhaustive]
 pub enum Element<'a> {
+    /// A number.
     Number(f64),
+    /// A binary operation.
     BinOp(Box<BinOp<'a>>),
+    /// A unary operation.
     UnOp(Box<UnOp<'a>>),
+    /// A function call.
     Function(Box<FunctionCall<'a>>),
+    /// A variable.
     Variable(&'a str),
 }
 

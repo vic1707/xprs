@@ -10,6 +10,8 @@ pub const UNOP_PRECEDENCE: usize = 3;
 /// The actual value depends on the feature configuration.
 #[cfg(feature = "pejmdas")]
 const IMPLICIT_MULTIPLICATION_PRECEDENCE: usize = 3;
+/// Constant representing the precedence of implicit multiplication.
+/// The actual value depends on the feature configuration.
 #[cfg(feature = "pemdas")]
 const IMPLICIT_MULTIPLICATION_PRECEDENCE: usize = get_for_op(&Operator::Times);
 

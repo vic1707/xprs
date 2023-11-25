@@ -35,6 +35,7 @@ use crate::{
 /// ```
 #[derive(Debug, Default, PartialEq)]
 pub struct Parser<'ctx> {
+    /// The context of the parser.
     ctx: Context<'ctx>,
 }
 
@@ -108,8 +109,12 @@ impl<'ctx> Parser<'ctx> {
 /// This structure holds the state and methods for parsing a mathematical
 /// expression.
 struct ParserImpl<'input, 'ctx> {
+    /// The input expression to be parsed.
+    /// As a byte slice for faster parsing.
     input: &'input [u8],
+    /// The current cursor position in the input expression.
     cursor: usize,
+    /// The context of the parser.
     ctx: &'ctx Context<'ctx>,
 }
 

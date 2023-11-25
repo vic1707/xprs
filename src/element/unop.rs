@@ -6,7 +6,9 @@ use crate::{element::Element, token::Operator};
 /// Represents a unary operation in the abstract syntax tree (AST).
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct UnOp<'a> {
+    /// The operator of the unary operation.
     pub(crate) op: Operator,
+    /// The operand of the unary operation.
     pub(crate) operand: Element<'a>,
 }
 

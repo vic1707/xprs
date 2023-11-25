@@ -6,8 +6,11 @@ use crate::{element::Element, token::Operator};
 /// Represents a binary operation in the abstract syntax tree (AST).
 #[derive(Debug, PartialOrd)]
 pub struct BinOp<'a> {
+    /// The operator of the binary operation.
     pub(crate) op: Operator,
+    /// The left-hand side of the binary operation.
     pub(crate) lhs: Element<'a>,
+    /// The right-hand side of the binary operation.
     pub(crate) rhs: Element<'a>,
 }
 
