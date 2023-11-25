@@ -17,12 +17,12 @@ impl<'a> FunctionCall<'a> {
     }
 
     /// Creates a new `Element::Function` from the function call components.
-    pub fn new_element(desc: Function, args: Vec<Element<'a>>) -> Element<'a> {
+    pub(crate) fn new_element(desc: Function, args: Vec<Element<'a>>) -> Element<'a> {
         Element::Function(Box::new(Self::new(desc, args)))
     }
 
     /// Calls the function with the provided arguments.
-    pub fn call(&self, args: &[f64]) -> f64 {
+    pub(crate) fn call(&self, args: &[f64]) -> f64 {
         (self.desc.func)(args)
     }
 }

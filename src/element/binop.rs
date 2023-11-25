@@ -18,7 +18,7 @@ impl<'a> BinOp<'a> {
     }
 
     /// Creates a new `Element::BinOp` from the binary operation components.
-    pub fn new_element(
+    pub(crate) fn new_element(
         op: Operator,
         lhs: Element<'a>,
         rhs: Element<'a>,

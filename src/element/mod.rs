@@ -64,7 +64,7 @@ impl<'a> From<FunctionCall<'a>> for Element<'a> {
 
 impl<'a> Element<'a> {
     /// Finds variables in the element and adds them to the provided set.
-    pub fn find_variables(&self, vars: &mut HashSet<&'a str>) {
+    pub(crate) fn find_variables(&self, vars: &mut HashSet<&'a str>) {
         match *self {
             Self::Variable(var) => {
                 vars.insert(var);

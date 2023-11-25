@@ -17,7 +17,7 @@ pub enum Identifier<'a> {
 impl<'a> Identifier<'a> {
     /// Converts a string into an [`Identifier`].
     /// Cannot fail because unknown identifiers are treated as variables.
-    pub fn from_str(value: &'a str) -> Self {
+    pub(crate) fn from_str(value: &'a str) -> Self {
         match value {
             /* Constants */
             "pi" => f64::consts::PI.into(),
