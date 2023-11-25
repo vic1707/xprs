@@ -1,10 +1,10 @@
 [build]
 rustflags = [
   ## Warning ##
-  "-Wclippy::pedantic",
-  "-Wclippy::restriction",
-  "-Wclippy::nursery",
-  # "-Wclippy::cargo",
+  "-Dclippy::pedantic",
+  "-Dclippy::restriction",
+  "-Dclippy::nursery",
+  # "-Dclippy::cargo",
   ## Conflicts ##
   "-Aclippy::implicit_return",                  # clippy::needless-return             - remove return keyword when not needed
   "-Aclippy::pub-with-shorthand",               # clippy::pub-without-shorthand       - pub(<scope>) instead of pub(in <scope>)

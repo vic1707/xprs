@@ -1,3 +1,4 @@
+//! This file is used to configure the build process of XPRS.
 /* Clippy config */
 #![allow(clippy::expect_used, clippy::print_stdout)]
 /* Dependencies imports */

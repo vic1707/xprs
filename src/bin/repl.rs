@@ -1,4 +1,5 @@
 /* Clippy config */
+//! XPRS REPL
 #![allow(
     clippy::expect_used,
     clippy::print_stdout,
@@ -47,6 +48,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+/// Ask the user for the value of the variables in the given set.
 fn ask_for_variables<'a>(set: &'a HashSet<&str>) -> HashMap<&'a str, f64> {
     if !set.is_empty() {
         println!("Please enter the following variables:");
