@@ -22,6 +22,10 @@ use crate::token::Function;
 /// let sin_func = context.get_func("sin").unwrap();
 /// assert_eq!(sin_func.name, "sin");
 /// assert_eq!(sin_func.nb_args, Some(1));
+/// 
+/// let expected_vars = context.get_expected_vars().unwrap();
+/// assert_eq!(expected_vars.len(), 1);
+/// assert!(expected_vars.contains("y"));
 /// ```
 #[derive(Debug, Default, PartialEq)]
 pub struct Context<'names> {
