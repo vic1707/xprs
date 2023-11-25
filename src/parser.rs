@@ -26,7 +26,7 @@ use crate::{
 /// # Example
 ///
 /// ```
-/// # use xprs::{Parser, Context};
+/// use xprs::{Parser, Context};
 /// let mut context = Context::default();
 /// let parser = Parser::new_with_ctx(context);
 /// let expression = "2 * (x + 1)";
