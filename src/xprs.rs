@@ -288,7 +288,7 @@ impl<'a> Xprs<'a> {
     ///
     /// assert!(func.is_ok());
     /// let func = func.unwrap();
-    /// 
+    ///
     /// let result = func(3.0);
     /// assert_eq!(result, 5.0);
     /// ```
@@ -303,23 +303,23 @@ impl<'a> Xprs<'a> {
     }
 
     /// Binds two variables for expression evaluation, returning a function that takes two values for the bound variables.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// A [`Result`] containing a closure that takes two `f64` arguments and returns an `f64`. The closure represents
     /// the bound expression. If either variable is not present in the original expression, an error of type `BindError::MultipleVariables`
     /// is returned.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// # use xprs::{Parser, BindError};
     /// let expression = Parser::default().parse("x + y").unwrap();
     /// let func = expression.bind2("x", "y");
-    /// 
+    ///
     /// assert!(func.is_ok());
     /// let func = func.unwrap();
-    /// 
+    ///
     /// let result = func(3.0, 2.0);
     /// assert_eq!(result, 5.0);
     /// ```
@@ -334,23 +334,23 @@ impl<'a> Xprs<'a> {
     }
 
     /// Binds three variables for expression evaluation, returning a function that takes three values for the bound variables.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// A [`Result`] containing a closure that takes three `f64` arguments and returns an `f64`. The closure represents
     /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
     /// is returned.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// # use xprs::{Parser, BindError};
     /// let expression = Parser::default().parse("x + y + z").unwrap();
     /// let func = expression.bind3("x", "y", "z");
-    /// 
+    ///
     /// assert!(func.is_ok());
     /// let func = func.unwrap();
-    /// 
+    ///
     /// let result = func(3.0, 2.0, 1.0);
     /// assert_eq!(result, 6.0);
     /// ```
@@ -365,23 +365,23 @@ impl<'a> Xprs<'a> {
     }
 
     /// Binds four variables for expression evaluation, returning a function that takes four values for the bound variables.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// A [`Result`] containing a closure that takes four `f64` arguments and returns an `f64`. The closure represents
     /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
     /// is returned.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// # use xprs::{Parser, BindError};
     /// let expression = Parser::default().parse("w + x + y + z").unwrap();
     /// let func = expression.bind4("w", "x", "y", "z");
-    /// 
+    ///
     /// assert!(func.is_ok());
     /// let func = func.unwrap();
-    /// 
+    ///
     /// let result = func(1.0, 2.0, 3.0, 4.0);
     /// assert_eq!(result, 10.0);
     /// ```
@@ -396,23 +396,23 @@ impl<'a> Xprs<'a> {
     }
 
     /// Binds five variables for expression evaluation, returning a function that takes five values for the bound variables.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// A [`Result`] containing a closure that takes five `f64` arguments and returns an `f64`. The closure represents
     /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
     /// is returned.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// # use xprs::{Parser, BindError};
     /// let expression = Parser::default().parse("v + w + x + y + z").unwrap();
     /// let func = expression.bind5("v", "w", "x", "y", "z");
-    /// 
+    ///
     /// assert!(func.is_ok());
     /// let func = func.unwrap();
-    /// 
+    ///
     /// let result = func(1.0, 2.0, 3.0, 4.0, 5.0);
     /// assert_eq!(result, 15.0);
     /// ```
@@ -427,23 +427,23 @@ impl<'a> Xprs<'a> {
     }
 
     /// Binds six variables for expression evaluation, returning a function that takes six values for the bound variables.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// A [`Result`] containing a closure that takes six `f64` arguments and returns an `f64`. The closure represents
     /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
     /// is returned.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// # use xprs::{Parser, BindError};
     /// let expression = Parser::default().parse("u + v + w + x + y + z").unwrap();
     /// let func = expression.bind6("u", "v", "w", "x", "y", "z");
-    /// 
+    ///
     /// assert!(func.is_ok());
     /// let func = func.unwrap();
-    /// 
+    ///
     /// let result = func(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
     /// assert_eq!(result, 21.0);
     /// ```
@@ -458,23 +458,23 @@ impl<'a> Xprs<'a> {
     }
 
     /// Binds seven variables for expression evaluation, returning a function that takes seven values for the bound variables.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// A [`Result`] containing a closure that takes seven `f64` arguments and returns an `f64`. The closure represents
     /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
     /// is returned.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// # use xprs::{Parser, BindError};
     /// let expression = Parser::default().parse("t + u + v + w + x + y + z").unwrap();
     /// let func = expression.bind7("t", "u", "v", "w", "x", "y", "z");
-    /// 
+    ///
     /// assert!(func.is_ok());
     /// let func = func.unwrap();
-    /// 
+    ///
     /// let result = func(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0);
     /// assert_eq!(result, 28.0);
     /// ```
@@ -489,23 +489,23 @@ impl<'a> Xprs<'a> {
     }
 
     /// Binds eight variables for expression evaluation, returning a function that takes eight values for the bound variables.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// A [`Result`] containing a closure that takes eight `f64` arguments and returns an `f64`. The closure represents
     /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
     /// is returned.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// # use xprs::{Parser, BindError};
     /// let expression = Parser::default().parse("s + t + u + v + w + x + y + z").unwrap();
     /// let func = expression.bind8("s", "t", "u", "v", "w", "x", "y", "z");
-    /// 
+    ///
     /// assert!(func.is_ok());
     /// let func = func.unwrap();
-    /// 
+    ///
     /// let result = func(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0);
     /// assert_eq!(result, 36.0);
     /// ```
@@ -520,23 +520,23 @@ impl<'a> Xprs<'a> {
     }
 
     /// Binds nine variables for expression evaluation, returning a function that takes nine values for the bound variables.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// A [`Result`] containing a closure that takes nine `f64` arguments and returns an `f64`. The closure represents
     /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
     /// is returned.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// # use xprs::{Parser, BindError};
     /// let expression = Parser::default().parse("r + s + t + u + v + w + x + y + z").unwrap();
     /// let func = expression.bind9("r", "s", "t", "u", "v", "w", "x", "y", "z");
-    /// 
+    ///
     /// assert!(func.is_ok());
     /// let func = func.unwrap();
-    /// 
+    ///
     /// let result = func(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);
     /// assert_eq!(result, 45.0);
     /// ```
@@ -555,23 +555,23 @@ impl<'a> Xprs<'a> {
 
     /// Binds a variable number of variables for expression evaluation, returning a function that takes an array of values
     /// for the bound variables.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// A [`Result`] containing a closure that takes an array of `f64` arguments and returns an `f64`. The closure represents
     /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
     /// is returned.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// # use xprs::{Parser, BindError};
     /// let expression = Parser::default().parse("a + b + c + d").unwrap();
     /// let func = expression.bind_n(["a", "b", "c", "d"]);
-    /// 
+    ///
     /// assert!(func.is_ok());
     /// let func = func.unwrap();
-    /// 
+    ///
     /// let result = func([1.0, 2.0, 3.0, 4.0]);
     /// assert_eq!(result, 10.0);
     /// ```
@@ -587,23 +587,23 @@ impl<'a> Xprs<'a> {
 
     /// Binds a variable number of variables for expression evaluation at runtime, returning a function that takes a slice
     /// of values for the bound variables.
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// A [`Result`] containing a closure that takes a slice of `f64` arguments and returns a `Result<f64, EvalError>`. 
     /// The closure represents the bound expression. If any variable is not present in the original expression, an error 
     /// of type `BindError::MultipleVariables` is returned. If there is an error during evaluation, an `EvalError` is returned.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// ```
     /// # use xprs::{Parser, BindError, EvalError};
     /// let expression = Parser::default().parse("a + b + c + d").unwrap();
     /// let func = expression.bind_n_runtime(&["a", "b", "c", "d"]);
-    /// 
+    ///
     /// assert!(func.is_ok());
     /// let func = func.unwrap();
-    /// 
+    ///
     /// let result = func(&[1.0, 2.0, 3.0, 4.0]);
     /// assert_eq!(result, Ok(10.0));
     /// ```
