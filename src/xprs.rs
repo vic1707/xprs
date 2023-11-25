@@ -61,7 +61,7 @@ impl Xprs<'_> {
     ///
     /// let result = xprs.eval(&variable_values);
     /// assert_eq!(result, Ok(8.0));
-    /// 
+    ///
     /// // we didn't provide the variables, so this should fail
     /// let failed_eval = xprs.eval(&HashMap::new());
     /// assert!(failed_eval.is_err());
@@ -102,7 +102,7 @@ impl Xprs<'_> {
     ///
     /// let result = xprs.eval_unchecked(&variable_values);
     /// assert_eq!(result, 8.0);
-    /// 
+    ///
     /// // we didn't provide the variables, so this should panic
     /// assert_panic!(xprs.eval_unchecked(&HashMap::new()));
     #[inline]
