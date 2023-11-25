@@ -63,7 +63,7 @@ impl<'ctx> Parser<'ctx> {
     ///
     /// # Returns
     ///
-    /// A `Result` containing the expression tree ([`Xprs`]) if parsing is
+    /// A [`Result`] containing the expression tree ([`Xprs`]) if parsing is
     /// successful, or a [`ParseError`] if an error occurs during parsing.
     ///
     /// # Example
@@ -127,7 +127,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     ///
     /// # Returns
     ///
-    /// A `Result` containing the expression tree ([`Xprs`]) if parsing is
+    /// A [`Result`] containing the expression tree ([`Xprs`]) if parsing is
     /// successful, or a [`ParseError`] if an error occurs during parsing.
     pub fn parse(
         input: &'input str,
@@ -159,7 +159,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     ///
     /// # Returns
     ///
-    /// A `Result` containing the parsed element ([`Element`]) if parsing is
+    /// A [`Result`] containing the parsed element ([`Element`]) if parsing is
     /// successful, or a [`ParseError`] if an error occurs during parsing.
     fn element(
         &mut self,
@@ -186,7 +186,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     ///
     /// # Returns
     ///
-    /// A `Result` containing the parsed element ([`Element`]) if parsing is
+    /// A [`Result`] containing the parsed element ([`Element`]) if parsing is
     /// successful, or a [`ParseError`] if an error occurs during parsing.
     fn atom(&mut self) -> Result<Element<'input>, ParseError> {
         let Some(&next) = self.next_trim() else {
@@ -230,7 +230,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     ///
     /// # Returns
     ///
-    /// A `Result` containing the parsed element ([`Element`]) if parsing is
+    /// A [`Result`] containing the parsed element ([`Element`]) if parsing is
     /// successful, or a [`ParseError`] if an error occurs during parsing.
     fn parse_identifier(&mut self) -> Result<Element<'input>, ParseError> {
         let identifier_start = self.cursor;
@@ -293,7 +293,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     ///
     /// # Returns
     ///
-    /// A `Result` containing the parsed element ([`Element`]) if parsing is
+    /// A [`Result`] containing the parsed element ([`Element`]) if parsing is
     /// successful, or a [`ParseError`] if an error occurs during parsing.
     fn parse_number(&mut self) -> Result<Element<'input>, ParseError> {
         let begin = self.cursor;
@@ -357,7 +357,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     ///
     /// # Returns
     ///
-    /// A `Result` containing the parsed element ([`Element`]) if parsing is
+    /// A [`Result`] containing the parsed element ([`Element`]) if parsing is
     /// successful, or a [`ParseError`] if an error occurs during parsing.
     fn argument(&mut self) -> Result<Element<'input>, ParseError> {
         self.element(precedence::NO_PRECEDENCE).map_err(

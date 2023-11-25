@@ -44,7 +44,7 @@ impl Xprs<'_> {
     ///
     /// # Returns
     ///
-    /// A `Result` containing the result of the expression evaluation if successful, or an [`EvalError`] if an error occurs.
+    /// A [`Result`] containing the result of the expression evaluation if successful, or an [`EvalError`] if an error occurs.
     ///
     /// # Example
     ///
@@ -168,7 +168,7 @@ impl XprsImpl<'_> {
     ///
     /// # Returns
     ///
-    /// The result of the evaluation as a `Result` containing the numeric value or an [`EvalError`] if an error occurs.
+    /// The result of the evaluation as a [`Result`] containing the numeric value or an [`EvalError`] if an error occurs.
     fn eval_element(&self, element: &Element) -> Result<f64, EvalError> {
         let res = match *element {
             Element::Number(n) => n,
@@ -592,7 +592,7 @@ impl<'a> Xprs<'a> {
     ///
     /// A [`Result`] containing a closure that takes a slice of `f64` arguments and returns a `Result<f64, EvalError>`. 
     /// The closure represents the bound expression. If any variable is not present in the original expression, an error 
-    /// of type `BindError::MultipleVariables` is returned. If there is an error during evaluation, an `EvalError` is returned.
+    /// of type [`BindError::MultipleVariables`] is returned. If there is an error during evaluation, an [`EvalError`] is returned.
     ///
     /// # Example
     ///
@@ -633,7 +633,7 @@ pub enum BindError {
 
 use std::collections::{hash_map::RandomState, hash_set::Difference};
 impl BindError {
-    /// Converts a `Difference` iterator of missing variables into a [`BindError`].
+    /// Converts a [`Difference`] iterator of missing variables into a [`BindError`].
     ///
     /// # Returns
     ///
