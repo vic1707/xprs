@@ -553,25 +553,27 @@ impl<'a> Xprs<'a> {
     // NOTE: Too lazy to implement this for more than 9 variables even with Copilot
     // + I don't really think anyone will need more than 9 variables anyway
 
-        /// Binds a variable for an arbitrary number of arguments, returning a closure that takes an array of values and evaluates the expression.
-    ///
-    /// # Arguments
-    ///
-    /// * [`vars`] - An array of variable names to bind.
-    ///
+    /// Binds a variable number of variables for expression evaluation, returning a function that takes an array of values
+    /// for the bound variables.
+    /// 
     /// # Returns
-    ///
-    /// A [`Result`] containing a closure that takes an array of `f64` values for the variables and returns the result of the evaluation,
-    /// or an error if the variables do not match the expected variables in the expression.
-    ///
+    /// 
+    /// A [`Result`] containing a closure that takes an array of `f64` arguments and returns an `f64`. The closure represents
+    /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
+    /// is returned.
+    /// 
     /// # Example
-    ///
+    /// 
     /// ```
-    /// # use xprs::Xprs;
-    ///
-    /// let expression = Xprs::try_from("x + y + z").unwrap();
-    /// let bound_expression = expression.bind_n(["x", "y", "z"]).unwrap();
-    /// let result = bound_expression([1.0, 2.0, 3.0]);
+    /// # use xprs::{Parser, BindError};
+    /// let expression = Parser::default().parse("a + b + c + d").unwrap();
+    /// let func = expression.bind_n(["a", "b", "c", "d"]);
+    /// 
+    /// assert!(func.is_ok());
+    /// let func = func.unwrap();
+    /// 
+    /// let result = func([1.0, 2.0, 3.0, 4.0]);
+    /// assert_eq!(result, 10.0);
     /// ```
     #[inline]
     pub fn bind_n<const T: usize>(self, vars: [&'a str; T]) -> Result<impl Fn([f64; T]) -> f64 + 'a, BindError> {
@@ -583,25 +585,27 @@ impl<'a> Xprs<'a> {
         Ok(move |vals| self.eval_unchecked(&vars.into_iter().zip(vals).collect()))
     }
 
-    /// Binds variables for an arbitrary number of arguments at runtime, returning a closure that takes a slice of values and evaluates the expression.
-    ///
-    /// # Arguments
-    ///
-    /// * [`vars`] - A slice of variable names to bind.
-    ///
+    /// Binds a variable number of variables for expression evaluation at runtime, returning a function that takes a slice
+    /// of values for the bound variables.
+    /// 
     /// # Returns
-    ///
-    /// A [`Result`] containing a closure that takes a slice of `f64` values for the variables and returns the result of the evaluation,
-    /// or an error if the variables do not match the expected variables in the expression.
-    ///
+    /// 
+    /// A [`Result`] containing a closure that takes a slice of `f64` arguments and returns a `Result<f64, EvalError>`. 
+    /// The closure represents the bound expression. If any variable is not present in the original expression, an error 
+    /// of type `BindError::MultipleVariables` is returned. If there is an error during evaluation, an `EvalError` is returned.
+    /// 
     /// # Example
-    ///
+    /// 
     /// ```
-    /// # use xprs::Xprs;
-    ///
-    /// let expression = Xprs::try_from("x + y + z").unwrap();
-    /// let bound_expression = expression.bind_n_runtime(&["x", "y", "z"]).unwrap();
-    /// let result = bound_expression(&[1.0, 2.0, 3.0]);
+    /// # use xprs::{Parser, BindError, EvalError};
+    /// let expression = Parser::default().parse("a + b + c + d").unwrap();
+    /// let func = expression.bind_n_runtime(&["a", "b", "c", "d"]);
+    /// 
+    /// assert!(func.is_ok());
+    /// let func = func.unwrap();
+    /// 
+    /// let result = func(&[1.0, 2.0, 3.0, 4.0]);
+    /// assert_eq!(result, Ok(10.0));
     /// ```
     #[inline]
     pub fn bind_n_runtime(self, vars: &'a [&'a str]) -> Result<impl Fn(&[f64]) -> Result<f64, EvalError> + 'a, BindError> {
