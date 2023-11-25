@@ -13,6 +13,11 @@ pub struct Function {
 
 impl Function {
     /// Creates a new [`Function`] from the function components.
+    /// Note that the fn pointer must be a function that takes a slice of f64 as argument and returns a f64.
+    /// So make sure to wrap your function in a closure if it doesn't match the signature.
+    /// For convenience, you can use the [`xprs_fn!`] macro.
+    ///
+    /// [`Function`] needs a fn taking a slice because Rust variadics are not available yet.
     #[inline]
     pub const fn new(
         name: &'static str,
@@ -28,6 +33,10 @@ impl Function {
 }
 
 /// Macro for defining functions for xprs' context easily, with optional variadic support.
+/// This macro is provided for convenience, since [`Function`] needs a fn taking a slice of [`f64`] as argument.
+/// The macro will wrap your function in a closure depending on the number of arguments you provide.
+///
+/// Don't provide the number of arguments if your function is variadic (takes any number of arguments).
 #[macro_export]
 macro_rules! xprs_fn {
     // variadics
