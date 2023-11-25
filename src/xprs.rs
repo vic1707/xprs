@@ -50,7 +50,7 @@ impl Xprs<'_> {
     /// # Example
     ///
     /// ```
-    /// # use xprs::{Xprs, EvalError};
+    /// # use xprs::Xprs;
     /// use std::collections::HashMap;
     ///
     /// let expression = "2 * x + y";
@@ -273,7 +273,7 @@ impl<'a> Xprs<'a> {
     /// # Example
     ///
     /// ```
-    /// # use xprs::{Parser, BindError};
+    /// # use xprs::Parser;
     /// let expression = Parser::default().parse("x + 2").unwrap();
     /// let func = expression.bind("x");
     ///
@@ -302,7 +302,7 @@ impl<'a> Xprs<'a> {
     /// # Example
     ///
     /// ```
-    /// # use xprs::{Parser, BindError};
+    /// # use xprs::Parser;
     /// let expression = Parser::default().parse("x + y").unwrap();
     /// let func = expression.bind2("x", "y");
     ///
@@ -331,7 +331,7 @@ impl<'a> Xprs<'a> {
     /// # Example
     ///
     /// ```
-    /// # use xprs::{Parser, BindError};
+    /// # use xprs::Parser;
     /// let expression = Parser::default().parse("x + y + z").unwrap();
     /// let func = expression.bind3("x", "y", "z");
     ///
@@ -360,7 +360,7 @@ impl<'a> Xprs<'a> {
     /// # Example
     ///
     /// ```
-    /// # use xprs::{Parser, BindError};
+    /// # use xprs::Parser;
     /// let expression = Parser::default().parse("w + x + y + z").unwrap();
     /// let func = expression.bind4("w", "x", "y", "z");
     ///
@@ -389,7 +389,7 @@ impl<'a> Xprs<'a> {
     /// # Example
     ///
     /// ```
-    /// # use xprs::{Parser, BindError};
+    /// # use xprs::Parser;
     /// let expression = Parser::default().parse("v + w + x + y + z").unwrap();
     /// let func = expression.bind5("v", "w", "x", "y", "z");
     ///
@@ -418,7 +418,7 @@ impl<'a> Xprs<'a> {
     /// # Example
     ///
     /// ```
-    /// # use xprs::{Parser, BindError};
+    /// # use xprs::Parser;
     /// let expression = Parser::default().parse("u + v + w + x + y + z").unwrap();
     /// let func = expression.bind6("u", "v", "w", "x", "y", "z");
     ///
@@ -447,7 +447,7 @@ impl<'a> Xprs<'a> {
     /// # Example
     ///
     /// ```
-    /// # use xprs::{Parser, BindError};
+    /// # use xprs::Parser;
     /// let expression = Parser::default().parse("t + u + v + w + x + y + z").unwrap();
     /// let func = expression.bind7("t", "u", "v", "w", "x", "y", "z");
     ///
@@ -476,7 +476,7 @@ impl<'a> Xprs<'a> {
     /// # Example
     ///
     /// ```
-    /// # use xprs::{Parser, BindError};
+    /// # use xprs::Parser;
     /// let expression = Parser::default().parse("s + t + u + v + w + x + y + z").unwrap();
     /// let func = expression.bind8("s", "t", "u", "v", "w", "x", "y", "z");
     ///
@@ -505,7 +505,7 @@ impl<'a> Xprs<'a> {
     /// # Example
     ///
     /// ```
-    /// # use xprs::{Parser, BindError};
+    /// # use xprs::Parser;
     /// let expression = Parser::default().parse("r + s + t + u + v + w + x + y + z").unwrap();
     /// let func = expression.bind9("r", "s", "t", "u", "v", "w", "x", "y", "z");
     ///
@@ -540,7 +540,7 @@ impl<'a> Xprs<'a> {
     /// # Example
     ///
     /// ```
-    /// # use xprs::{Parser, BindError};
+    /// # use xprs::Parser;
     /// let expression = Parser::default().parse("a + b + c + d").unwrap();
     /// let func = expression.bind_n(["a", "b", "c", "d"]);
     ///
@@ -572,7 +572,7 @@ impl<'a> Xprs<'a> {
     /// # Example
     ///
     /// ```
-    /// # use xprs::{Parser, BindError, EvalError};
+    /// # use xprs::Parser;
     /// let expression = Parser::default().parse("a + b + c + d").unwrap();
     /// let func = expression.bind_n_runtime(&["a", "b", "c", "d"]);
     ///
