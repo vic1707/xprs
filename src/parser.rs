@@ -60,11 +60,11 @@ impl<'ctx> Parser<'ctx> {
     }
 
     /// Parses the input mathematical expression using precedence climbing.
+    /// Returns an expression tree if parsing is successful, or a [`ParseError`]
     ///
-    /// # Returns
+    /// # Errors
     ///
-    /// A [`Result`] containing the expression tree ([`Xprs`]) if parsing is
-    /// successful, or a [`ParseError`] if an error occurs during parsing.
+    /// See [`ParseError`] for more information about the possible errors.
     ///
     /// # Example
     ///

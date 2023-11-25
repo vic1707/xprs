@@ -20,7 +20,6 @@ rustflags = [
   "-Aclippy::single_char_lifetime_names",       # common practice to use 'a, to remove ?
   ## Must remove ##
   "-Aclippy::missing_docs_in_private_items",
-  "-Aclippy::missing-errors-doc",
   "-Aclippy::mod_module_files",
   "-Aclippy::undocumented-unsafe-blocks",
   "-Aclippy::ref_patterns",                     # dunno if it can be removed

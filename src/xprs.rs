@@ -41,10 +41,11 @@ impl fmt::Display for Xprs<'_> {
 
 impl Xprs<'_> {
     /// Evaluates the expression using the provided variable values.
+    /// Returns an [`f64`] if the evaluation is successful, or an [`EvalError`] if an error occurs.
     ///
-    /// # Returns
+    /// # Errors
     ///
-    /// A [`Result`] containing the result of the expression evaluation if successful, or an [`EvalError`] if an error occurs.
+    /// An [`EvalError`] is returned if a variable is not provided.
     ///
     /// # Example
     ///
@@ -75,10 +76,11 @@ impl Xprs<'_> {
     }
 
     /// Evaluates the expression using the provided variable values without error handling.
+    /// Returns an [`f64`] if the evaluation is successful, or panics if an error occurs.
     ///
-    /// # Returns
+    /// # Panic
     ///
-    /// The result of the expression evaluation. Use with caution, as it may panic if variables are not present.
+    /// Use with caution, as it may panic if variable(s) are missing.
     ///
     /// # Example
     ///
@@ -271,13 +273,11 @@ pub struct EvalError(String);
 #[allow(clippy::too_many_arguments)]
 #[rustfmt::skip]
 impl<'a> Xprs<'a> {
-    /// Binds a single variable for expression evaluation, returning a function that takes a value for the bound variable.
+    /// Creates a function of one variable based on this [`Xprs`] instance.
     ///
-    /// # Returns
+    /// # Errors
     ///
-    /// A [`Result`] containing a closure that takes a single `f64` argument and returns an `f64`. The closure represents
-    /// the bound expression. If the variable is not present in the original expression, an error of type `BindError::OneVariable`
-    /// is returned.
+    /// A [`BindError`] is returned if one or more required variables were not provided.
     ///
     /// # Example
     ///
@@ -294,21 +294,19 @@ impl<'a> Xprs<'a> {
     /// ```
     #[inline]
     pub fn bind(self, var: &'a str) -> Result<impl Fn(f64) -> f64 + 'a, BindError> {
-        if let Some(&needed) = self.vars.iter().next() {
-            if var != needed {
-                yeet!(BindError::OneVariable(needed.to_owned()));
-            }
+        let variables: HashSet<&str> = HashSet::from([var]);
+        let missing_vars = self.vars.difference(&variables);
+        if let Some(bind_error) = BindError::from_diff(missing_vars) {
+            yeet!(bind_error);
         }
         Ok(move |val| self.eval_unchecked(&[(var, val)].into()))
     }
 
-    /// Binds two variables for expression evaluation, returning a function that takes two values for the bound variables.
+    /// Creates a function of two [`f64`] based on this [`Xprs`] instance.
     ///
-    /// # Returns
+    /// # Errors
     ///
-    /// A [`Result`] containing a closure that takes two `f64` arguments and returns an `f64`. The closure represents
-    /// the bound expression. If either variable is not present in the original expression, an error of type `BindError::MultipleVariables`
-    /// is returned.
+    /// A [`BindError`] is returned if one or more required variables were not provided.
     ///
     /// # Example
     ///
@@ -333,13 +331,11 @@ impl<'a> Xprs<'a> {
         Ok(move |val1, val2| self.eval_unchecked(&[(var1, val1), (var2, val2)].into()))
     }
 
-    /// Binds three variables for expression evaluation, returning a function that takes three values for the bound variables.
+    /// Creates a function of three [`f64`] based on this [`Xprs`] instance.
     ///
-    /// # Returns
+    /// # Errors
     ///
-    /// A [`Result`] containing a closure that takes three `f64` arguments and returns an `f64`. The closure represents
-    /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
-    /// is returned.
+    /// A [`BindError`] is returned if one or more required variables were not provided.
     ///
     /// # Example
     ///
@@ -364,13 +360,11 @@ impl<'a> Xprs<'a> {
         Ok(move |val1, val2, val3| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3)].into()))
     }
 
-    /// Binds four variables for expression evaluation, returning a function that takes four values for the bound variables.
+    /// Creates a function of four [`f64`] based on this [`Xprs`] instance.
     ///
-    /// # Returns
+    /// # Errors
     ///
-    /// A [`Result`] containing a closure that takes four `f64` arguments and returns an `f64`. The closure represents
-    /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
-    /// is returned.
+    /// A [`BindError`] is returned if one or more required variables were not provided.
     ///
     /// # Example
     ///
@@ -395,13 +389,11 @@ impl<'a> Xprs<'a> {
         Ok(move |val1, val2, val3, val4| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4)].into()))
     }
 
-    /// Binds five variables for expression evaluation, returning a function that takes five values for the bound variables.
+    /// Creates a function of five [`f64`] based on this [`Xprs`] instance.
     ///
-    /// # Returns
+    /// # Errors
     ///
-    /// A [`Result`] containing a closure that takes five `f64` arguments and returns an `f64`. The closure represents
-    /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
-    /// is returned.
+    /// A [`BindError`] is returned if one or more required variables were not provided.
     ///
     /// # Example
     ///
@@ -426,13 +418,11 @@ impl<'a> Xprs<'a> {
         Ok(move |val1, val2, val3, val4, val5| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5)].into()))
     }
 
-    /// Binds six variables for expression evaluation, returning a function that takes six values for the bound variables.
+    /// Creates a function of six [`f64`] based on this [`Xprs`] instance.
     ///
-    /// # Returns
+    /// # Errors
     ///
-    /// A [`Result`] containing a closure that takes six `f64` arguments and returns an `f64`. The closure represents
-    /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
-    /// is returned.
+    /// A [`BindError`] is returned if one or more required variables were not provided.
     ///
     /// # Example
     ///
@@ -457,13 +447,11 @@ impl<'a> Xprs<'a> {
         Ok(move |val1, val2, val3, val4, val5, val6| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5), (var6, val6)].into()))
     }
 
-    /// Binds seven variables for expression evaluation, returning a function that takes seven values for the bound variables.
+    /// Creates a function of seven [`f64`] based on this [`Xprs`] instance.
     ///
-    /// # Returns
+    /// # Errors
     ///
-    /// A [`Result`] containing a closure that takes seven `f64` arguments and returns an `f64`. The closure represents
-    /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
-    /// is returned.
+    /// A [`BindError`] is returned if one or more required variables were not provided.
     ///
     /// # Example
     ///
@@ -488,13 +476,11 @@ impl<'a> Xprs<'a> {
         Ok(move |val1, val2, val3, val4, val5, val6, val7| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5), (var6, val6), (var7, val7)].into()))
     }
 
-    /// Binds eight variables for expression evaluation, returning a function that takes eight values for the bound variables.
+    /// Creates a function of eight [`f64`] based on this [`Xprs`] instance.
     ///
-    /// # Returns
+    /// # Errors
     ///
-    /// A [`Result`] containing a closure that takes eight `f64` arguments and returns an `f64`. The closure represents
-    /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
-    /// is returned.
+    /// A [`BindError`] is returned if one or more required variables were not provided.
     ///
     /// # Example
     ///
@@ -519,13 +505,11 @@ impl<'a> Xprs<'a> {
         Ok(move |val1, val2, val3, val4, val5, val6, val7, val8| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5), (var6, val6), (var7, val7), (var8, val8)].into()))
     }
 
-    /// Binds nine variables for expression evaluation, returning a function that takes nine values for the bound variables.
+    /// Creates a function of nine [`f64`] based on this [`Xprs`] instance.
     ///
-    /// # Returns
+    /// # Errors
     ///
-    /// A [`Result`] containing a closure that takes nine `f64` arguments and returns an `f64`. The closure represents
-    /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
-    /// is returned.
+    /// A [`BindError`] is returned if one or more required variables were not provided.
     ///
     /// # Example
     ///
@@ -553,14 +537,14 @@ impl<'a> Xprs<'a> {
     // NOTE: Too lazy to implement this for more than 9 variables even with Copilot
     // + I don't really think anyone will need more than 9 variables anyway
 
-    /// Binds a variable number of variables for expression evaluation, returning a function that takes an array of values
-    /// for the bound variables.
+    /// Creates a function of any number* of [`f64`] based on this [`Xprs`] instance.
+    /// *The number of variables must be known at compile time.
     ///
-    /// # Returns
+    /// The returned closure takes an array of [`f64`] as input and returns an [`f64`].
     ///
-    /// A [`Result`] containing a closure that takes an array of `f64` arguments and returns an `f64`. The closure represents
-    /// the bound expression. If any variable is not present in the original expression, an error of type `BindError::MultipleVariables`
-    /// is returned.
+    /// # Errors
+    ///
+    /// A [`BindError`] is returned if one or more required variables were not provided.
     ///
     /// # Example
     ///
@@ -585,14 +569,14 @@ impl<'a> Xprs<'a> {
         Ok(move |vals| self.eval_unchecked(&vars.into_iter().zip(vals).collect()))
     }
 
-    /// Binds a variable number of variables for expression evaluation at runtime, returning a function that takes a slice
-    /// of values for the bound variables.
+    /// Creates a function of any number of [`f64`] based on this [`Xprs`] instance.
     ///
-    /// # Returns
+    /// The returned closure takes a slice of [`f64`] as input and 
+    /// returns a [`Result`] containing an [`f64`] if the evaluation is successful, or an [`EvalError`] if an error occurs.
     ///
-    /// A [`Result`] containing a closure that takes a slice of `f64` arguments and returns a `Result<f64, EvalError>`. 
-    /// The closure represents the bound expression. If any variable is not present in the original expression, an error 
-    /// of type [`BindError::MultipleVariables`] is returned. If there is an error during evaluation, an [`EvalError`] is returned.
+    /// # Errors
+    ///
+    /// A [`BindError`] is returned if one or more required variables were not provided.
     ///
     /// # Example
     ///
