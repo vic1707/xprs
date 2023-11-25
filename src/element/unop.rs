@@ -17,7 +17,10 @@ impl<'a> UnOp<'a> {
     }
 
     /// Creates a new `Element::UnOp` from the unary operation components.
-    pub(crate) fn new_element(op: Operator, operand: Element<'a>) -> Element<'a> {
+    pub(crate) fn new_element(
+        op: Operator,
+        operand: Element<'a>,
+    ) -> Element<'a> {
         Element::UnOp(Box::new(Self::new(op, operand)))
     }
 }
