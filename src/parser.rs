@@ -156,11 +156,6 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     /// right-hand side of the expression and creates a new binary operation
     /// with the current element as left-hand side and the parsed element as
     /// right-hand side.
-    ///
-    /// # Returns
-    ///
-    /// A [`Result`] containing the parsed element ([`Element`]) if parsing is
-    /// successful, or a [`ParseError`] if an error occurs during parsing.
     fn element(
         &mut self,
         precedence: usize,
@@ -183,11 +178,6 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     }
 
     /// Parses an atomic element of the mathematical expression.
-    ///
-    /// # Returns
-    ///
-    /// A [`Result`] containing the parsed element ([`Element`]) if parsing is
-    /// successful, or a [`ParseError`] if an error occurs during parsing.
     fn atom(&mut self) -> Result<Element<'input>, ParseError> {
         let Some(&next) = self.next_trim() else {
             yeet!(ParseError::new_unexpected_end_of_expression(self));
@@ -227,11 +217,6 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     }
 
     /// Parses an identifier in the mathematical expression.
-    ///
-    /// # Returns
-    ///
-    /// A [`Result`] containing the parsed element ([`Element`]) if parsing is
-    /// successful, or a [`ParseError`] if an error occurs during parsing.
     fn parse_identifier(&mut self) -> Result<Element<'input>, ParseError> {
         let identifier_start = self.cursor;
         let name = self.take_while(
@@ -290,11 +275,6 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     }
 
     /// Parses a number in the mathematical expression.
-    ///
-    /// # Returns
-    ///
-    /// A [`Result`] containing the parsed element ([`Element`]) if parsing is
-    /// successful, or a [`ParseError`] if an error occurs during parsing.
     fn parse_number(&mut self) -> Result<Element<'input>, ParseError> {
         let begin = self.cursor;
         self.skip_while(|&ch| matches!(ch, b'0'..=b'9' | b'.' | b'_'));
@@ -326,11 +306,6 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     }
 
     /// Parses a list of arguments in a function call.
-    ///
-    /// # Returns
-    ///
-    /// A [`Result`] containing the vector of parsed elements (`Vec<Element>`) if
-    /// parsing is successful, or a [`ParseError`] if an error occurs during parsing.
     fn parse_arguments(&mut self) -> Result<Vec<Element<'input>>, ParseError> {
         let mut args = Vec::new();
 
@@ -354,11 +329,6 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     }
 
     /// Parses a single argument in a function call.
-    ///
-    /// # Returns
-    ///
-    /// A [`Result`] containing the parsed element ([`Element`]) if parsing is
-    /// successful, or a [`ParseError`] if an error occurs during parsing.
     fn argument(&mut self) -> Result<Element<'input>, ParseError> {
         self.element(precedence::NO_PRECEDENCE).map_err(
             #[cold]

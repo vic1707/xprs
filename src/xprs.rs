@@ -167,10 +167,6 @@ impl XprsImpl<'_> {
     }
 
     /// Evaluates an element within an expression and returns the result.
-    ///
-    /// # Returns
-    ///
-    /// The result of the evaluation as a [`Result`] containing the numeric value or an [`EvalError`] if an error occurs.
     fn eval_element(&self, element: &Element) -> Result<f64, EvalError> {
         let res = match *element {
             Element::Number(n) => n,
@@ -216,11 +212,6 @@ impl XprsImpl<'_> {
     }
 
     /// Evaluates an element within an expression without checking for errors.
-    ///
-    /// # Returns
-    ///
-    /// The result of the evaluation as a numeric value. This method assumes that no errors will occur during evaluation.
-    /// If an error occurs, the code will panic.
     fn eval_element_unchecked(&self, element: &Element) -> f64 {
         match *element {
             Element::Number(n) => n,
@@ -618,10 +609,6 @@ pub enum BindError {
 use std::collections::{hash_map::RandomState, hash_set::Difference};
 impl BindError {
     /// Converts a [`Difference`] iterator of missing variables into a [`BindError`].
-    ///
-    /// # Returns
-    ///
-    /// An optional [`BindError`], representing the error if there are missing variables, or [`None`] if there are none.
     fn from_diff(
         missing_vars: Difference<'_, &str, RandomState>,
     ) -> Option<Self> {
