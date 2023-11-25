@@ -14,7 +14,6 @@ fn add(x: f64, y: f64) -> f64 {
     x + y
 }
 const ADD: Function = xprs_fn!("add", add, 2);
-#[allow(clippy::as_conversions, clippy::cast_precision_loss)]
 fn mean(args: &[f64]) -> f64 {
     args.iter().sum::<f64>() / args.len() as f64
 }
