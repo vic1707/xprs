@@ -54,7 +54,7 @@ impl Xprs<'_> {
     /// use std::collections::HashMap;
     ///
     /// let expression = "2 * x + y";
-    /// let xprs = Xprs::try_from(expression).unwrap();
+    /// let xprs = Xprs::try_from(expression)?;
     ///
     /// let mut variable_values = HashMap::new();
     /// variable_values.insert("x", 3.0);
@@ -66,6 +66,7 @@ impl Xprs<'_> {
     /// // we didn't provide the variables, so this should fail
     /// let failed_eval = xprs.eval(&HashMap::new());
     /// assert!(failed_eval.is_err());
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
     pub fn eval(
@@ -96,7 +97,7 @@ impl Xprs<'_> {
     /// use std::collections::HashMap;
     ///
     /// let expression = "2 * x + y";
-    /// let xprs = Xprs::try_from(expression).unwrap();
+    /// let xprs = Xprs::try_from(expression)?;
     ///
     /// let mut variable_values = HashMap::new();
     /// variable_values.insert("x", 3.0);
@@ -107,6 +108,7 @@ impl Xprs<'_> {
     ///
     /// // we didn't provide the variables, so this should panic
     /// assert_panic!(xprs.eval_unchecked(&HashMap::new()));
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     #[inline]
     #[must_use]
     pub fn eval_unchecked(&self, variables: &HashMap<&str, f64>) -> f64 {
@@ -275,14 +277,15 @@ impl<'a> Xprs<'a> {
     /// ```
     /// use xprs::Parser;
     ///
-    /// let expression = Parser::default().parse("x + 2").unwrap();
+    /// let expression = Parser::default().parse("x + 2")?;
     /// let func = expression.bind("x");
     ///
     /// assert!(func.is_ok());
-    /// let func = func.unwrap();
+    /// let func = func?;
     ///
     /// let result = func(3.0);
     /// assert_eq!(result, 5.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
     pub fn bind(self, var: &'a str) -> Result<impl Fn(f64) -> f64 + 'a, BindError> {
@@ -305,14 +308,15 @@ impl<'a> Xprs<'a> {
     /// ```
     /// use xprs::Parser;
     ///
-    /// let expression = Parser::default().parse("x + y").unwrap();
+    /// let expression = Parser::default().parse("x + y")?;
     /// let func = expression.bind2("x", "y");
     ///
     /// assert!(func.is_ok());
-    /// let func = func.unwrap();
+    /// let func = func?;
     ///
     /// let result = func(3.0, 2.0);
     /// assert_eq!(result, 5.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
     pub fn bind2(self, var1: &'a str, var2: &'a str) -> Result<impl Fn(f64, f64) -> f64 + 'a, BindError> {
@@ -335,14 +339,15 @@ impl<'a> Xprs<'a> {
     /// ```
     /// use xprs::Parser;
     ///
-    /// let expression = Parser::default().parse("x + y + z").unwrap();
+    /// let expression = Parser::default().parse("x + y + z")?;
     /// let func = expression.bind3("x", "y", "z");
     ///
     /// assert!(func.is_ok());
-    /// let func = func.unwrap();
+    /// let func = func?;
     ///
     /// let result = func(3.0, 2.0, 1.0);
     /// assert_eq!(result, 6.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
     pub fn bind3(self, var1: &'a str, var2: &'a str, var3: &'a str) -> Result<impl Fn(f64, f64, f64) -> f64 + 'a, BindError> {
@@ -365,14 +370,15 @@ impl<'a> Xprs<'a> {
     /// ```
     /// use xprs::Parser;
     ///
-    /// let expression = Parser::default().parse("w + x + y + z").unwrap();
+    /// let expression = Parser::default().parse("w + x + y + z")?;
     /// let func = expression.bind4("w", "x", "y", "z");
     ///
     /// assert!(func.is_ok());
-    /// let func = func.unwrap();
+    /// let func = func?;
     ///
     /// let result = func(1.0, 2.0, 3.0, 4.0);
     /// assert_eq!(result, 10.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
     pub fn bind4(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str) -> Result<impl Fn(f64, f64, f64, f64) -> f64 + 'a, BindError> {
@@ -395,14 +401,15 @@ impl<'a> Xprs<'a> {
     /// ```
     /// use xprs::Parser;
     ///
-    /// let expression = Parser::default().parse("v + w + x + y + z").unwrap();
+    /// let expression = Parser::default().parse("v + w + x + y + z")?;
     /// let func = expression.bind5("v", "w", "x", "y", "z");
     ///
     /// assert!(func.is_ok());
-    /// let func = func.unwrap();
+    /// let func = func?;
     ///
     /// let result = func(1.0, 2.0, 3.0, 4.0, 5.0);
     /// assert_eq!(result, 15.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
     pub fn bind5(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
@@ -425,14 +432,15 @@ impl<'a> Xprs<'a> {
     /// ```
     /// use xprs::Parser;
     ///
-    /// let expression = Parser::default().parse("u + v + w + x + y + z").unwrap();
+    /// let expression = Parser::default().parse("u + v + w + x + y + z")?;
     /// let func = expression.bind6("u", "v", "w", "x", "y", "z");
     ///
     /// assert!(func.is_ok());
-    /// let func = func.unwrap();
+    /// let func = func?;
     ///
     /// let result = func(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
     /// assert_eq!(result, 21.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
     pub fn bind6(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
@@ -455,14 +463,15 @@ impl<'a> Xprs<'a> {
     /// ```
     /// use xprs::Parser;
     ///
-    /// let expression = Parser::default().parse("t + u + v + w + x + y + z").unwrap();
+    /// let expression = Parser::default().parse("t + u + v + w + x + y + z")?;
     /// let func = expression.bind7("t", "u", "v", "w", "x", "y", "z");
     ///
     /// assert!(func.is_ok());
-    /// let func = func.unwrap();
+    /// let func = func?;
     ///
     /// let result = func(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0);
     /// assert_eq!(result, 28.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
     pub fn bind7(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
@@ -485,14 +494,15 @@ impl<'a> Xprs<'a> {
     /// ```
     /// use xprs::Parser;
     ///
-    /// let expression = Parser::default().parse("s + t + u + v + w + x + y + z").unwrap();
+    /// let expression = Parser::default().parse("s + t + u + v + w + x + y + z")?;
     /// let func = expression.bind8("s", "t", "u", "v", "w", "x", "y", "z");
     ///
     /// assert!(func.is_ok());
-    /// let func = func.unwrap();
+    /// let func = func?;
     ///
     /// let result = func(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0);
     /// assert_eq!(result, 36.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
     pub fn bind8(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str, var8: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
@@ -515,14 +525,15 @@ impl<'a> Xprs<'a> {
     /// ```
     /// use xprs::Parser;
     ///
-    /// let expression = Parser::default().parse("r + s + t + u + v + w + x + y + z").unwrap();
+    /// let expression = Parser::default().parse("r + s + t + u + v + w + x + y + z")?;
     /// let func = expression.bind9("r", "s", "t", "u", "v", "w", "x", "y", "z");
     ///
     /// assert!(func.is_ok());
-    /// let func = func.unwrap();
+    /// let func = func?;
     ///
     /// let result = func(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);
     /// assert_eq!(result, 45.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
     pub fn bind9(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str, var8: &'a str, var9: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
@@ -551,14 +562,15 @@ impl<'a> Xprs<'a> {
     /// ```
     /// use xprs::Parser;
     ///
-    /// let expression = Parser::default().parse("a + b + c + d").unwrap();
+    /// let expression = Parser::default().parse("a + b + c + d")?;
     /// let func = expression.bind_n(["a", "b", "c", "d"]);
     ///
     /// assert!(func.is_ok());
-    /// let func = func.unwrap();
+    /// let func = func?;
     ///
     /// let result = func([1.0, 2.0, 3.0, 4.0]);
     /// assert_eq!(result, 10.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
     pub fn bind_n<const T: usize>(self, vars: [&'a str; T]) -> Result<impl Fn([f64; T]) -> f64 + 'a, BindError> {
@@ -584,14 +596,15 @@ impl<'a> Xprs<'a> {
     /// ```
     /// use xprs::Parser;
     ///
-    /// let expression = Parser::default().parse("a + b + c + d").unwrap();
+    /// let expression = Parser::default().parse("a + b + c + d")?;
     /// let func = expression.bind_n_runtime(&["a", "b", "c", "d"]);
     ///
     /// assert!(func.is_ok());
-    /// let func = func.unwrap();
+    /// let func = func?;
     ///
-    /// let result = func(&[1.0, 2.0, 3.0, 4.0]);
-    /// assert_eq!(result, Ok(10.0));
+    /// let result = func(&[1.0, 2.0, 3.0, 4.0])?;
+    /// assert_eq!(result, 10.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
     pub fn bind_n_runtime(self, vars: &'a [&'a str]) -> Result<impl Fn(&[f64]) -> Result<f64, EvalError> + 'a, BindError> {
