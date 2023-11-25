@@ -10,22 +10,20 @@ use crate::token::Function;
 /// ```
 /// use xprs::{Context, xprs_fn};
 ///
-/// let sin_func = xprs_fn!("sin", f64::sin, 1);
+/// let sin_xprs_func = xprs_fn!("sin", f64::sin, 1);
 /// let mut context = Context::default()
 ///     .with_expected_vars(["y"].into())
 ///     .with_var("x", 42.0)
-///     .with_func(sin_func);
+///     .with_func(sin_xprs_func);
 ///
-/// let x_var = context.get_var("x").unwrap();
-/// assert_eq!(*x_var, 42.0);
+/// let x_var = context.get_var("x");
+/// assert_eq!(x_var, Some(&42.0));
 ///
-/// let sin_func = context.get_func("sin").unwrap();
-/// assert_eq!(sin_func.name, "sin");
-/// assert_eq!(sin_func.nb_args, Some(1));
-/// 
-/// let expected_vars = context.get_expected_vars().unwrap();
-/// assert_eq!(expected_vars.len(), 1);
-/// assert!(expected_vars.contains("y"));
+/// let sin_func = context.get_func("sin");
+/// assert_eq!(sin_func, Some(&sin_xprs_func));
+///
+/// let expected_vars = context.get_expected_vars();
+/// assert_eq!(expected_vars, Some(&["y"].into()));
 /// ```
 #[derive(Debug, Default, PartialEq)]
 pub struct Context<'names> {
