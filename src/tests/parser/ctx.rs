@@ -25,13 +25,13 @@ fn get_parser_with_ctx() -> Parser<'static> {
     ctx.set_var("x", 2.0);
     ctx.set_var("phi", 1.618_033_988_749_895);
 
-    ctx.set_func(DOUBLE);
-    ctx.set_func(ADD);
+    ctx.set_fn(DOUBLE);
+    ctx.set_fn(ADD);
 
     let mut parser = Parser::new_with_ctx(ctx);
 
     parser.ctx_mut().set_var("y", 1.0);
-    parser.ctx_mut().set_func(MEAN);
+    parser.ctx_mut().set_fn(MEAN);
 
     parser
 }

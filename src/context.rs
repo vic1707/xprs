@@ -14,12 +14,12 @@ use crate::token::Function;
 /// let mut context = Context::default()
 ///     .with_expected_vars(["y"].into())
 ///     .with_var("x", 42.0)
-///     .with_func(sin_xprs_func);
+///     .with_fn(sin_xprs_func);
 ///
 /// let x_var = context.get_var("x");
 /// assert_eq!(x_var, Some(&42.0));
 ///
-/// let sin_func = context.get_func("sin");
+/// let sin_func = context.get_fn("sin");
 /// assert_eq!(sin_func, Some(&sin_xprs_func));
 ///
 /// let expected_vars = context.get_expected_vars();
@@ -56,14 +56,14 @@ impl<'names> Context<'names> {
 
     /// Sets a function in the context.
     #[inline]
-    pub fn set_func(&mut self, func: Function) {
+    pub fn set_fn(&mut self, func: Function) {
         self.funcs.insert(func.name, func);
     }
 
     /// Sets a function in the context, returning the context.
     #[inline]
     #[must_use]
-    pub fn with_func(mut self, func: Function) -> Self {
+    pub fn with_fn(mut self, func: Function) -> Self {
         self.funcs.insert(func.name, func);
         self
     }
@@ -95,7 +95,7 @@ impl<'names> Context<'names> {
     /// Retrieves a function from the context.
     #[inline]
     #[must_use]
-    pub fn get_func(&self, name: &str) -> Option<&Function> {
+    pub fn get_fn(&self, name: &str) -> Option<&Function> {
         self.funcs.get(name)
     }
 

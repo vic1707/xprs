@@ -232,7 +232,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
             .get_var(name)
             .map(|&value| Identifier::Constant(value))
             .or_else(|| {
-                self.ctx.get_func(name).copied().map(Identifier::Function)
+                self.ctx.get_fn(name).copied().map(Identifier::Function)
             })
             .unwrap_or_else(|| Identifier::from_str(name));
 
