@@ -59,8 +59,8 @@ impl<'ctx> Parser<'ctx> {
         &mut self.ctx
     }
 
-    /// Parses the input mathematical expression using precedence climbing.
-    /// Returns an expression tree if parsing is successful, or a [`ParseError`]
+    /// Parses the input mathematical expression,
+    /// returns an [`Xprs`] if parsing is successful, or a [`ParseError`].
     ///
     /// # Errors
     ///
@@ -123,13 +123,8 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         }
     }
 
-    /// Parses the input mathematical expression using precedence climbing.
-    ///
-    /// # Returns
-    ///
-    /// A [`Result`] containing the expression tree ([`Xprs`]) if parsing is
-    /// successful, or a [`ParseError`] if an error occurs during parsing.
-    pub fn parse(
+    /// Parses the input mathematical.
+    fn parse(
         input: &'input str,
         ctx: &'ctx Context<'ctx>,
     ) -> Result<Xprs<'input>, ParseError> {
