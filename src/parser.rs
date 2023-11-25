@@ -27,6 +27,7 @@ use crate::{
 ///
 /// ```
 /// use xprs::{Parser, Context};
+///
 /// let mut context = Context::default();
 /// let parser = Parser::new_with_ctx(context);
 /// let expression = "2 * (x + 1)";
@@ -71,6 +72,7 @@ impl<'ctx> Parser<'ctx> {
     ///
     /// ```
     /// use xprs::Parser;
+    ///
     /// let parser = Parser::default();
     /// let expression = "2 * (x + 1)";
     /// let result = parser.parse(expression);
