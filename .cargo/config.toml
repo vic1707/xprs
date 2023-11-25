@@ -8,6 +8,7 @@ rustflags = [
   ## Conflicts ##
   "-Aclippy::implicit_return",                  # clippy::needless-return             - remove return keyword when not needed
   "-Aclippy::pub-with-shorthand",               # clippy::pub-without-shorthand       - pub(<scope>) instead of pub(in <scope>)
+  "-Aclippy::mod_module_files",                 # clippy::self_named_module_files     - `./foo/mod.rs` instead of (`./foo.rs` + `./foo/*.rs`)
   "-Aclippy::separated_literal_suffix",         # clippy::unseparated-literal-suffix  - 2.0_f32 vs 2.0f32
   ## Allowed ##
   "-Aclippy::arithmetic-side-effects",          # cursor increment in parsing/lexing and evaluation
@@ -20,6 +21,5 @@ rustflags = [
   "-Aclippy::single_char_lifetime_names",       # common practice to use 'a, to remove ?
   "-Aclippy::undocumented-unsafe-blocks",       # ok to not document if using `trust_me!` macro
   ## Must remove ##
-  "-Aclippy::mod_module_files",
   "-Aclippy::ref_patterns",                     # dunno if it can be removed
 ]
