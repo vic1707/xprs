@@ -121,6 +121,7 @@ impl PartialOrd for FnPointer {
 /// Macro for defining functions for xprs' context easily, with optional variadic support.
 /// This macro is provided for convenience, since [`Function`] needs a fn taking a slice of [`f64`] as argument.
 /// The macro will wrap your function in a closure depending on the number of arguments you provide.
+/// Be aware that the provided function gets moved into the closure, so if you want to use it again, you'll have to clone it.
 ///
 /// Don't provide the number of arguments if your function is variadic (takes any number of arguments).
 #[macro_export]
@@ -170,42 +171,42 @@ macro_rules! xprs_fn {
 
     //// closure wraping ////
     (wrap $function:expr, 0) => {
-        |_| $function()
+        move |_| $function()
     };
     (wrap $function:expr, 1) => {
         #[allow(clippy::indexing_slicing)]
-        |args| $function(args[0])
+        move |args| $function(args[0])
     };
     (wrap $function:expr, 2) => {
         #[allow(clippy::indexing_slicing)]
-        |args| $function(args[0], args[1])
+        move |args| $function(args[0], args[1])
     };
     (wrap $function:expr, 3) => {
         #[allow(clippy::indexing_slicing)]
-        |args| $function(args[0], args[1], args[2])
+        move |args| $function(args[0], args[1], args[2])
     };
     (wrap $function:expr, 4) => {
         #[allow(clippy::indexing_slicing)]
-        |args| $function(args[0], args[1], args[2], args[3])
+        move |args| $function(args[0], args[1], args[2], args[3])
     };
     (wrap $function:expr, 5) => {
         #[allow(clippy::indexing_slicing)]
-        |args| $function(args[0], args[1], args[2], args[3], args[4])
+        move |args| $function(args[0], args[1], args[2], args[3], args[4])
     };
     (wrap $function:expr, 6) => {
         #[allow(clippy::indexing_slicing)]
-        |args| $function(args[0], args[1], args[2], args[3], args[4], args[5])
+        move |args| $function(args[0], args[1], args[2], args[3], args[4], args[5])
     };
     (wrap $function:expr, 7) => {
         #[allow(clippy::indexing_slicing)]
-        |args| $function(args[0], args[1], args[2], args[3], args[4], args[5], args[6])
+        move |args| $function(args[0], args[1], args[2], args[3], args[4], args[5], args[6])
     };
     (wrap $function:expr, 8) => {
         #[allow(clippy::indexing_slicing)]
-        |args| $function(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7])
+        move |args| $function(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7])
     };
     (wrap $function:expr, 9) => {
         #[allow(clippy::indexing_slicing)]
-        |args| $function(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8])
+        move |args| $function(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8])
     };
 }
