@@ -1,5 +1,5 @@
 /* Crate imports */
-use crate::{Parser, Xprs, xprs_fn, Context};
+use crate::{xprs_fn, Context, Parser, Xprs};
 
 macro_rules! assert_f64_eq {
     ($left:expr, $right:expr) => {
@@ -19,11 +19,17 @@ fn test_higher_order_functions() {
     assert_f64_eq!(bare_use.eval_unchecked(&[].into()), 7.0_f64);
 
     let invalid_use = parser.parse("hof(2)");
-    assert!(invalid_use.is_err(), "Expected error for invalid use of hof");
+    assert!(
+        invalid_use.is_err(),
+        "Expected error for invalid use of hof"
+    );
 
     let complex_use = parser.parse("hof(2, 3) + 3 * hof(4, 5)").unwrap();
     assert_f64_eq!(complex_use.eval_unchecked(&[].into()), 46.0_f64);
 
     let nested_var_use = parser.parse("hof(x, hof(2, 3))").unwrap();
-    assert_f64_eq!(nested_var_use.eval_unchecked(&[("x", 42.0_f64)].into()), 91.0_f64);
+    assert_f64_eq!(
+        nested_var_use.eval_unchecked(&[("x", 42.0_f64)].into()),
+        91.0_f64
+    );
 }

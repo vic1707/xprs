@@ -40,7 +40,7 @@ impl Function {
     /// Note that the fn pointer must be a function that takes a slice of f64 as argument and returns a f64.
     /// So make sure to wrap your function in a closure if it doesn't match the signature.
     /// For convenience, you can use the [`xprs_fn!`] macro.
-    /// 
+    ///
     /// [`Function`] needs a fn taking a slice because Rust variadics are not available yet.
     #[inline]
     pub fn new_dyn(
