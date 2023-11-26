@@ -1,6 +1,6 @@
 /* Crate imports */
 use crate::{
-    context::Context,
+    context::{Context, Symbol},
     element::{BinOp, Element, FunctionCall, UnOp},
     parser::{ErrorKind, ParseError, Parser},
     token::{Function, Identifier, Operator},
@@ -13,6 +13,7 @@ const fn is_sized_send_sync_unpin<T: Sized + Send + Sync + Unpin>() {}
 const fn test_thread_safety() {
     // context module
     is_sized_send_sync_unpin::<Context>();
+    is_sized_send_sync_unpin::<Symbol>();
     // element module
     is_sized_send_sync_unpin::<BinOp<'_>>();
     is_sized_send_sync_unpin::<Element<'_>>();

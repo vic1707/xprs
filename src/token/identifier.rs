@@ -1,7 +1,7 @@
 /* Built-in imports */
 use core::f64;
 /* Crate imports */
-use crate::{token::Function, utils::built_in_functions};
+use crate::{context::Symbol, token::Function, utils::built_in_functions};
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub enum Identifier<'a> {
@@ -73,5 +73,14 @@ where
 impl From<Function> for Identifier<'_> {
     fn from(value: Function) -> Self {
         Identifier::Function(value)
+    }
+}
+
+impl From<Symbol> for Identifier<'_> {
+    fn from(symbol: Symbol) -> Self {
+        match symbol {
+            Symbol::Variable(value) => Identifier::Constant(value),
+            Symbol::Function(value) => Identifier::Function(value),
+        }
     }
 }

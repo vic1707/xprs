@@ -3,24 +3,33 @@ use std::collections::{HashMap, HashSet};
 /* Crate imports */
 use crate::token::Function;
 
+#[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
+pub enum Symbol {
+    Variable(f64),
+    Function(Function),
+}
+
+impl From<f64> for Symbol {
+    #[inline]
+    fn from(value: f64) -> Self {
+        Self::Variable(value)
+    }
+}
+
+impl From<Function> for Symbol {
+    #[inline]
+    fn from(value: Function) -> Self {
+        Self::Function(value)
+    }
+}
+
 #[derive(Debug, Default, PartialEq)]
 pub struct Context<'names> {
-    vars: HashMap<&'names str, f64>,
-    funcs: HashMap<&'names str, Function>,
+    symbols: HashMap<&'names str, Symbol>,
     expected_vars: Option<HashSet<&'names str>>,
 }
 
 impl<'names> Context<'names> {
-    #[inline]
-    #[must_use]
-    pub fn new() -> Self {
-        Self {
-            vars: HashMap::new(),
-            funcs: HashMap::new(),
-            expected_vars: None,
-        }
-    }
-
     #[inline]
     #[must_use]
     pub fn with_expected_vars(
@@ -32,13 +41,20 @@ impl<'names> Context<'names> {
     }
 
     #[inline]
+    #[must_use]
+    pub fn with_symbols(mut self, symbols: HashMap<&'names str, Symbol>) -> Self {
+        self.symbols = symbols;
+        self
+    }
+
+    #[inline]
     pub fn add_var<T: Into<f64>>(&mut self, name: &'names str, value: T) {
-        self.vars.insert(name, value.into());
+        self.symbols.insert(name, value.into().into());
     }
 
     #[inline]
     pub fn add_func(&mut self, name: &'names str, func: Function) {
-        self.funcs.insert(name, func);
+        self.symbols.insert(name, func.into());
     }
 
     #[inline]
@@ -48,14 +64,8 @@ impl<'names> Context<'names> {
 
     #[inline]
     #[must_use]
-    pub fn get_var(&self, name: &str) -> Option<&f64> {
-        self.vars.get(name)
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn get_func(&self, name: &str) -> Option<&Function> {
-        self.funcs.get(name)
+    pub fn get(&self, name: &str) -> Option<&Symbol> {
+        self.symbols.get(name)
     }
 
     #[inline]
