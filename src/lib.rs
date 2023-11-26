@@ -82,7 +82,7 @@ mod xprs;
 #[cfg(test)]
 mod tests;
 /* Exports */
-pub use context::Context;
+pub use context::{Context, Symbol};
 pub use parser::{ErrorKind, ParseError, Parser};
 pub use token::Function;
 pub use xprs::{BindError, EvalError, Xprs};

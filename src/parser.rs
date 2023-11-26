@@ -2,7 +2,7 @@
 #![allow(clippy::std_instead_of_core)]
 /* Built-in imports */
 use core::str;
-use std::collections::HashSet;
+use std::{collections::HashSet, convert::Into};
 /* Crate imports */
 #[cfg(feature = "compile-time-optimizations")]
 use crate::element::Simplify;
@@ -229,12 +229,9 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         // else defaults to variable
         let ident = self
             .ctx
-            .get_var(name)
-            .map(|&value| Identifier::Constant(value))
-            .or_else(|| {
-                self.ctx.get_fn(name).copied().map(Identifier::Function)
-            })
-            .unwrap_or_else(|| Identifier::from_str(name));
+            .get(name)
+            .copied()
+            .map_or_else(|| Identifier::from_str(name), Into::into);
 
         let el = match ident {
             Identifier::Constant(val) => Element::Number(val),

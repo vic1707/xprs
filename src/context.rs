@@ -3,12 +3,36 @@ use std::collections::{HashMap, HashSet};
 /* Crate imports */
 use crate::token::Function;
 
+/// Represents a symbol in the context.
+#[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
+#[non_exhaustive]
+pub enum Symbol {
+    /// A variable.
+    Variable(f64),
+    /// A function.
+    Function(Function),
+}
+
+impl From<f64> for Symbol {
+    #[inline]
+    fn from(value: f64) -> Self {
+        Self::Variable(value)
+    }
+}
+
+impl From<Function> for Symbol {
+    #[inline]
+    fn from(value: Function) -> Self {
+        Self::Function(value)
+    }
+}
+
 /// Represents the context for the mathematical expression parser.
 ///
 /// # Examples
 ///
 /// ```
-/// use xprs::{Context, xprs_fn};
+/// use xprs::{Context, Symbol, xprs_fn};
 ///
 /// let sin_xprs_func = xprs_fn!("sin", f64::sin, 1);
 /// let mut context = Context::default()
@@ -16,21 +40,19 @@ use crate::token::Function;
 ///     .with_var("x", 42.0)
 ///     .with_fn(sin_xprs_func);
 ///
-/// let x_var = context.get_var("x");
-/// assert_eq!(x_var, Some(&42.0));
+/// let x_var = context.get("x");
+/// assert_eq!(x_var, Some(&Symbol::Variable(42.0)));
 ///
-/// let sin_func = context.get_fn("sin");
-/// assert_eq!(sin_func, Some(&sin_xprs_func));
+/// let sin_func = context.get("sin");
+/// assert_eq!(sin_func, Some(&Symbol::Function(sin_xprs_func)));
 ///
 /// let expected_vars = context.get_expected_vars();
 /// assert_eq!(expected_vars, Some(&["y"].into()));
 /// ```
 #[derive(Debug, Default, PartialEq)]
 pub struct Context<'names> {
-    /// Variables defined in the context.
-    vars: HashMap<&'names str, f64>,
-    /// Functions defined in the context.
-    funcs: HashMap<&'names str, Function>,
+    /// The symbols that are available in the context.
+    symbols: HashMap<&'names str, Symbol>,
     /// Optional set of expected variables.
     expected_vars: Option<HashSet<&'names str>>,
 }
@@ -39,7 +61,7 @@ impl<'names> Context<'names> {
     /// Sets the value of a variable in the context.
     #[inline]
     pub fn set_var<T: Into<f64>>(&mut self, name: &'names str, value: T) {
-        self.vars.insert(name, value.into());
+        self.symbols.insert(name, value.into().into());
     }
 
     /// Sets the value of a variable in the context, returning the context.
@@ -50,21 +72,21 @@ impl<'names> Context<'names> {
         name: &'names str,
         value: T,
     ) -> Self {
-        self.vars.insert(name, value.into());
+        self.symbols.insert(name, value.into().into());
         self
     }
 
     /// Sets a function in the context.
     #[inline]
     pub fn set_fn(&mut self, func: Function) {
-        self.funcs.insert(func.name, func);
+        self.symbols.insert(func.name, func.into());
     }
 
     /// Sets a function in the context, returning the context.
     #[inline]
     #[must_use]
     pub fn with_fn(mut self, func: Function) -> Self {
-        self.funcs.insert(func.name, func);
+        self.symbols.insert(func.name, func.into());
         self
     }
 
@@ -85,18 +107,22 @@ impl<'names> Context<'names> {
         self
     }
 
-    /// Retrieves the value of a variable from the context.
+    /// Sets the symbols for the context.
     #[inline]
     #[must_use]
-    pub fn get_var(&self, name: &str) -> Option<&f64> {
-        self.vars.get(name)
+    pub fn with_symbols(
+        mut self,
+        symbols: HashMap<&'names str, Symbol>,
+    ) -> Self {
+        self.symbols = symbols;
+        self
     }
 
-    /// Retrieves a function from the context.
+    /// Returns the value of a symbol in the context.
     #[inline]
     #[must_use]
-    pub fn get_fn(&self, name: &str) -> Option<&Function> {
-        self.funcs.get(name)
+    pub fn get(&self, name: &str) -> Option<&Symbol> {
+        self.symbols.get(name)
     }
 
     /// Retrieves the set of expected variables from the context.
