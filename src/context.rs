@@ -4,7 +4,7 @@ use std::collections::{HashMap, HashSet};
 use crate::token::Function;
 
 /// Represents a symbol in the context.
-#[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 #[non_exhaustive]
 pub enum Symbol {
     /// A variable.

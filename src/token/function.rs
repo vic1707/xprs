@@ -1,33 +1,119 @@
+/* Built-in imports */
+extern crate alloc;
+use alloc::sync::Arc;
+use core::{cmp::Ordering, fmt, ops::Deref};
+
 /// Represents a mathematical function core informations.
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 #[non_exhaustive]
 pub struct Function {
     /// The name of the function.
     pub name: &'static str,
     /// The function's implementation.
-    pub func: fn(&[f64]) -> f64,
+    pub func: FnPointer,
     /// The optional number of arguments the function accepts.
     /// If [`None`], the function is variadic.
     pub nb_args: Option<u8>,
 }
 
 impl Function {
-    /// Creates a new [`Function`] from the function components.
+    /// Creates a new [`Function`] from static function components.
     /// Note that the fn pointer must be a function that takes a slice of f64 as argument and returns a f64.
     /// So make sure to wrap your function in a closure if it doesn't match the signature.
     /// For convenience, you can use the [`xprs_fn!`] macro.
     ///
     /// [`Function`] needs a fn taking a slice because Rust variadics are not available yet.
     #[inline]
-    pub const fn new(
+    pub const fn new_static(
         name: &'static str,
         func: fn(&[f64]) -> f64,
         nb_args: Option<u8>,
     ) -> Self {
         Self {
             name,
-            func,
+            func: FnPointer::Static(func),
             nb_args,
+        }
+    }
+
+    /// Creates a new [`Function`] from dynamic function components.
+    /// Note that the fn pointer must be a function that takes a slice of f64 as argument and returns a f64.
+    /// So make sure to wrap your function in a closure if it doesn't match the signature.
+    /// For convenience, you can use the [`xprs_fn!`] macro.
+    /// 
+    /// [`Function`] needs a fn taking a slice because Rust variadics are not available yet.
+    #[inline]
+    pub fn new_dyn(
+        name: &'static str,
+        func: impl Fn(&[f64]) -> f64 + Send + Sync + 'static,
+        nb_args: Option<u8>,
+    ) -> Self {
+        Self {
+            name,
+            func: FnPointer::Dyn(Arc::new(func)),
+            nb_args,
+        }
+    }
+}
+
+/// A dynamic function reference.
+type DynFn = dyn Fn(&[f64]) -> f64 + Send + Sync;
+
+/// Enum that holds a function reference.
+/// Either a static one, or a dynamic one.
+#[derive(Clone)]
+pub enum FnPointer {
+    /// A static function reference.
+    Static(fn(&[f64]) -> f64),
+    /// A dynamic function reference.
+    Dyn(Arc<DynFn>),
+}
+
+impl fmt::Debug for FnPointer {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match *self {
+            Self::Static(_) => write!(fmt, "Static"),
+            Self::Dyn(_) => write!(fmt, "Dyn"),
+        }
+    }
+}
+
+impl Deref for FnPointer {
+    type Target = dyn Fn(&[f64]) -> f64;
+
+    fn deref(&self) -> &Self::Target {
+        #[allow(clippy::pattern_type_mismatch)] // dunno how to fix this
+        match self {
+            Self::Static(func) => func,
+            Self::Dyn(func) => func.as_ref(),
+        }
+    }
+}
+
+impl PartialEq for FnPointer {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (&Self::Static(func1), &Self::Static(func2)) => func1 == func2,
+            (&Self::Dyn(ref func1), &Self::Dyn(ref func2)) => {
+                Arc::ptr_eq(func1, func2)
+            },
+            _ => false,
+        }
+    }
+}
+
+impl PartialOrd for FnPointer {
+    #[inline]
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        match (self, other) {
+            (&Self::Static(func1), &Self::Static(func2)) => {
+                Some(func1.cmp(&func2))
+            },
+            (&Self::Dyn(ref func1), &Self::Dyn(ref func2)) => {
+                Some(Arc::as_ptr(func1).cmp(&Arc::as_ptr(func2)))
+            },
+            _ => None,
         }
     }
 }
@@ -41,21 +127,41 @@ impl Function {
 macro_rules! xprs_fn {
     // variadics
     ($name:expr, $function:expr) => {
-        $crate::Function::new($name, $function, None)
+        $crate::Function::new_static($name, $function, None)
+    };
+    ($name:expr, dyn $function:expr) => {
+        $crate::Function::new_dyn($name, $function, None)
     };
     ($function:expr) => {
-        $crate::Function::new(stringify!($function), $function, None)
+        $crate::Function::new_static(stringify!($function), $function, None)
+    };
+    (dyn $function:expr) => {
+        $crate::Function::new_dyn(stringify!($function), $function, None)
     };
     // fixed args
     ($name:expr, $function:expr, $nb_args:tt) => {
-        $crate::Function::new(
+        $crate::Function::new_static(
+            $name,
+            $crate::xprs_fn!(wrap $function, $nb_args),
+            Some($nb_args),
+        )
+    };
+    ($name:expr, dyn $function:expr, $nb_args:tt) => {
+        $crate::Function::new_dyn(
             $name,
             $crate::xprs_fn!(wrap $function, $nb_args),
             Some($nb_args),
         )
     };
     ($function:expr, $nb_args:tt) => {
-        $crate::Function::new(
+        $crate::Function::new_static(
+            stringify!($function),
+            $crate::xprs_fn!(wrap $function, $nb_args),
+            Some($nb_args),
+        )
+    };
+    (dyn $function:expr, $nb_args:tt) => {
+        $crate::Function::new_dyn(
             stringify!($function),
             $crate::xprs_fn!(wrap $function, $nb_args),
             Some($nb_args),
