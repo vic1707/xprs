@@ -42,7 +42,10 @@ impl<'names> Context<'names> {
 
     #[inline]
     #[must_use]
-    pub fn with_symbols(mut self, symbols: HashMap<&'names str, Symbol>) -> Self {
+    pub fn with_symbols(
+        mut self,
+        symbols: HashMap<&'names str, Symbol>,
+    ) -> Self {
         self.symbols = symbols;
         self
     }
