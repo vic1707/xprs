@@ -13,7 +13,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-xprs = "0.1.0"
+xprs = "0.0.1-beta1"
 ```
 
 or run this command in your terminal:

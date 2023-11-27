@@ -1,6 +1,6 @@
 [package]
 name = "xprs"
-version = "0.1.0"
+version = "0.0.1-beta1"
 edition = "2021"
 authors = ["Victor LEFEBVRE <contact@vic1707.xyz>"]
 description = "**Xprs** is a flexible and extensible mathematical expression parser and evaluator for Rust, designed for simplicity and ease of use."
