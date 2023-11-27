@@ -31,11 +31,15 @@ Currently, the minimum supported Rust version is `1.70.0`.
 ## Crate Features
 
 - **`compile-time-optimizations`** _(enabled by default)_ :
+
   Enable optimization and evaluation during parsing.
   This feature will automagically transform expressions like `1 + 2 * 3` into `7` during parsing allowing for faster evaluation.
   It also works on functions (e.g. `sin(0)` will be transformed into `0`) and "logical" result like `(x - x) * (....)` will be transformed into `0` since `x - x` is `0` no matter what `x` is.
 
+<br />
+
 - **`pemdas`** _(enabled by default)_:
+
   Conflicts with the `pejmdas` feature.
   Uses the PEMDAS order of operations.
   This implies that implicit multiplication has the same precedence as explicit multiplication.
@@ -44,7 +48,10 @@ Currently, the minimum supported Rust version is `1.70.0`.
   - `6/2(2+1)` gets interpreted as `6/2*(2+1)` which gives `9` as a result.
   - `1/2x` gets interpreted as `(1/2)*x` which, with `x` being `2`, gives `1` as a result.
 
+<br />
+
 - **`pejmdas`**:
+
   Conflicts with the `pemdas` feature.
   Uses the PEJMDAS order of operations.
   This implies that implicit multiplication has a higher precedence than explicit multiplication.
