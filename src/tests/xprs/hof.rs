@@ -1,11 +1,6 @@
 /* Crate imports */
+use super::super::macros::assert_f64_eq;
 use crate::{xprs_fn, Context, Parser, Xprs};
-
-macro_rules! assert_f64_eq {
-    ($left:expr, $right:expr) => {
-        assert!(($left - $right).abs() < f64::EPSILON);
-    };
-}
 
 #[test]
 fn test_higher_order_functions() {
