@@ -82,10 +82,9 @@ impl Deref for FnPointer {
     type Target = dyn Fn(&[f64]) -> f64;
 
     fn deref(&self) -> &Self::Target {
-        #[allow(clippy::pattern_type_mismatch)] // dunno how to fix this
-        match self {
-            Self::Static(func) => func,
-            Self::Dyn(func) => func.as_ref(),
+        match *self {
+            Self::Static(ref func) => func,
+            Self::Dyn(ref func) => func.as_ref(),
         }
     }
 }
@@ -93,12 +92,15 @@ impl Deref for FnPointer {
 impl PartialEq for FnPointer {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (&Self::Static(func1), &Self::Static(func2)) => func1 == func2,
-            (&Self::Dyn(ref func1), &Self::Dyn(ref func2)) => {
-                Arc::ptr_eq(func1, func2)
+        match *self {
+            Self::Static(func1) => match *other {
+                Self::Static(func2) => func1 == func2,
+                Self::Dyn(_) => false,
             },
-            _ => false,
+            Self::Dyn(ref func1) => match *other {
+                Self::Dyn(ref func2) => Arc::ptr_eq(func1, func2),
+                Self::Static(_) => false,
+            },
         }
     }
 }
@@ -106,14 +108,17 @@ impl PartialEq for FnPointer {
 impl PartialOrd for FnPointer {
     #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        match (self, other) {
-            (&Self::Static(func1), &Self::Static(func2)) => {
-                Some(func1.cmp(&func2))
+        match *self {
+            Self::Static(func1) => match *other {
+                Self::Static(func2) => Some(func1.cmp(&func2)),
+                Self::Dyn(_) => None,
             },
-            (&Self::Dyn(ref func1), &Self::Dyn(ref func2)) => {
-                Some(Arc::as_ptr(func1).cmp(&Arc::as_ptr(func2)))
+            Self::Dyn(ref func1) => match *other {
+                Self::Dyn(ref func2) => {
+                    Some(Arc::as_ptr(func1).cmp(&Arc::as_ptr(func2)))
+                },
+                Self::Static(_) => None,
             },
-            _ => None,
         }
     }
 }
