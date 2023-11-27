@@ -19,6 +19,7 @@ include = [
 ]
 categories = ["science", "mathematics", "parser-implementations"]
 keywords = ["parser", "math", "library"]
+rust-version = "1.70.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
