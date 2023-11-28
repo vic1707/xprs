@@ -36,6 +36,8 @@ Currently, the minimum supported Rust version is `1.70.0`.
   This feature will automagically transform expressions like `1 + 2 * 3` into `7` during parsing allowing for faster evaluation.
   It also works on functions (e.g. `sin(0)` will be transformed into `0`) and "logical" result like `(x - x) * (....)` will be transformed into `0` since `x - x` is `0` no matter what `x` is.
 
+  Note: nightly channel enables even more optimizations thanks to `box_patterns` feature gate.
+
 <br />
 
 - **`pemdas`** _(enabled by default)_:
@@ -48,6 +50,8 @@ Currently, the minimum supported Rust version is `1.70.0`.
   - `6/2(2+1)` gets interpreted as `6/2*(2+1)` which gives `9` as a result.
   - `1/2x` gets interpreted as `(1/2)*x` which, with `x` being `2`, gives `1` as a result.
 
+  Note: `Display` and `Debug` shows additionnal parenthesis to make the order of operations more obvious.
+
 <br />
 
 - **`pejmdas`**:
@@ -59,6 +63,8 @@ Currently, the minimum supported Rust version is `1.70.0`.
 
   - `6/2(2+1)` gets interpreted as `6/(2*(2+1))` which gives `1` as a result.
   - `1/2x` gets interpreted as `1/(2*x)` which, with `x` being `2`, gives `0.25` as a result.
+
+  Note: `Display` and `Debug` shows additionnal parenthesis to make the order of operations more obvious.
 
 ## Licence
 
