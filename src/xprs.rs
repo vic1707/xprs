@@ -87,7 +87,7 @@ impl Xprs<'_> {
     ///
     /// ```
     /// use xprs::Xprs;
-    /// # use core::panic;
+    /// # use std::panic;
     /// # macro_rules! assert_panic {
     /// #     ($($t:tt)*) => {
     /// #         panic::catch_unwind(panic::AssertUnwindSafe(|| {
