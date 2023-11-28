@@ -66,6 +66,10 @@ Currently, the minimum supported Rust version is `1.70.0`.
 
   Note: `Display` and `Debug` shows additionnal parenthesis to make the order of operations more obvious.
 
+## Documentation
+
+Complete documentation can be found on [docs.rs](https://docs.rs/xprs).
+
 ## Licence
 
 Copyright © 2023 [Victor LEFEBVRE](contact@vic1707.xyz)
