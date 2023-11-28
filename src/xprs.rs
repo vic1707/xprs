@@ -142,6 +142,30 @@ impl Xprs<'_> {
         self.vars.remove(var.0);
     }
 
+    /// Simple wrapper around [`Xprs::eval`] that doesn't require any variables.
+    /// This will obviously fail if the expression contains variables.
+    /// 
+    /// # Errors
+    /// 
+    /// An [`EvalError`] is returned if the expression contains variables.
+    #[inline]
+    pub fn eval_no_vars(&self) -> Result<f64, EvalError> {
+        self.eval(&[].into())
+    }
+
+    /// Simple wrapper around [`Xprs::eval_unchecked`] that doesn't require any variables.
+    /// This will obviously fail if the expression contains variables.
+    /// 
+    /// # Panic
+    /// 
+    /// Use with caution, as it may panic if the expression contains variables.
+    #[inline]
+    #[must_use]
+    pub fn eval_no_vars_unchecked(&self) -> f64 {
+        self.eval_unchecked(&[].into())
+    }
+
+
     /// Simplifies the expression in-place for a single variable and returns the expression.
     ///
     /// # Example
