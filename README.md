@@ -71,6 +71,7 @@ Currently, the minimum supported Rust version is `1.70.0`.
 ### Simple examples
 
 If you want to evaluate a simple calculus that doesn't contains any variables, you can use the `eval_no_vars` method (or `eval_no_vars_unchecked` if you know for sure that no variables are present):
+
 ```rust
 use xprs::Xprs;
 
@@ -81,6 +82,7 @@ fn main() {
 ```
 
 If you want to evaluate a calculus that contains variables, you can use the `eval` method (or `eval_unchecked` if you know for sure you're not missing any variables):
+
 ```rust
 use xprs::Xprs;
 
@@ -94,6 +96,7 @@ fn main() {
 ```
 
 You can also turn the calculus into a function and use it later:
+
 ```rust
 use xprs::Xprs;
 
@@ -103,11 +106,12 @@ fn main() {
     println!("1 + sin(2) * 3 = {}", fn_xprs(3.0));
 }
 ```
+
 You can use functions `bind`, `bind2` etc up to `bind9` to bind variables to the calculus.
 If you ever need more, you can use the `bind_n` and `bind_n_runtime` methods which takes an array of size N or a slice respectively.
 
-Notes: 
-All `bind` function (except `bind_n_runtime`) returns a `Result` of a function which is guarenteed to return a `f64`. 
+Notes:
+All `bind` function (except `bind_n_runtime`) returns a `Result` of a function which is guarenteed to return a `f64`.
 `bind_n_runtime` returns a `Result` of a function which also returns a `Result` of a `f64` since there are no guarentees that the array/slice will be of the correct size.
 
 ### Context and Parser
@@ -117,6 +121,7 @@ You can also create a `Context` and a `Parser` instance if you want to define yo
 Functions need to have a signature of `fn(&[f64]) -> f64` so they all have the same signature and can be called the same way.
 We also need a name and the number of arguments the function takes, which is an `Option<usize`, if `None` then the function can take any number of arguments.
 You can define functions like so:
+
 ```rust
 use xprs::{Function, xprs_fn};
 
@@ -138,6 +143,7 @@ const SUM: Function = xprs_fn!("sum", variadic_sum);
 ```
 
 To use a `Context` and a `Parser` you can do the following:
+
 ```rust
 use xprs::{xprs_fn, Context, Parser};
 
@@ -157,6 +163,7 @@ fn main() {
 Note: `Context` is just a wrapper around a `Hashmap` so you cannot have a function and a constant with the same name (the last one will override the first one).
 
 You can also use the `Context` to restrict the allowed variables in the calculus:
+
 ```rust
 use xprs::{Context, Parser};
 
