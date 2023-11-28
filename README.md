@@ -180,6 +180,12 @@ fn main() {
 }
 ```
 
+### Error handling
+
+All errors are implemented using the [`thiserror`](https://crates.io/crates/thiserror).
+And parsing errors are implemented using the [`miette`](https://crates.io/crates/miette) crate.
+<img src="./assets/error.png" alt="Error message" width="300"/>
+
 ### Advanced examples
 
 ## Higher order functions
