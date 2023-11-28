@@ -186,6 +186,32 @@ All errors are implemented using the [`thiserror`](https://crates.io/crates/this
 And parsing errors are implemented using the [`miette`](https://crates.io/crates/miette) crate.
 <img src="./assets/error.png" alt="Error message" width="300"/>
 
+### Supported operations, built-in constants & functions
+
+#### Operations
+
+Xprs supports the following operations: - Binary operations: `+`, `-`, `*`, `/`, `^`, `%`. - Unary operations: `+`, `-`. <!--, `!` -->
+
+#### Built-in constants
+
+| Constant | Value | Approximation       |
+| -------- | ----- | ------------------- |
+| `PI`     | `π`   | `3.141592653589793` |
+| `E`      | `e`   | `2.718281828459045` |
+
+#### Built-in functions
+
+Xprs supports a variety of functions:
+
+- trigonometric functions: `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `atan2`, `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`.
+- logarithmic functions: `ln` (base 2), `log` (base 10), `logn` (base n, used as `logn(num, base)`).
+- power functions: `sqrt`, `cbrt`, `exp`.
+- rounding functions: `floor`, `ceil`, `round`, `trunc`.
+- other functions: `abs`, `min`, `max`, `hypot`, `fract`, `recip` (`invert` alias), `sum`, `mean`.
+
+Note: `min` and `max` can take any number of arguments (if none, returns `f64::INFINITY` and `-f64::INFINITY` respectively).
+Note2: `sum` and `mean` can take any number of arguments (if none, returns `0` and `f64::NAN` respectively).
+
 ### Advanced examples
 
 ## Higher order functions
