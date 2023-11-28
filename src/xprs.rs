@@ -116,6 +116,24 @@ impl Xprs<'_> {
     }
 
     /// Simplifies the expression in-place for a single variable.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use xprs::Xprs;
+    ///
+    /// let expression = "2 * x + y";
+    /// let mut xprs = Xprs::try_from(expression)?;
+    ///
+    /// assert_eq!(format!("{xprs}"), "((2 * x) + y)");
+    /// assert_eq!(xprs.vars, ["x", "y"].into());
+    ///
+    /// xprs.simplify_for_inplace(("x", 3.0));
+    ///
+    /// assert_eq!(format!("{xprs}"), "(6 + y)");
+    /// assert_eq!(xprs.vars, ["y"].into());
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     pub fn simplify_for_inplace(&mut self, var: (&str, f64)) {
         let mut tmp = trust_me!(ptr::read(&self.root));
@@ -125,6 +143,24 @@ impl Xprs<'_> {
     }
 
     /// Simplifies the expression in-place for a single variable and returns the expression.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use xprs::Xprs;
+    ///
+    /// let expression = "2 * x + y";
+    /// let xprs = Xprs::try_from(expression)?;
+    ///
+    /// assert_eq!(format!("{xprs}"), "((2 * x) + y)");
+    /// assert_eq!(xprs.vars, ["x", "y"].into());
+    ///
+    /// let simplified_xprs = xprs.simplify_for(("x", 3.0));
+    ///
+    /// assert_eq!(format!("{simplified_xprs}"), "(6 + y)");
+    /// assert_eq!(simplified_xprs.vars, ["y"].into());
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     #[must_use]
     pub fn simplify_for(mut self, var: (&str, f64)) -> Self {
@@ -133,6 +169,24 @@ impl Xprs<'_> {
     }
 
     /// Simplifies the expression in-place for multiple variables.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use xprs::Xprs;
+    ///
+    /// let expression = "2 * x + y + 4z";
+    /// let mut xprs = Xprs::try_from(expression)?;
+    ///
+    /// assert_eq!(format!("{xprs}"), "(((2 * x) + y) + (4 * z))");
+    /// assert_eq!(xprs.vars, ["x", "y", "z"].into());
+    ///
+    /// xprs.simplify_for_multiple_inplace(&[("x", 3.0), ("z", 2.0)]);
+    ///
+    /// assert_eq!(format!("{xprs}"), "((6 + y) + 8)");
+    /// assert_eq!(xprs.vars, ["y"].into());
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     pub fn simplify_for_multiple_inplace(&mut self, vars: &[(&str, f64)]) {
         // rewriting `simplify_for_inplace` to avoid dozens of `ptr::read` and `ptr::write`
@@ -145,6 +199,24 @@ impl Xprs<'_> {
     }
 
     /// Simplifies the expression in-place for multiple variables and returns the expression.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use xprs::Xprs;
+    ///
+    /// let expression = "2 * x + y + 4z";
+    /// let xprs = Xprs::try_from(expression)?;
+    ///
+    /// assert_eq!(format!("{xprs}"), "(((2 * x) + y) + (4 * z))");
+    /// assert_eq!(xprs.vars, ["x", "y", "z"].into());
+    ///
+    /// let simplified_xprs = xprs.simplify_for_multiple(&[("x", 3.0), ("z", 2.0)]);
+    ///
+    /// assert_eq!(format!("{simplified_xprs}"), "((6 + y) + 8)");
+    /// assert_eq!(simplified_xprs.vars, ["y"].into());
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     #[must_use]
     pub fn simplify_for_multiple(mut self, vars: &[(&str, f64)]) -> Self {
