@@ -210,6 +210,8 @@ Xprs supports the following operations:
 - Binary operations: `+`, `-`, `*`, `/`, `^`, `%`.
 - Unary operations: `+`, `-`, `!`.
 
+Note: `!` (factorial) is only supported on positive integers. Calling it on a negative integer or a float will result in `f64::NAN`. Also `-4!` is interpreted as `-(4!)` and not `(-4)!`.
+
 #### Built-in constants
 
 | Constant | Value | Approximation       |
