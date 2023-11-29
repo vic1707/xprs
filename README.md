@@ -134,7 +134,7 @@ fn double(x: f64) -> f64 {
     x * 2.0
 }
 
-const DOUBLE: Function = Function::new("double", move |args| double(args[0]), Some(1));
+const DOUBLE: Function = Function::new_static("double", move |args| double(args[0]), Some(1));
 // or with the macro (will do an automatic wrapping)
 const DOUBLE_MACRO: Function = xprs_fn!("double", double, 1);
 
@@ -142,9 +142,19 @@ fn variadic_sum(args: &[f64]) -> f64 {
     args.iter().sum()
 }
 
-const SUM: Function = Function::new("sum", variadic_sum, None);
+const SUM: Function = Function::new_static("sum", variadic_sum, None);
 // or with the macro (no wrapping is done for variadic functions)
 const SUM_MACRO: Function = xprs_fn!("sum", variadic_sum);
+
+// if a functions captures a variable (cannot be coerced to a static function)
+const X: f64 = 42.0;
+fn show_capture() {
+    let captures = |arg: f64| { X + arg };
+
+    let CAPTURES: Function = Function::new_dyn("captures", move |args| captures(args[0]), Some(1));
+    // or with the macro (will do an automatic wrapping)
+    let CAPTURES_MACRO: Function = xprs_fn!("captures", dyn captures, 1);
+}
 ```
 
 To use a [`Context`] and a [`Parser`] you can do the following:
