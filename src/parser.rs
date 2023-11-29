@@ -164,6 +164,12 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     ) -> Result<Element<'input>, ParseError> {
         let mut el = self.atom()?;
 
+        // Right-associative unary operators
+        if self.consume_if_eq(b'!') {
+            el = UnOp::new_element(Operator::Factorial, el);
+        }
+
+        // BinOp with higher precedence
         while let Some((op, op_precedence)) =
             self.get_operator_infos(&el, precedence)
         {
