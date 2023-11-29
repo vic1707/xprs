@@ -218,17 +218,8 @@ impl<'a> Simplify<'a> for UnOp<'a> {
             Operator::Plus => self.operand,
             Operator::Minus => match self.operand {
                 Element::Number(num) => Element::Number(-num),
-                Element::UnOp(unop) => match unop.op {
-                    Operator::Plus => {
-                        UnOp::new_element(Operator::Minus, unop.operand)
-                    },
-                    Operator::Minus => unop.operand,
-                    Operator::Times
-                    | Operator::Divide
-                    | Operator::Power
-                    | Operator::Modulo => unreachable!(),
-                },
-                Element::BinOp(_)
+                Element::UnOp(_)
+                | Element::BinOp(_)
                 | Element::Function(_)
                 | Element::Variable(_) => self.into(),
             },
