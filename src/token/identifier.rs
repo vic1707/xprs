@@ -56,6 +56,7 @@ impl<'a> Identifier<'a> {
             "sum" => built_in_functions::SUM.into(),
             "mean" => built_in_functions::MEAN.into(),
             "invert" => built_in_functions::INVERT.into(),
+            "recip" => built_in_functions::RECIP.into(),
             "min" => built_in_functions::MIN.into(),
             "max" => built_in_functions::MAX.into(),
             "hypot" => built_in_functions::HYPOT.into(),

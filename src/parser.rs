@@ -11,7 +11,7 @@ use crate::{
     element::{BinOp, Element, FunctionCall, UnOp},
     token::{Identifier, Operator},
     utils::{
-        macros::{trust_me, yeet},
+        hidden_macros::{trust_me, yeet},
         precedence,
     },
     xprs::Xprs,
@@ -188,7 +188,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
             /* Number */
             b'0'..=b'9' | b'.' => self.parse_number()?,
             /* Identifier */
-            b'A'..=b'z' => self.parse_identifier()?,
+            b'A'..=b'Z' | b'a'..=b'z' => self.parse_identifier()?,
             /* Unary expression */
             op @ (b'+' | b'-') => {
                 self.cursor += 1;
