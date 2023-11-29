@@ -21,4 +21,3 @@ pub fn gamma(num: f64) -> f64 {
 pub fn factorial(num: f64) -> f64 {
     gamma(num + 1.)
 }
-

@@ -1,4 +1,5 @@
 /* Crate imports */
+use super::factorial::{factorial, gamma};
 use crate::{token::Function, xprs_fn};
 
 /// Sine builtin function.
@@ -100,3 +101,9 @@ pub const HYPOT: Function = xprs_fn!("hypot", f64::hypot, 2);
 
 /// Fractional part of a number.
 pub const FRACT: Function = xprs_fn!("fract", f64::fract, 1);
+
+/// Factorial builtin function.
+pub const FACTORIAL: Function = xprs_fn!("factorial", factorial, 1);
+
+/// Gamma builtin function.
+pub const GAMMA: Function = xprs_fn!("gamma", gamma, 1);

@@ -225,7 +225,7 @@ Xprs supports a variety of functions:
 - logarithmic functions: `ln` (base 2), `log` (base 10), `logn` (base n, used as `logn(num, base)`).
 - power functions: `sqrt`, `cbrt`, `exp`.
 - rounding functions: `floor`, `ceil`, `round`, `trunc`.
-- other functions: `abs`, `min`, `max`, `hypot`, `fract`, `recip` (`invert` alias), `sum`, `mean`.
+- other functions: `abs`, `min`, `max`, `hypot`, `fract`, `recip` (`invert` alias), `sum`, `mean`, `factorial` and `gamma`.
 
 Note: `min` and `max` can take any number of arguments (if none, returns `f64::INFINITY` and `-f64::INFINITY` respectively).
 Note2: `sum` and `mean` can take any number of arguments (if none, returns `0` and `f64::NAN` respectively).
