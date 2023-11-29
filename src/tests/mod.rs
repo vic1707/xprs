@@ -1,4 +1,5 @@
 /* Modules */
+mod factorial;
 mod issues;
 mod macros;
 mod parser;

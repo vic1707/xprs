@@ -43,11 +43,10 @@ impl Function {
     ///
     /// [`Function`] needs a fn taking a slice because Rust variadics are not available yet.
     #[inline]
-    pub fn new_dyn(
-        name: &'static str,
-        func: impl Fn(&[f64]) -> f64 + Send + Sync + 'static,
-        nb_args: Option<u8>,
-    ) -> Self {
+    pub fn new_dyn<T>(name: &'static str, func: T, nb_args: Option<u8>) -> Self
+    where
+        T: Fn(&[f64]) -> f64 + Send + Sync + 'static,
+    {
         Self {
             name,
             func: FnPointer::Dyn(Arc::new(func)),

@@ -1,8 +1,8 @@
 /* Clippy Config */
 #![allow(clippy::std_instead_of_core)]
 /* Built-in imports */
-use core::str;
-use std::{collections::HashSet, convert::Into};
+use core::{fmt, str};
+use std::collections::HashSet;
 /* Crate imports */
 #[cfg(feature = "compile-time-optimizations")]
 use crate::element::Simplify;
@@ -164,6 +164,12 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     ) -> Result<Element<'input>, ParseError> {
         let mut el = self.atom()?;
 
+        // Right-associative unary operators
+        if self.consume_if_eq(b'!') {
+            el = UnOp::new_element(Operator::Factorial, el);
+        }
+
+        // BinOp with higher precedence
         while let Some((op, op_precedence)) =
             self.get_operator_infos(&el, precedence)
         {
@@ -242,7 +248,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
                 let args = self.parse_arguments()?;
                 self.assert_eq_consume(b')')?;
                 if let Some(nb_args) = func.nb_args {
-                    use std::cmp::Ordering::{Equal, Greater, Less};
+                    use core::cmp::Ordering::{Equal, Greater, Less};
                     match args.len().cmp(&nb_args.into()) {
                         Equal => (),
                         Less => {
@@ -453,11 +459,6 @@ pub struct ParseError {
     src: String,
 }
 
-// Import necessary modules and traits.
-extern crate alloc;
-use alloc::fmt;
-use std::iter::Iterator;
-
 impl miette::Diagnostic for ParseError {
     #[inline]
     fn help(&self) -> Option<Box<dyn fmt::Display + '_>> {
@@ -509,7 +510,7 @@ impl miette::Diagnostic for ParseError {
     ) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
         Some(Box::new(
             <[_]>::into_vec(Box::new([miette::LabeledSpan::new_with_span(
-                Some(fmt::format(format_args!("here"))),
+                Some("here".to_owned()),
                 self.span,
             )]))
             .into_iter(),

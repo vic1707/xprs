@@ -1,4 +1,5 @@
 /* Crate imports */
+use super::factorial::{factorial, gamma};
 use crate::{token::Function, xprs_fn};
 
 /// Sine builtin function.
@@ -83,8 +84,6 @@ pub const MEAN: Function = xprs_fn!("mean", |args| {
 });
 
 /// Reciprocal builtin function.
-pub const INVERT: Function = xprs_fn!("invert", f64::recip, 1);
-/// Reciprocal builtin function.
 pub const RECIP: Function = xprs_fn!("recip", f64::recip, 1);
 
 /// Minimum value in a list of numbers.
@@ -102,3 +101,9 @@ pub const HYPOT: Function = xprs_fn!("hypot", f64::hypot, 2);
 
 /// Fractional part of a number.
 pub const FRACT: Function = xprs_fn!("fract", f64::fract, 1);
+
+/// Factorial builtin function.
+pub const FACTORIAL: Function = xprs_fn!("factorial", factorial, 1);
+
+/// Gamma builtin function.
+pub const GAMMA: Function = xprs_fn!("gamma", gamma, 1);

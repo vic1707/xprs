@@ -8,7 +8,10 @@ use crate::{
     element::Element,
     element::Simplify,
     token::Operator,
-    utils::hidden_macros::{trust_me, yeet},
+    utils::{
+        factorial::factorial,
+        hidden_macros::{trust_me, yeet},
+    },
 };
 
 /// Represents a mathematical expression and its variables.
@@ -279,6 +282,7 @@ impl XprsImpl<'_> {
                 match unop.op {
                     Operator::Plus => operand,
                     Operator::Minus => -operand,
+                    Operator::Factorial => factorial(operand),
                     Operator::Times
                     | Operator::Divide
                     | Operator::Power
@@ -288,6 +292,7 @@ impl XprsImpl<'_> {
             Element::BinOp(ref binop) => {
                 let left = self.eval_element(&binop.lhs)?;
                 let right = self.eval_element(&binop.rhs)?;
+                #[allow(clippy::unreachable)]
                 match binop.op {
                     Operator::Plus => left + right,
                     Operator::Minus => left - right,
@@ -295,6 +300,7 @@ impl XprsImpl<'_> {
                     Operator::Divide => left / right,
                     Operator::Power => left.powf(right),
                     Operator::Modulo => left % right,
+                    Operator::Factorial => unreachable!(),
                 }
             },
             Element::Function(ref func) => {
@@ -322,6 +328,7 @@ impl XprsImpl<'_> {
                 match unop.op {
                     Operator::Plus => operand,
                     Operator::Minus => -operand,
+                    Operator::Factorial => factorial(operand),
                     Operator::Times
                     | Operator::Divide
                     | Operator::Power
@@ -331,6 +338,7 @@ impl XprsImpl<'_> {
             Element::BinOp(ref binop) => {
                 let left = self.eval_element_unchecked(&binop.lhs);
                 let right = self.eval_element_unchecked(&binop.rhs);
+                #[allow(clippy::unreachable)]
                 match binop.op {
                     Operator::Plus => left + right,
                     Operator::Minus => left - right,
@@ -338,6 +346,7 @@ impl XprsImpl<'_> {
                     Operator::Divide => left / right,
                     Operator::Power => left.powf(right),
                     Operator::Modulo => left % right,
+                    Operator::Factorial => unreachable!(),
                 }
             },
             Element::Function(ref func) => {

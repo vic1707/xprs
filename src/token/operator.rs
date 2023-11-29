@@ -16,6 +16,8 @@ pub enum Operator {
     Power,
     /// Modulo operator.
     Modulo,
+    /// Factorial operator.
+    Factorial,
 }
 
 impl TryFrom<u8> for Operator {
@@ -26,7 +28,7 @@ impl TryFrom<u8> for Operator {
     /// Valid operators are: '+', '-', '*', '/', '^', '%'.
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
-            // b'!' => Ok(Self::Factorial),
+            b'!' => Ok(Self::Factorial),
             b'+' => Ok(Self::Plus),
             b'-' => Ok(Self::Minus),
             b'*' => Ok(Self::Times),
@@ -41,7 +43,7 @@ impl TryFrom<u8> for Operator {
 impl fmt::Display for Operator {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            // Self::Factorial => write!(f, "!"),
+            Self::Factorial => write!(fmt, "!"),
             Self::Plus => write!(fmt, "+"),
             Self::Minus => write!(fmt, "-"),
             Self::Times => write!(fmt, "*"),
