@@ -8,7 +8,10 @@ use crate::{
     element::Element,
     element::Simplify,
     token::Operator,
-    utils::hidden_macros::{trust_me, yeet},
+    utils::{
+        factorial::factorial,
+        hidden_macros::{trust_me, yeet},
+    },
 };
 
 /// Represents a mathematical expression and its variables.
@@ -279,7 +282,7 @@ impl XprsImpl<'_> {
                 match unop.op {
                     Operator::Plus => operand,
                     Operator::Minus => -operand,
-                    Operator::Factorial => todo!(),
+                    Operator::Factorial => factorial(operand),
                     Operator::Times
                     | Operator::Divide
                     | Operator::Power
@@ -325,7 +328,7 @@ impl XprsImpl<'_> {
                 match unop.op {
                     Operator::Plus => operand,
                     Operator::Minus => -operand,
-                    Operator::Factorial => todo!(),
+                    Operator::Factorial => factorial(operand),
                     Operator::Times
                     | Operator::Divide
                     | Operator::Power

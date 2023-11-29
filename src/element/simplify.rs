@@ -2,6 +2,7 @@
 use crate::{
     element::{BinOp, Element, FunctionCall, UnOp},
     token::Operator,
+    utils::factorial::factorial,
 };
 
 /// Trait for simplifying abstract syntax tree (AST) elements.
@@ -218,7 +219,13 @@ impl<'a> Simplify<'a> for UnOp<'a> {
         #[allow(clippy::unreachable)]
         match self.op {
             Operator::Plus => self.operand,
-            Operator::Factorial => todo!(),
+            Operator::Factorial => match self.operand {
+                Element::Number(num) => Element::Number(factorial(num)),
+                Element::UnOp(_)
+                | Element::BinOp(_)
+                | Element::Function(_)
+                | Element::Variable(_) => self.into(),
+            },
             Operator::Minus => match self.operand {
                 Element::Number(num) => Element::Number(-num),
                 Element::UnOp(_)
