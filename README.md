@@ -124,7 +124,7 @@ You can also create a `Context` and a `Parser` instance if you want to define yo
 Constants and Functions can have any name that starts with a letter (uppercase of not) and contains only `[A-Za-z0-9_']`.
 
 Functions need to have a signature of `fn(&[f64]) -> f64` so they all have the same signature and can be called the same way.
-We also need a name and the number of arguments the function takes, which is an `Option<usize`, if `None` then the function can take any number of arguments.
+We also need a name and the number of arguments the function takes, which is an `Option<usize>`, if `None` then the function can take any number of arguments.
 You can define functions like so:
 
 ```rust
