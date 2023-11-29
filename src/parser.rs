@@ -11,7 +11,7 @@ use crate::{
     element::{BinOp, Element, FunctionCall, UnOp},
     token::{Identifier, Operator},
     utils::{
-        macros::{trust_me, yeet},
+        hidden_macros::{trust_me, yeet},
         precedence,
     },
     xprs::Xprs,

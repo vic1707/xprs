@@ -8,7 +8,7 @@ use crate::{
     element::Element,
     element::Simplify,
     token::Operator,
-    utils::macros::{trust_me, yeet},
+    utils::hidden_macros::{trust_me, yeet},
 };
 
 /// Represents a mathematical expression and its variables.
