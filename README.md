@@ -195,7 +195,10 @@ And parsing errors are implemented using the [`miette`](https://crates.io/crates
 
 #### Operations
 
-Xprs supports the following operations: - Binary operations: `+`, `-`, `*`, `/`, `^`, `%`. - Unary operations: `+`, `-`. <!--, `!` -->
+Xprs supports the following operations:
+
+- Binary operations: `+`, `-`, `*`, `/`, `^`, `%`.
+- Unary operations: `+`, `-`. <!--, `!` -->
 
 #### Built-in constants
 
