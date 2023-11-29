@@ -45,7 +45,7 @@ impl<'a> Simplify<'a> for BinOp<'a> {
     #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
     fn simplify(mut self) -> Element<'a> {
         use Element::Number;
-        use Operator::{Divide, Minus, Modulo, Plus, Power, Times};
+        use Operator::{Divide, Factorial, Minus, Modulo, Plus, Power, Times};
         self.lhs = self.lhs.simplify();
         self.rhs = self.rhs.simplify();
         match self {
@@ -190,6 +190,7 @@ impl<'a> Simplify<'a> for BinOp<'a> {
                 rhs: Number(rhs),
                 lhs: Number(lhs),
             } => {
+                #[allow(clippy::unreachable)]
                 let result = match op {
                     Plus => lhs + rhs,
                     Minus => lhs - rhs,
@@ -197,6 +198,7 @@ impl<'a> Simplify<'a> for BinOp<'a> {
                     Divide => lhs / rhs,
                     Power => lhs.powf(rhs),
                     Modulo => lhs % rhs,
+                    Factorial => unreachable!(),
                 };
                 Number(result)
             },
@@ -216,6 +218,7 @@ impl<'a> Simplify<'a> for UnOp<'a> {
         #[allow(clippy::unreachable)]
         match self.op {
             Operator::Plus => self.operand,
+            Operator::Factorial => todo!(),
             Operator::Minus => match self.operand {
                 Element::Number(num) => Element::Number(-num),
                 Element::UnOp(_)

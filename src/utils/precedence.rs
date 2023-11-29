@@ -26,5 +26,6 @@ pub const fn get_for_op(op: &Operator) -> usize {
         Operator::Times | Operator::Divide | Operator::Modulo => 2,
         // uses `4` because `pejmdas` feature uses `3`
         Operator::Power => 4,
+        Operator::Factorial => 5,
     }
 }
