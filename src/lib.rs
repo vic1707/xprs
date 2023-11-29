@@ -208,7 +208,7 @@
 //! Xprs supports the following operations:
 //!
 //! - Binary operations: `+`, `-`, `*`, `/`, `^`, `%`.
-//! - Unary operations: `+`, `-`. <!--, `!` -->
+//! - Unary operations: `+`, `-`, `!`.
 //!
 //! #### Built-in constants
 //!

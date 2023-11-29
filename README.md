@@ -208,7 +208,7 @@ And parsing errors are implemented using the [`miette`](https://crates.io/crates
 Xprs supports the following operations:
 
 - Binary operations: `+`, `-`, `*`, `/`, `^`, `%`.
-- Unary operations: `+`, `-`. <!--, `!` -->
+- Unary operations: `+`, `-`, `!`.
 
 #### Built-in constants
 
