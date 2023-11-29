@@ -232,6 +232,28 @@
 //!
 //! ### Advanced examples
 //!
+//! ## Xprs simplification
+//!
+//! You can simplify an [`Xprs`], in-place or not, for a given variable (or set of variables) using the `simplify_for` or `simplify_for_multiple` methods.
+//!     
+//! ```rust
+//! use xprs::Xprs;
+//!
+//! fn main() {
+//!     let mut xprs = Xprs::try_from("w + sin(x + 2y) * (3 * z)").unwrap();
+//!
+//!     println!("{xprs}"); // (w + (sin((x + (2 * y))) * (3 * z)))
+//!
+//!     xprs.simplify_for_inplace(("z", 4.0));
+//!
+//!     println!("{xprs}"); // (w + (sin((x + (2 * y))) * 12))
+//!
+//!     let xprs = xprs.simplify_for_multiple(&[("x", 1.0), ("y", 2.0)]);
+//!
+//!     println!("{xprs}"); // (w + -11.507091295957661)
+//! }
+//! ```
+//!
 //! ## Higher order functions
 //!
 //! You can define functions in a context based on a previously parsed expression.
