@@ -83,8 +83,6 @@ pub const MEAN: Function = xprs_fn!("mean", |args| {
 });
 
 /// Reciprocal builtin function.
-pub const INVERT: Function = xprs_fn!("invert", f64::recip, 1);
-/// Reciprocal builtin function.
 pub const RECIP: Function = xprs_fn!("recip", f64::recip, 1);
 
 /// Minimum value in a list of numbers.
