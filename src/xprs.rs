@@ -109,6 +109,7 @@ impl Xprs<'_> {
     /// // we didn't provide the variables, so this should panic
     /// assert_panic!(xprs.eval_unchecked(&HashMap::new()));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     #[must_use]
     pub fn eval_unchecked(&self, variables: &HashMap<&str, f64>) -> f64 {
