@@ -235,3 +235,16 @@ Copyright © 2023 [Victor LEFEBVRE](contact@vic1707.xyz)
 This work is free. You can redistribute it and/or modify it under the
 terms of the Do What The Fuck You Want To Public License, Version 2,
 as published by Sam Hocevar. See the [LICENCE](./LICENCE). file for more details.
+
+## TODOs
+
+Here is a non-exhaustive list of the things I want to do/add in the future:
+
+- [ ] Better CI/CD.
+- [ ] Remove lifetimes by replacing `&str` with something like [`byteyarn`](https://crates.io/crates/byteyarn).
+- [ ] Complex numbers support.
+- [ ] Macro for defining the `Context` like the one in [`evalexpr`](https://crates.io/crates/evalexpr).
+- [ ] Support for dynamic `Function` name.
+- [ ] Native variadics (when rust supports them in stable).
+
+If one of them picks your interest feel free to open a PR!
