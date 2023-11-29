@@ -113,6 +113,22 @@ impl<'a> Simplify<'a> for BinOp<'a> {
                 lhs,
                 rhs,
             } if rhs == Number(1.0) => lhs,
+            ////// NIGHTLY FEATURES //////
+            // (-a) * (-b) => a * b
+            #[cfg(NIGHTLY)]
+            BinOp {
+                op: Times,
+                lhs:
+                    Element::UnOp(box UnOp {
+                        op: Minus,
+                        operand: lhs,
+                    }),
+                rhs:
+                    Element::UnOp(box UnOp {
+                        op: Minus,
+                        operand: rhs,
+                    }),
+            } => BinOp::new_element(Operator::Times, lhs, rhs),
             /////////////////////////// Divisions ///////////////////////////
             // 0/0 => NaN // special case
             BinOp {
@@ -140,6 +156,22 @@ impl<'a> Simplify<'a> for BinOp<'a> {
                 lhs,
                 rhs,
             } if lhs == rhs => Number(1.0),
+            ////// NIGHTLY FEATURES //////
+            // (-a) / (-b) => a / b
+            #[cfg(NIGHTLY)]
+            BinOp {
+                op: Divide,
+                lhs:
+                    Element::UnOp(box UnOp {
+                        op: Minus,
+                        operand: lhs,
+                    }),
+                rhs:
+                    Element::UnOp(box UnOp {
+                        op: Minus,
+                        operand: rhs,
+                    }),
+            } => BinOp::new_element(Operator::Divide, lhs, rhs),
             ///////////////////////////// Powers ////////////////////////////
             // 0 ^ 0 => 1 // special case
             BinOp {
