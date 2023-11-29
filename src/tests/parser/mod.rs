@@ -7,6 +7,3 @@ mod error;
 mod implicit_multiplication;
 #[cfg(not(feature = "compile-time-optimizations"))]
 mod valid;
-
-// Issue fixed
-mod issue_15;

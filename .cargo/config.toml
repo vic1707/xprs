@@ -1,27 +1,25 @@
 [build]
 rustflags = [
   ## Warning ##
-  "-Wclippy::pedantic",
-  "-Wclippy::restriction",
-  "-Wclippy::nursery",
-  # "-Wclippy::cargo",
+  "-Dclippy::pedantic",
+  "-Dclippy::restriction",
+  "-Dclippy::nursery",
+  # "-Dclippy::cargo",
   ## Conflicts ##
+  "-Aclippy::blanket_clippy_restriction_lints", # clippy::restriction                 - can't enable clippy::restriction if this is enabled
   "-Aclippy::implicit_return",                  # clippy::needless-return             - remove return keyword when not needed
   "-Aclippy::pub-with-shorthand",               # clippy::pub-without-shorthand       - pub(<scope>) instead of pub(in <scope>)
+  "-Aclippy::mod_module_files",                 # clippy::self_named_module_files     - `./foo/mod.rs` instead of (`./foo.rs` + `./foo/*.rs`)
   "-Aclippy::separated_literal_suffix",         # clippy::unseparated-literal-suffix  - 2.0_f32 vs 2.0f32
   ## Allowed ##
-  "-Aclippy::arithmetic-side-effects",          # cursor increment in parsing/lexing and evaluation
-  "-Aclippy::blanket_clippy_restriction_lints", # allows `clippy::restriction` to be used globally
-  "-Aclippy::float-arithmetic",                 # float arithmetic during evaluation
+  "-Aclippy::arithmetic-side-effects",          # cursor/counters increments
+  "-Aclippy::float-arithmetic",                 # used during evaluation
   "-Aclippy::missing_trait_methods",            # can use default impl for methods in traits
-  "-Aclippy::modulo-arithmetic",                # modulo arithmetic during evaluation
+  "-Aclippy::modulo-arithmetic",                # used during evaluation
   "-Aclippy::question_mark_used",               # convenience
   "-Aclippy::single_call_fn",                   # function only called once
-  "-Aclippy::single_char_lifetime_names",       # common practice to use 'a, to remove ?
-  ## Must remove ##
-  "-Aclippy::missing_docs_in_private_items",
-  "-Aclippy::missing-errors-doc",
-  "-Aclippy::mod_module_files",
-  "-Aclippy::undocumented-unsafe-blocks",
-  "-Aclippy::ref_patterns",                     # dunno if it can be removed
+  "-Aclippy::undocumented-unsafe-blocks",       # ok to not document if using `trust_me!` macro (if we are 100% sure)
+  ## Maybe remove ##
+  "-Aclippy::single_char_lifetime_names",       # common practice to use 'a
+  "-Aclippy::ref_patterns",                     # dunno if/how it can be removed
 ]

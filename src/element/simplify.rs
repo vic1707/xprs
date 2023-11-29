@@ -4,8 +4,13 @@ use crate::{
     token::Operator,
 };
 
+/// Trait for simplifying abstract syntax tree (AST) elements.
+/// Is enabled with the `compile-time-optimizations` feature (on by default).
 pub trait Simplify<'a> {
+    /// Simplifies the element for the specified variable.
     fn simplify_for(self, var: (&str, f64)) -> Element<'a>;
+
+    /// Simplifies the element.
     fn simplify(self) -> Element<'a>;
 }
 

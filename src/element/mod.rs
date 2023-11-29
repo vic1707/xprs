@@ -2,9 +2,13 @@
 use core::fmt;
 use std::collections::HashSet;
 /* Modules */
+/// Binary operation module.
 mod binop;
+/// Function call module.
 mod function_call;
+/// Simplification's trait module.
 mod simplify;
+/// Unary operation module.
 mod unop;
 /* Exports */
 pub use binop::BinOp;
@@ -12,13 +16,19 @@ pub use function_call::FunctionCall;
 pub use simplify::Simplify;
 pub use unop::UnOp;
 
+/// Represents an element in the abstract syntax tree (AST).
 #[derive(Debug, PartialEq, PartialOrd)]
 #[non_exhaustive]
 pub enum Element<'a> {
+    /// A number.
     Number(f64),
+    /// A binary operation.
     BinOp(Box<BinOp<'a>>),
+    /// A unary operation.
     UnOp(Box<UnOp<'a>>),
+    /// A function call.
     Function(Box<FunctionCall<'a>>),
+    /// A variable.
     Variable(&'a str),
 }
 
@@ -62,7 +72,8 @@ impl<'a> From<FunctionCall<'a>> for Element<'a> {
 }
 
 impl<'a> Element<'a> {
-    pub fn find_variables(&self, vars: &mut HashSet<&'a str>) {
+    /// Finds variables in the element and adds them to the provided set.
+    pub(crate) fn find_variables(&self, vars: &mut HashSet<&'a str>) {
         match *self {
             Self::Variable(var) => {
                 vars.insert(var);

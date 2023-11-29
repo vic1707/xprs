@@ -3,16 +3,21 @@ use core::f64;
 /* Crate imports */
 use crate::{context::Symbol, token::Function, utils::built_in_functions};
 
+/// Represents a mathematical identifier, which can be a function, constant, or variable.
 #[derive(Debug, PartialEq, PartialOrd)]
 pub enum Identifier<'a> {
+    /// A mathematical function.
     Function(Function),
+    /// A constant numeric value.
     Constant(f64),
+    /// A variable identified by its name.
     Variable(&'a str),
 }
 
-// FromStr doesn't work for this because it doesn't allow for lifetimes
 impl<'a> Identifier<'a> {
-    pub fn from_str(value: &'a str) -> Self {
+    /// Converts a string into an [`Identifier`].
+    /// Cannot fail because unknown identifiers are treated as variables.
+    pub(crate) fn from_str(value: &'a str) -> Self {
         match value {
             /* Constants */
             "pi" => f64::consts::PI.into(),
@@ -51,6 +56,7 @@ impl<'a> Identifier<'a> {
             "sum" => built_in_functions::SUM.into(),
             "mean" => built_in_functions::MEAN.into(),
             "invert" => built_in_functions::INVERT.into(),
+            "recip" => built_in_functions::RECIP.into(),
             "min" => built_in_functions::MIN.into(),
             "max" => built_in_functions::MAX.into(),
             "hypot" => built_in_functions::HYPOT.into(),

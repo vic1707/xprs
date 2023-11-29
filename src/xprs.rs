@@ -8,13 +8,16 @@ use crate::{
     element::Element,
     element::Simplify,
     token::Operator,
-    utils::macros::{trust_me, yeet},
+    utils::hidden_macros::{trust_me, yeet},
 };
 
+/// Represents a mathematical expression and its variables.
 #[derive(Debug, PartialEq)]
 #[non_exhaustive]
 pub struct Xprs<'a> {
+    /// The root element of the expression.
     pub root: Element<'a>,
+    /// The set of variables present in the expression.
     pub vars: HashSet<&'a str>,
 }
 
@@ -37,6 +40,34 @@ impl fmt::Display for Xprs<'_> {
 }
 
 impl Xprs<'_> {
+    /// Evaluates the expression using the provided variable values.
+    /// Returns an [`f64`] if the evaluation is successful, or an [`EvalError`] if an error occurs.
+    ///
+    /// # Errors
+    ///
+    /// An [`EvalError`] is returned if a variable is not provided.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use xprs::Xprs;
+    /// use std::collections::HashMap;
+    ///
+    /// let expression = "2 * x + y";
+    /// let xprs = Xprs::try_from(expression)?;
+    ///
+    /// let mut variable_values = HashMap::new();
+    /// variable_values.insert("x", 3.0);
+    /// variable_values.insert("y", 2.0);
+    ///
+    /// let result = xprs.eval(&variable_values);
+    /// assert_eq!(result, Ok(8.0));
+    ///
+    /// // we didn't provide the variables, so this should fail
+    /// let failed_eval = xprs.eval(&HashMap::new());
+    /// assert!(failed_eval.is_err());
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     pub fn eval(
         &self,
@@ -45,20 +76,115 @@ impl Xprs<'_> {
         XprsImpl::new(variables).eval_element(&self.root)
     }
 
+    /// Evaluates the expression using the provided variable values without error handling.
+    /// Returns an [`f64`] if the evaluation is successful, or panics if an error occurs.
+    ///
+    /// # Panic
+    ///
+    /// Use with caution, as it may panic if variable(s) are missing.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use xprs::Xprs;
+    /// # macro_rules! assert_panic {
+    /// #     ($($t:tt)*) => {
+    /// #         std::panic::catch_unwind(|| {
+    /// #             $($t)*
+    /// #         }).is_err()
+    /// #     }
+    /// # }
+    /// use std::collections::HashMap;
+    ///
+    /// let expression = "2 * x + y";
+    /// let xprs = Xprs::try_from(expression)?;
+    ///
+    /// let mut variable_values = HashMap::new();
+    /// variable_values.insert("x", 3.0);
+    /// variable_values.insert("y", 2.0);
+    ///
+    /// let result = xprs.eval_unchecked(&variable_values);
+    /// assert_eq!(result, 8.0);
+    ///
+    /// // we didn't provide the variables, so this should panic
+    /// assert_panic!(xprs.eval_unchecked(&HashMap::new()));
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     #[must_use]
     pub fn eval_unchecked(&self, variables: &HashMap<&str, f64>) -> f64 {
         XprsImpl::new(variables).eval_element_unchecked(&self.root)
     }
 
+    /// Simplifies the expression in-place for a single variable.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use xprs::Xprs;
+    ///
+    /// let expression = "2 * x + y";
+    /// let mut xprs = Xprs::try_from(expression)?;
+    ///
+    /// assert_eq!(format!("{xprs}"), "((2 * x) + y)");
+    /// assert_eq!(xprs.vars, ["x", "y"].into());
+    ///
+    /// xprs.simplify_for_inplace(("x", 3.0));
+    ///
+    /// assert_eq!(format!("{xprs}"), "(6 + y)");
+    /// assert_eq!(xprs.vars, ["y"].into());
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
-    pub fn simplify_for_inplace(&mut self, var: (&str, f64)) -> bool {
+    pub fn simplify_for_inplace(&mut self, var: (&str, f64)) {
         let mut tmp = trust_me!(ptr::read(&self.root));
         tmp = tmp.simplify_for(var);
         trust_me!(ptr::write(&mut self.root, tmp););
-        self.vars.remove(var.0)
+        self.vars.remove(var.0);
     }
 
+    /// Simple wrapper around [`Xprs::eval`] that doesn't require any variables.
+    /// This will obviously fail if the expression contains variables.
+    ///
+    /// # Errors
+    ///
+    /// An [`EvalError`] is returned if the expression contains variables.
+    #[inline]
+    pub fn eval_no_vars(&self) -> Result<f64, EvalError> {
+        self.eval(&[].into())
+    }
+
+    /// Simple wrapper around [`Xprs::eval_unchecked`] that doesn't require any variables.
+    /// This will obviously fail if the expression contains variables.
+    ///
+    /// # Panic
+    ///
+    /// Use with caution, as it may panic if the expression contains variables.
+    #[inline]
+    #[must_use]
+    pub fn eval_no_vars_unchecked(&self) -> f64 {
+        self.eval_unchecked(&[].into())
+    }
+
+    /// Simplifies the expression in-place for a single variable and returns the expression.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use xprs::Xprs;
+    ///
+    /// let expression = "2 * x + y";
+    /// let xprs = Xprs::try_from(expression)?;
+    ///
+    /// assert_eq!(format!("{xprs}"), "((2 * x) + y)");
+    /// assert_eq!(xprs.vars, ["x", "y"].into());
+    ///
+    /// let simplified_xprs = xprs.simplify_for(("x", 3.0));
+    ///
+    /// assert_eq!(format!("{simplified_xprs}"), "(6 + y)");
+    /// assert_eq!(simplified_xprs.vars, ["y"].into());
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     #[must_use]
     pub fn simplify_for(mut self, var: (&str, f64)) -> Self {
@@ -66,6 +192,25 @@ impl Xprs<'_> {
         self
     }
 
+    /// Simplifies the expression in-place for multiple variables.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use xprs::Xprs;
+    ///
+    /// let expression = "2 * x + y + 4z";
+    /// let mut xprs = Xprs::try_from(expression)?;
+    ///
+    /// assert_eq!(format!("{xprs}"), "(((2 * x) + y) + (4 * z))");
+    /// assert_eq!(xprs.vars, ["x", "y", "z"].into());
+    ///
+    /// xprs.simplify_for_multiple_inplace(&[("x", 3.0), ("z", 2.0)]);
+    ///
+    /// assert_eq!(format!("{xprs}"), "((6 + y) + 8)");
+    /// assert_eq!(xprs.vars, ["y"].into());
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     pub fn simplify_for_multiple_inplace(&mut self, vars: &[(&str, f64)]) {
         // rewriting `simplify_for_inplace` to avoid dozens of `ptr::read` and `ptr::write`
@@ -77,6 +222,25 @@ impl Xprs<'_> {
         trust_me!(ptr::write(&mut self.root, tmp););
     }
 
+    /// Simplifies the expression in-place for multiple variables and returns the expression.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use xprs::Xprs;
+    ///
+    /// let expression = "2 * x + y + 4z";
+    /// let xprs = Xprs::try_from(expression)?;
+    ///
+    /// assert_eq!(format!("{xprs}"), "(((2 * x) + y) + (4 * z))");
+    /// assert_eq!(xprs.vars, ["x", "y", "z"].into());
+    ///
+    /// let simplified_xprs = xprs.simplify_for_multiple(&[("x", 3.0), ("z", 2.0)]);
+    ///
+    /// assert_eq!(format!("{simplified_xprs}"), "((6 + y) + 8)");
+    /// assert_eq!(simplified_xprs.vars, ["y"].into());
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     #[must_use]
     pub fn simplify_for_multiple(mut self, vars: &[(&str, f64)]) -> Self {
@@ -85,15 +249,22 @@ impl Xprs<'_> {
     }
 }
 
+/// An internal struct used for evaluating expressions.
+///
+/// This struct is responsible for handling the evaluation of individual elements within an expression.
+/// It is used by the [`Xprs`] struct to perform evaluations with respect to a given set of variable values.
 struct XprsImpl<'a> {
+    /// A reference to the map of variables and their corresponding values.
     variables: &'a HashMap<&'a str, f64>,
 }
 
 impl XprsImpl<'_> {
+    /// Creates a new [`XprsImpl`] instance.
     const fn new<'a>(variables: &'a HashMap<&str, f64>) -> XprsImpl<'a> {
         XprsImpl { variables }
     }
 
+    /// Evaluates an element within an expression and returns the result.
     fn eval_element(&self, element: &Element) -> Result<f64, EvalError> {
         let res = match *element {
             Element::Number(n) => n,
@@ -138,6 +309,7 @@ impl XprsImpl<'_> {
         Ok(res)
     }
 
+    /// Evaluates an element within an expression without checking for errors.
     fn eval_element_unchecked(&self, element: &Element) -> f64 {
         match *element {
             Element::Number(n) => n,
@@ -179,6 +351,7 @@ impl XprsImpl<'_> {
     }
 }
 
+/// Represents an error that occurs during expression evaluation, indicating that a variable was not provided.
 #[derive(Debug, Eq, PartialEq, thiserror::Error)]
 #[error("Evaluation error: '{0}' was not provided")]
 pub struct EvalError(String);
@@ -189,16 +362,58 @@ pub struct EvalError(String);
 #[allow(clippy::too_many_arguments)]
 #[rustfmt::skip]
 impl<'a> Xprs<'a> {
+    /// Creates a function of one variable based on this [`Xprs`] instance.
+    ///
+    /// # Errors
+    ///
+    /// A [`BindError`] is returned if one or more required variables were not provided.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use xprs::Parser;
+    ///
+    /// let expression = Parser::default().parse("x + 2")?;
+    /// let func = expression.bind("x");
+    ///
+    /// assert!(func.is_ok());
+    /// let func = func?;
+    ///
+    /// let result = func(3.0);
+    /// assert_eq!(result, 5.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     pub fn bind(self, var: &'a str) -> Result<impl Fn(f64) -> f64 + 'a, BindError> {
-        if let Some(&needed) = self.vars.iter().next() {
-            if var != needed {
-                yeet!(BindError::OneVariable(needed.to_owned()));
-            }
+        let variables: HashSet<&str> = HashSet::from([var]);
+        let missing_vars = self.vars.difference(&variables);
+        if let Some(bind_error) = BindError::from_diff(missing_vars) {
+            yeet!(bind_error);
         }
         Ok(move |val| self.eval_unchecked(&[(var, val)].into()))
     }
 
+    /// Creates a function of two [`f64`] based on this [`Xprs`] instance.
+    ///
+    /// # Errors
+    ///
+    /// A [`BindError`] is returned if one or more required variables were not provided.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use xprs::Parser;
+    ///
+    /// let expression = Parser::default().parse("x + y")?;
+    /// let func = expression.bind2("x", "y");
+    ///
+    /// assert!(func.is_ok());
+    /// let func = func?;
+    ///
+    /// let result = func(3.0, 2.0);
+    /// assert_eq!(result, 5.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     pub fn bind2(self, var1: &'a str, var2: &'a str) -> Result<impl Fn(f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2]);
@@ -209,6 +424,27 @@ impl<'a> Xprs<'a> {
         Ok(move |val1, val2| self.eval_unchecked(&[(var1, val1), (var2, val2)].into()))
     }
 
+    /// Creates a function of three [`f64`] based on this [`Xprs`] instance.
+    ///
+    /// # Errors
+    ///
+    /// A [`BindError`] is returned if one or more required variables were not provided.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use xprs::Parser;
+    ///
+    /// let expression = Parser::default().parse("x + y + z")?;
+    /// let func = expression.bind3("x", "y", "z");
+    ///
+    /// assert!(func.is_ok());
+    /// let func = func?;
+    ///
+    /// let result = func(3.0, 2.0, 1.0);
+    /// assert_eq!(result, 6.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     pub fn bind3(self, var1: &'a str, var2: &'a str, var3: &'a str) -> Result<impl Fn(f64, f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3]);
@@ -219,6 +455,27 @@ impl<'a> Xprs<'a> {
         Ok(move |val1, val2, val3| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3)].into()))
     }
 
+    /// Creates a function of four [`f64`] based on this [`Xprs`] instance.
+    ///
+    /// # Errors
+    ///
+    /// A [`BindError`] is returned if one or more required variables were not provided.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use xprs::Parser;
+    ///
+    /// let expression = Parser::default().parse("w + x + y + z")?;
+    /// let func = expression.bind4("w", "x", "y", "z");
+    ///
+    /// assert!(func.is_ok());
+    /// let func = func?;
+    ///
+    /// let result = func(1.0, 2.0, 3.0, 4.0);
+    /// assert_eq!(result, 10.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     pub fn bind4(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str) -> Result<impl Fn(f64, f64, f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4]);
@@ -229,6 +486,27 @@ impl<'a> Xprs<'a> {
         Ok(move |val1, val2, val3, val4| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4)].into()))
     }
 
+    /// Creates a function of five [`f64`] based on this [`Xprs`] instance.
+    ///
+    /// # Errors
+    ///
+    /// A [`BindError`] is returned if one or more required variables were not provided.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use xprs::Parser;
+    ///
+    /// let expression = Parser::default().parse("v + w + x + y + z")?;
+    /// let func = expression.bind5("v", "w", "x", "y", "z");
+    ///
+    /// assert!(func.is_ok());
+    /// let func = func?;
+    ///
+    /// let result = func(1.0, 2.0, 3.0, 4.0, 5.0);
+    /// assert_eq!(result, 15.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     pub fn bind5(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5]);
@@ -239,6 +517,27 @@ impl<'a> Xprs<'a> {
         Ok(move |val1, val2, val3, val4, val5| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5)].into()))
     }
 
+    /// Creates a function of six [`f64`] based on this [`Xprs`] instance.
+    ///
+    /// # Errors
+    ///
+    /// A [`BindError`] is returned if one or more required variables were not provided.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use xprs::Parser;
+    ///
+    /// let expression = Parser::default().parse("u + v + w + x + y + z")?;
+    /// let func = expression.bind6("u", "v", "w", "x", "y", "z");
+    ///
+    /// assert!(func.is_ok());
+    /// let func = func?;
+    ///
+    /// let result = func(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
+    /// assert_eq!(result, 21.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     pub fn bind6(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6]);
@@ -249,6 +548,27 @@ impl<'a> Xprs<'a> {
         Ok(move |val1, val2, val3, val4, val5, val6| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5), (var6, val6)].into()))
     }
 
+    /// Creates a function of seven [`f64`] based on this [`Xprs`] instance.
+    ///
+    /// # Errors
+    ///
+    /// A [`BindError`] is returned if one or more required variables were not provided.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use xprs::Parser;
+    ///
+    /// let expression = Parser::default().parse("t + u + v + w + x + y + z")?;
+    /// let func = expression.bind7("t", "u", "v", "w", "x", "y", "z");
+    ///
+    /// assert!(func.is_ok());
+    /// let func = func?;
+    ///
+    /// let result = func(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0);
+    /// assert_eq!(result, 28.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     pub fn bind7(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6, var7]);
@@ -259,6 +579,27 @@ impl<'a> Xprs<'a> {
         Ok(move |val1, val2, val3, val4, val5, val6, val7| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5), (var6, val6), (var7, val7)].into()))
     }
 
+    /// Creates a function of eight [`f64`] based on this [`Xprs`] instance.
+    ///
+    /// # Errors
+    ///
+    /// A [`BindError`] is returned if one or more required variables were not provided.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use xprs::Parser;
+    ///
+    /// let expression = Parser::default().parse("s + t + u + v + w + x + y + z")?;
+    /// let func = expression.bind8("s", "t", "u", "v", "w", "x", "y", "z");
+    ///
+    /// assert!(func.is_ok());
+    /// let func = func?;
+    ///
+    /// let result = func(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0);
+    /// assert_eq!(result, 36.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     pub fn bind8(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str, var8: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6, var7, var8]);
@@ -269,6 +610,27 @@ impl<'a> Xprs<'a> {
         Ok(move |val1, val2, val3, val4, val5, val6, val7, val8| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5), (var6, val6), (var7, val7), (var8, val8)].into()))
     }
 
+    /// Creates a function of nine [`f64`] based on this [`Xprs`] instance.
+    ///
+    /// # Errors
+    ///
+    /// A [`BindError`] is returned if one or more required variables were not provided.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use xprs::Parser;
+    ///
+    /// let expression = Parser::default().parse("r + s + t + u + v + w + x + y + z")?;
+    /// let func = expression.bind9("r", "s", "t", "u", "v", "w", "x", "y", "z");
+    ///
+    /// assert!(func.is_ok());
+    /// let func = func?;
+    ///
+    /// let result = func(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);
+    /// assert_eq!(result, 45.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     pub fn bind9(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str, var8: &'a str, var9: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6, var7, var8, var9]);
@@ -281,6 +643,31 @@ impl<'a> Xprs<'a> {
 
     // NOTE: Too lazy to implement this for more than 9 variables even with Copilot
     // + I don't really think anyone will need more than 9 variables anyway
+
+    /// Creates a function of any number* of [`f64`] based on this [`Xprs`] instance.
+    /// *The number of variables must be known at compile time.
+    ///
+    /// The returned closure takes an array of [`f64`] as input and returns an [`f64`].
+    ///
+    /// # Errors
+    ///
+    /// A [`BindError`] is returned if one or more required variables were not provided.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use xprs::Parser;
+    ///
+    /// let expression = Parser::default().parse("a + b + c + d")?;
+    /// let func = expression.bind_n(["a", "b", "c", "d"]);
+    ///
+    /// assert!(func.is_ok());
+    /// let func = func?;
+    ///
+    /// let result = func([1.0, 2.0, 3.0, 4.0]);
+    /// assert_eq!(result, 10.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     pub fn bind_n<const T: usize>(self, vars: [&'a str; T]) -> Result<impl Fn([f64; T]) -> f64 + 'a, BindError> {
         let variables: HashSet<&str> = HashSet::from(vars);
@@ -291,6 +678,30 @@ impl<'a> Xprs<'a> {
         Ok(move |vals| self.eval_unchecked(&vars.into_iter().zip(vals).collect()))
     }
 
+    /// Creates a function of any number of [`f64`] based on this [`Xprs`] instance.
+    ///
+    /// The returned closure takes a slice of [`f64`] as input and 
+    /// returns a [`Result`] containing an [`f64`] if the evaluation is successful, or an [`EvalError`] if an error occurs.
+    ///
+    /// # Errors
+    ///
+    /// A [`BindError`] is returned if one or more required variables were not provided.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use xprs::Parser;
+    ///
+    /// let expression = Parser::default().parse("a + b + c + d")?;
+    /// let func = expression.bind_n_runtime(&["a", "b", "c", "d"]);
+    ///
+    /// assert!(func.is_ok());
+    /// let func = func?;
+    ///
+    /// let result = func(&[1.0, 2.0, 3.0, 4.0])?;
+    /// assert_eq!(result, 10.0);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     pub fn bind_n_runtime(self, vars: &'a [&'a str]) -> Result<impl Fn(&[f64]) -> Result<f64, EvalError> + 'a, BindError> {
         let variables: HashSet<&str> = vars.iter().copied().collect();
@@ -305,6 +716,7 @@ impl<'a> Xprs<'a> {
     }
 }
 
+/// Represents errors that occur when binding variables for expression evaluation.
 #[derive(Debug, Eq, PartialEq, thiserror::Error)]
 #[non_exhaustive]
 pub enum BindError {
@@ -316,6 +728,7 @@ pub enum BindError {
 
 use std::collections::{hash_map::RandomState, hash_set::Difference};
 impl BindError {
+    /// Converts a [`Difference`] iterator of missing variables into a [`BindError`].
     fn from_diff(
         missing_vars: Difference<'_, &str, RandomState>,
     ) -> Option<Self> {

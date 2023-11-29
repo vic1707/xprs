@@ -3,19 +3,25 @@ use core::fmt;
 /* Crate imports */
 use crate::{element::Element, token::Operator};
 
+/// Represents a binary operation in the abstract syntax tree (AST).
 #[derive(Debug, PartialOrd)]
 pub struct BinOp<'a> {
+    /// The operator of the binary operation.
     pub(crate) op: Operator,
+    /// The left-hand side of the binary operation.
     pub(crate) lhs: Element<'a>,
+    /// The right-hand side of the binary operation.
     pub(crate) rhs: Element<'a>,
 }
 
 impl<'a> BinOp<'a> {
+    /// Creates a new [`BinOp`] from the binary operation components.
     const fn new(op: Operator, lhs: Element<'a>, rhs: Element<'a>) -> Self {
         Self { op, lhs, rhs }
     }
 
-    pub fn new_element(
+    /// Creates a new `Element::BinOp` from the binary operation components.
+    pub(crate) fn new_element(
         op: Operator,
         lhs: Element<'a>,
         rhs: Element<'a>,

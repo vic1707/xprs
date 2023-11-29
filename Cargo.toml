@@ -1,7 +1,25 @@
 [package]
 name = "xprs"
-version = "0.1.0"
+version = "0.0.1-beta1"
 edition = "2021"
+authors = ["Victor LEFEBVRE <contact@vic1707.xyz>"]
+description = "**Xprs** is a flexible and extensible mathematical expression parser and evaluator for Rust, designed for simplicity and ease of use."
+documentation = "https://docs.rs/xprs"
+homepage = "https://github.com/vic1707/xprs"
+license = "WTFPL"
+readme = "README.md"
+repository = "https://github.com/vic1707/xprs"
+include = [
+    "src/**/*",
+    "Cargo.toml",
+    "Cargo.lock",
+    "build.rs",
+    "README.md",
+    "LICENSE",
+]
+categories = ["science", "mathematics", "parser-implementations"]
+keywords = ["parser", "math", "library"]
+rust-version = "1.70.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
