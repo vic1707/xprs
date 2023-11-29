@@ -20,7 +20,7 @@ impl Function {
     /// Creates a new [`Function`] from static function components.
     /// Note that the fn pointer must be a function that takes a slice of f64 as argument and returns a f64.
     /// So make sure to wrap your function in a closure if it doesn't match the signature.
-    /// For convenience, you can use the [`xprs_fn!`] macro.
+    /// For convenience, you can use the [`crate::xprs_fn!`] macro.
     ///
     /// [`Function`] needs a fn taking a slice because Rust variadics are not available yet.
     #[inline]
@@ -124,7 +124,7 @@ impl PartialOrd for FnPointer {
 }
 
 /// Macro for defining functions for xprs' context easily, with optional variadic support.
-/// This macro is provided for convenience, since [`Function`] needs a fn taking a slice of [`f64`] as argument.
+/// This macro is provided for convenience, since [`crate::Function`] needs a fn taking a slice of [`f64`] as argument.
 /// The macro will wrap your function in a closure depending on the number of arguments you provide.
 /// Be aware that the provided function gets moved into the closure, so if you want to use it again, you'll have to clone it.
 ///

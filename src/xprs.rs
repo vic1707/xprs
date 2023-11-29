@@ -8,7 +8,7 @@ use crate::{
     element::Element,
     element::Simplify,
     token::Operator,
-    utils::macros::{trust_me, yeet},
+    utils::hidden_macros::{trust_me, yeet},
 };
 
 /// Represents a mathematical expression and its variables.
@@ -110,6 +110,7 @@ impl Xprs<'_> {
     /// // we didn't provide the variables, so this should panic
     /// assert_panic!(xprs.eval_unchecked(&HashMap::new()));
     /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     #[inline]
     #[must_use]
     pub fn eval_unchecked(&self, variables: &HashMap<&str, f64>) -> f64 {

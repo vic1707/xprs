@@ -2,6 +2,7 @@
 
 [<img alt="github" src="https://img.shields.io/badge/github-vic1707/xprs-8da0cb?style=for-the-badge&labelColor=555555&logo=github" height="20">](https://github.com/vic1707/xprs)
 [<img alt="crates.io" src="https://img.shields.io/crates/v/xprs.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/xprs)
+[<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/vic1707/xprs/tests.yml?branch=main&style=for-the-badge" height="20">](https://github.com/vic1707/xprs/actions?query=branch%3Amain)
 [<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-xprs-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" height="20">](https://docs.rs/xprs)
 [<img alt="downloads" src="https://img.shields.io/crates/d/xprs.svg?style=for-the-badge&logo=docs.rs" height="20">](https://crates.io/crates/xprs)
 
@@ -81,6 +82,8 @@ fn main() {
 }
 ```
 
+Note: Numbers are parsed as [`f64`] so you can use scientific notation (e.g. `1e-3`) with underscores (e.g. `1_000_000e2`).
+
 If you want to evaluate a calculus that contains variables, you can use the `eval` method (or `eval_unchecked` if you know for sure you're not missing any variables):
 
 ```rust
@@ -111,15 +114,17 @@ You can use functions `bind`, `bind2` etc up to `bind9` to bind variables to the
 If you ever need more, you can use the `bind_n` and `bind_n_runtime` methods which takes an array of size N or a slice respectively.
 
 Notes:
-All `bind` function (except `bind_n_runtime`) returns a `Result` of a function which is guarenteed to return a `f64`.
-`bind_n_runtime` returns a `Result` of a function which also returns a `Result` of a `f64` since there are no guarentees that the array/slice will be of the correct size.
+All `bind` function (except `bind_n_runtime`) returns a [`Result`] of a function which is guarenteed to return a [`f64`].
+`bind_n_runtime` returns a [`Result`] of a function which also returns a [`Result`] of a [`f64`] since there are no guarentees that the array/slice will be of the correct size.
 
 ### Context and Parser
 
-You can also create a `Context` and a `Parser` instance if you want to define your own functions and/or constants and use them repeatedly.
+You can also create a [`Context`] and a [`Parser`] instance if you want to define your own functions and/or constants and use them repeatedly.
+
+Constants and Functions can have any name that starts with a letter (uppercase of not) and contains only `[A-Za-z0-9_']`.
 
 Functions need to have a signature of `fn(&[f64]) -> f64` so they all have the same signature and can be called the same way.
-We also need a name and the number of arguments the function takes, which is an `Option<usize`, if `None` then the function can take any number of arguments.
+We also need a name and the number of arguments the function takes, which is an [`Option<usize>`], if [`None`] then the function can take any number of arguments.
 You can define functions like so:
 
 ```rust
@@ -131,7 +136,7 @@ fn double(x: f64) -> f64 {
 
 const DOUBLE: Function = Function::new("double", move |args| double(args[0]), Some(1));
 // or with the macro (will do an automatic wrapping)
-const DOUBLE: Function = xprs_fn!("double", double, 1);
+const DOUBLE_MACRO: Function = xprs_fn!("double", double, 1);
 
 fn variadic_sum(args: &[f64]) -> f64 {
     args.iter().sum()
@@ -139,10 +144,10 @@ fn variadic_sum(args: &[f64]) -> f64 {
 
 const SUM: Function = Function::new("sum", variadic_sum, None);
 // or with the macro (no wrapping is done for variadic functions)
-const SUM: Function = xprs_fn!("sum", variadic_sum);
+const SUM_MACRO: Function = xprs_fn!("sum", variadic_sum);
 ```
 
-To use a `Context` and a `Parser` you can do the following:
+To use a [`Context`] and a [`Parser`] you can do the following:
 
 ```rust
 use xprs::{xprs_fn, Context, Parser};
@@ -160,9 +165,9 @@ fn main() {
 }
 ```
 
-Note: `Context` is just a wrapper around a `Hashmap` so you cannot have a function and a constant with the same name (the last one will override the first one).
+Note: [`Context`] is just a wrapper around a `HashMap` so you cannot have a function and a constant with the same name (the last one will override the first one).
 
-You can also use the `Context` to restrict the allowed variables in the calculus:
+You can also use the [`Context`] to restrict the allowed variables in the calculus:
 
 ```rust
 use xprs::{Context, Parser};
@@ -179,6 +184,41 @@ fn main() {
     println!("{result:#?} {fail:#?}");
 }
 ```
+
+### Error handling
+
+All errors are implemented using the [`thiserror`](https://crates.io/crates/thiserror).
+And parsing errors are implemented using the [`miette`](https://crates.io/crates/miette) crate.
+<img src="./assets/error.png" alt="Error message" width="300"/>
+
+### Supported operations, built-in constants & functions
+
+#### Operations
+
+Xprs supports the following operations:
+
+- Binary operations: `+`, `-`, `*`, `/`, `^`, `%`.
+- Unary operations: `+`, `-`. <!--, `!` -->
+
+#### Built-in constants
+
+| Constant | Value | Approximation       |
+| -------- | ----- | ------------------- |
+| `PI`     | `π`   | `3.141592653589793` |
+| `E`      | `e`   | `2.718281828459045` |
+
+#### Built-in functions
+
+Xprs supports a variety of functions:
+
+- trigonometric functions: `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `atan2`, `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`.
+- logarithmic functions: `ln` (base 2), `log` (base 10), `logn` (base n, used as `logn(num, base)`).
+- power functions: `sqrt`, `cbrt`, `exp`.
+- rounding functions: `floor`, `ceil`, `round`, `trunc`.
+- other functions: `abs`, `min`, `max`, `hypot`, `fract`, `recip` (`invert` alias), `sum`, `mean`.
+
+Note: `min` and `max` can take any number of arguments (if none, returns `f64::INFINITY` and `-f64::INFINITY` respectively).
+Note2: `sum` and `mean` can take any number of arguments (if none, returns `0` and `f64::NAN` respectively).
 
 ### Advanced examples
 
@@ -214,3 +254,16 @@ Copyright © 2023 [Victor LEFEBVRE](contact@vic1707.xyz)
 This work is free. You can redistribute it and/or modify it under the
 terms of the Do What The Fuck You Want To Public License, Version 2,
 as published by Sam Hocevar. See the [LICENCE](./LICENCE). file for more details.
+
+## TODOs
+
+Here is a non-exhaustive list of the things I want to do/add in the future:
+
+- [ ] Better CI/CD.
+- [ ] Remove lifetimes by replacing `&str` with something like [`byteyarn`](https://crates.io/crates/byteyarn).
+- [ ] Complex numbers support.
+- [ ] Macro for defining the [`Context`] like the one in [`evalexpr`](https://crates.io/crates/evalexpr).
+- [ ] Support for dynamic [`Function`] name.
+- [ ] Native variadics (when rust supports them in stable).
+
+If one of them picks your interest feel free to open a PR!
