@@ -82,7 +82,7 @@ fn main() {
 }
 ```
 
-Note: Numbers are parsed as `f64` so you can use scientific notation (e.g. `1e-3`) with underscores (e.g. `1_000_000e2`).
+Note: Numbers are parsed as [`f64`] so you can use scientific notation (e.g. `1e-3`) with underscores (e.g. `1_000_000e2`).
 
 If you want to evaluate a calculus that contains variables, you can use the `eval` method (or `eval_unchecked` if you know for sure you're not missing any variables):
 
@@ -114,17 +114,17 @@ You can use functions `bind`, `bind2` etc up to `bind9` to bind variables to the
 If you ever need more, you can use the `bind_n` and `bind_n_runtime` methods which takes an array of size N or a slice respectively.
 
 Notes:
-All `bind` function (except `bind_n_runtime`) returns a `Result` of a function which is guarenteed to return a `f64`.
-`bind_n_runtime` returns a `Result` of a function which also returns a `Result` of a `f64` since there are no guarentees that the array/slice will be of the correct size.
+All `bind` function (except `bind_n_runtime`) returns a [`Result`] of a function which is guarenteed to return a [`f64`].
+`bind_n_runtime` returns a [`Result`] of a function which also returns a [`Result`] of a [`f64`] since there are no guarentees that the array/slice will be of the correct size.
 
 ### Context and Parser
 
-You can also create a `Context` and a `Parser` instance if you want to define your own functions and/or constants and use them repeatedly.
+You can also create a [`Context`] and a [`Parser`] instance if you want to define your own functions and/or constants and use them repeatedly.
 
 Constants and Functions can have any name that starts with a letter (uppercase of not) and contains only `[A-Za-z0-9_']`.
 
 Functions need to have a signature of `fn(&[f64]) -> f64` so they all have the same signature and can be called the same way.
-We also need a name and the number of arguments the function takes, which is an `Option<usize>`, if `None` then the function can take any number of arguments.
+We also need a name and the number of arguments the function takes, which is an [`Option<usize>`], if [`None`] then the function can take any number of arguments.
 You can define functions like so:
 
 ```rust
@@ -136,7 +136,7 @@ fn double(x: f64) -> f64 {
 
 const DOUBLE: Function = Function::new("double", move |args| double(args[0]), Some(1));
 // or with the macro (will do an automatic wrapping)
-const DOUBLE: Function = xprs_fn!("double", double, 1);
+const DOUBLE_MACRO: Function = xprs_fn!("double", double, 1);
 
 fn variadic_sum(args: &[f64]) -> f64 {
     args.iter().sum()
@@ -144,10 +144,10 @@ fn variadic_sum(args: &[f64]) -> f64 {
 
 const SUM: Function = Function::new("sum", variadic_sum, None);
 // or with the macro (no wrapping is done for variadic functions)
-const SUM: Function = xprs_fn!("sum", variadic_sum);
+const SUM_MACRO: Function = xprs_fn!("sum", variadic_sum);
 ```
 
-To use a `Context` and a `Parser` you can do the following:
+To use a [`Context`] and a [`Parser`] you can do the following:
 
 ```rust
 use xprs::{xprs_fn, Context, Parser};
@@ -165,9 +165,9 @@ fn main() {
 }
 ```
 
-Note: `Context` is just a wrapper around a `Hashmap` so you cannot have a function and a constant with the same name (the last one will override the first one).
+Note: [`Context`] is just a wrapper around a `HashMap` so you cannot have a function and a constant with the same name (the last one will override the first one).
 
-You can also use the `Context` to restrict the allowed variables in the calculus:
+You can also use the [`Context`] to restrict the allowed variables in the calculus:
 
 ```rust
 use xprs::{Context, Parser};
@@ -243,8 +243,8 @@ Here is a non-exhaustive list of the things I want to do/add in the future:
 - [ ] Better CI/CD.
 - [ ] Remove lifetimes by replacing `&str` with something like [`byteyarn`](https://crates.io/crates/byteyarn).
 - [ ] Complex numbers support.
-- [ ] Macro for defining the `Context` like the one in [`evalexpr`](https://crates.io/crates/evalexpr).
-- [ ] Support for dynamic `Function` name.
+- [ ] Macro for defining the [`Context`] like the one in [`evalexpr`](https://crates.io/crates/evalexpr).
+- [ ] Support for dynamic [`Function`] name.
 - [ ] Native variadics (when rust supports them in stable).
 
 If one of them picks your interest feel free to open a PR!
