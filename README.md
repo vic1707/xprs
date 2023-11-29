@@ -82,6 +82,8 @@ fn main() {
 }
 ```
 
+Note: Numbers are parsed as `f64` so you can use scientific notation (e.g. `1e-3`) with underscores (e.g. `1_000_000e2`).
+
 If you want to evaluate a calculus that contains variables, you can use the `eval` method (or `eval_unchecked` if you know for sure you're not missing any variables):
 
 ```rust
@@ -118,6 +120,8 @@ All `bind` function (except `bind_n_runtime`) returns a `Result` of a function w
 ### Context and Parser
 
 You can also create a `Context` and a `Parser` instance if you want to define your own functions and/or constants and use them repeatedly.
+
+Constants and Functions can have any name that starts with a letter (uppercase of not) and contains only `[A-Za-z0-9_']`.
 
 Functions need to have a signature of `fn(&[f64]) -> f64` so they all have the same signature and can be called the same way.
 We also need a name and the number of arguments the function takes, which is an `Option<usize`, if `None` then the function can take any number of arguments.
