@@ -4,7 +4,7 @@ use std::collections::{HashMap, HashSet};
 use crate::token::Function;
 
 /// Represents a symbol in the context.
-#[derive(Debug, PartialEq, PartialOrd, Clone, Copy)]
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 #[non_exhaustive]
 pub enum Symbol {
     /// A variable.
@@ -38,7 +38,8 @@ impl From<Function> for Symbol {
 /// let mut context = Context::default()
 ///     .with_expected_vars(["y"].into())
 ///     .with_var("x", 42.0)
-///     .with_fn(sin_xprs_func);
+///     // clone because assert_eq! is used later
+///     .with_fn(sin_xprs_func.clone());
 ///
 /// let x_var = context.get("x");
 /// assert_eq!(x_var, Some(&Symbol::Variable(42.0)));

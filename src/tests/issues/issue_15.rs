@@ -2,9 +2,8 @@
 #![allow(clippy::min_ident_chars)]
 use core::f64::consts::E;
 /* Crate imports */
+use super::super::macros::assert_f64_eq;
 use crate::Parser;
-
-const ERROR_MARGIN: f64 = f64::EPSILON;
 
 const VALID_TEST_CASES: [(&str, f64); 9] = [
     ("1", 1.0),
@@ -31,8 +30,9 @@ fn parse_number() {
         let result = parser.parse(input).unwrap().eval(&[].into());
         assert!(result.is_ok(), "Should have parsed: '{input}'.");
         let value = result.unwrap();
-        assert!(
-            (value - expected).abs() < ERROR_MARGIN,
+        assert_f64_eq!(
+            value,
+            expected,
             "{input}\nExpected: {expected}, got: {value}"
         );
     }

@@ -3,7 +3,7 @@ use crate::{
     context::{Context, Symbol},
     element::{BinOp, Element, FunctionCall, UnOp},
     parser::{ErrorKind, ParseError, Parser},
-    token::{Function, Identifier, Operator},
+    token::{FnPointer, Function, Identifier, Operator},
     xprs::{BindError, EvalError, Xprs},
 };
 
@@ -24,6 +24,7 @@ const fn test_thread_safety() {
     is_sized_send_sync_unpin::<ParseError>();
     is_sized_send_sync_unpin::<Parser>();
     // token module
+    is_sized_send_sync_unpin::<FnPointer>();
     is_sized_send_sync_unpin::<Function>();
     is_sized_send_sync_unpin::<Identifier>();
     is_sized_send_sync_unpin::<Operator>();

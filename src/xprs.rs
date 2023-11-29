@@ -87,11 +87,12 @@ impl Xprs<'_> {
     ///
     /// ```
     /// use xprs::Xprs;
+    /// # use std::panic;
     /// # macro_rules! assert_panic {
     /// #     ($($t:tt)*) => {
-    /// #         std::panic::catch_unwind(|| {
+    /// #         panic::catch_unwind(panic::AssertUnwindSafe(|| {
     /// #             $($t)*
-    /// #         }).is_err()
+    /// #         })).is_err()
     /// #     }
     /// # }
     /// use std::collections::HashMap;

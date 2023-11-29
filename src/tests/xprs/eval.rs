@@ -1,9 +1,8 @@
 /* Built-in imports */
 use std::collections::HashMap;
 /* Crate imports */
+use super::super::macros::assert_f64_eq;
 use crate::Parser;
-
-const ERROR_MARGIN: f64 = f64::EPSILON;
 
 // shitty type because of clippy and default numeric fallback
 // https://github.com/rust-lang/rust-clippy/issues/11535
@@ -46,8 +45,9 @@ fn test_valid_eval() {
         let var_map: HashMap<&str, f64> = vars.iter().copied().collect();
         let xprs = parser.parse(input).unwrap();
         let result = xprs.eval(&var_map).unwrap();
-        assert!(
-            (result - expected).abs() < ERROR_MARGIN,
+        assert_f64_eq!(
+            result,
+            expected,
             "{input}\nExpected: {expected}, got: {result}"
         );
     }

@@ -230,7 +230,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         let ident = self
             .ctx
             .get(name)
-            .copied()
+            .cloned()
             .map_or_else(|| Identifier::from_str(name), Into::into);
 
         let el = match ident {
