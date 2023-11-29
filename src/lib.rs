@@ -224,7 +224,23 @@
 //!
 //! ## Higher order functions
 //!
-//! TODO: Coming soon
+//! You can define functions in a context based on a previously parsed expression.
+//!
+//! ```rust
+//! use xprs::{xprs_fn, Context, Parser, Xprs};
+//!
+//! fn main() {
+//!     let xprs_hof = Xprs::try_from("2x + y").unwrap();
+//!     let fn_hof = xprs_hof.bind2("x", "y").unwrap();
+//!     let hof = xprs_fn!("hof", dyn fn_hof, 2);
+//!     let ctx = Context::default().with_fn(hof);
+//!     let parser = Parser::new_with_ctx(ctx);
+//!
+//!     let xprs = parser.parse("hof(2, 3)").unwrap();
+//!
+//!     println!("hof(2, 3) = {}", xprs.eval_no_vars().unwrap());
+//! }
+//! ```
 //!
 //! These examples and others can be found in the [examples](./examples) directory.
 //!
