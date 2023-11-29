@@ -280,7 +280,7 @@
 
 /* NIGHTLY Features */
 // box-patterns if nightly
-#![cfg_attr(NIGHTLY, feature(box_patterns))]
+#![cfg_attr(NIGHTLY, feature(box_patterns, float_gamma))]
 /* Clippy config */
 #![allow(clippy::pub_use, clippy::needless_doctest_main)]
 /* Modules */
