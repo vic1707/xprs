@@ -37,6 +37,7 @@ impl fmt::Display for BinOp<'_> {
 }
 
 impl PartialEq for BinOp<'_> {
+    #[allow(clippy::unreachable)]
     fn eq(&self, other: &Self) -> bool {
         self.op == other.op
             && match self.op {
@@ -52,6 +53,8 @@ impl PartialEq for BinOp<'_> {
                     (self.lhs == other.lhs && self.rhs == other.rhs)
                         || (self.lhs == other.rhs && self.rhs == other.lhs)
                 },
+                // not a binary operator
+                Operator::Factorial => unreachable!(),
             }
     }
 }

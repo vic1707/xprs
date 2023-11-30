@@ -208,7 +208,9 @@
 //! Xprs supports the following operations:
 //!
 //! - Binary operations: `+`, `-`, `*`, `/`, `^`, `%`.
-//! - Unary operations: `+`, `-`. <!--, `!` -->
+//! - Unary operations: `+`, `-`, `!`.
+//!
+//! Note: `!` (factorial) is only supported on positive integers. Calling it on a negative integer or a float will result in `f64::NAN`. Also `-4!` is interpreted as `-(4!)` and not `(-4)!`.
 //!
 //! #### Built-in constants
 //!
@@ -225,7 +227,7 @@
 //! - logarithmic functions: `ln` (base 2), `log` (base 10), `logn` (base n, used as `logn(num, base)`).
 //! - power functions: `sqrt`, `cbrt`, `exp`.
 //! - rounding functions: `floor`, `ceil`, `round`, `trunc`.
-//! - other functions: `abs`, `min`, `max`, `hypot`, `fract`, `recip` (`invert` alias), `sum`, `mean`.
+//! - other functions: `abs`, `min`, `max`, `hypot`, `fract`, `recip` (`invert` alias), `sum`, `mean`, `factorial` and `gamma`.
 //!
 //! Note: `min` and `max` can take any number of arguments (if none, returns `f64::INFINITY` and `-f64::INFINITY` respectively).
 //! Note2: `sum` and `mean` can take any number of arguments (if none, returns `0` and `f64::NAN` respectively).
@@ -303,7 +305,7 @@
 
 /* NIGHTLY Features */
 // box-patterns if nightly
-#![cfg_attr(NIGHTLY, feature(box_patterns))]
+#![cfg_attr(NIGHTLY, feature(box_patterns, float_gamma))]
 /* Clippy config */
 #![allow(clippy::pub_use, clippy::needless_doctest_main)]
 /* Modules */

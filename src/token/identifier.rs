@@ -60,6 +60,8 @@ impl<'a> Identifier<'a> {
             "max" => built_in_functions::MAX.into(),
             "hypot" => built_in_functions::HYPOT.into(),
             "fract" => built_in_functions::FRACT.into(),
+            "gamma" => built_in_functions::GAMMA.into(),
+            "factorial" => built_in_functions::FACTORIAL.into(),
             /* Variables */
             _ => Identifier::Variable(value),
         }
