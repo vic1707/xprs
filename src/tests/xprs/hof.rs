@@ -24,8 +24,5 @@ fn test_higher_order_functions() {
 
     let nested_var_use = parser.parse("hof(x, hof(2, 3))").unwrap();
     let var_x: (&str, f64) = ("x", 42.0);
-    assert_f64_eq!(
-        nested_var_use.eval_unchecked(&[var_x].into()),
-        91.0
-    );
+    assert_f64_eq!(nested_var_use.eval_unchecked(&[var_x].into()), 91.0);
 }
