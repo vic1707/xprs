@@ -20,11 +20,9 @@ fn test_higher_order_functions() {
     );
 
     let complex_use = parser.parse("hof(2, 3) + 3 * hof(4, 5)").unwrap();
-    assert_f64_eq!(complex_use.eval_unchecked(&[].into()), 46.0_f64);
+    assert_f64_eq!(complex_use.eval_unchecked(&[].into()), 46.0);
 
     let nested_var_use = parser.parse("hof(x, hof(2, 3))").unwrap();
-    assert_f64_eq!(
-        nested_var_use.eval_unchecked(&[("x", 42.0_f64)].into()),
-        91.0_f64
-    );
+    let var_x: (&str, f64) = ("x", 42.0);
+    assert_f64_eq!(nested_var_use.eval_unchecked(&[var_x].into()), 91.0);
 }
