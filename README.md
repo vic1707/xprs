@@ -297,5 +297,6 @@ Here is a non-exhaustive list of the things I want to do/add in the future:
 - [ ] Macro for defining the [`Context`] like the one in [`evalexpr`](https://crates.io/crates/evalexpr).
 - [ ] Support for dynamic [`Function`] name.
 - [ ] Native variadics (when rust supports them in stable).
+- [ ] Have [`Xprs`] be generic, taking float for its return type if that's even possible (regarding the dependency on [`Context`]).
 
 If one of them picks your interest feel free to open a PR!
