@@ -3,6 +3,9 @@ name: CI
 on:
   workflow_call:
     inputs:
+      os:
+        required: true
+        type: string
       rust-version:
         required: true
         type: string
@@ -12,7 +15,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.os }}
     steps:
       - run: |
           echo "rust-version: ${{ inputs.rust-version }}"
