@@ -94,7 +94,7 @@ impl<'names> Context<'names> {
     /// Sets the expected variables for the context.
     #[inline]
     pub fn set_expected_vars(&mut self, expected_vars: HashSet<&'names str>) {
-        self.expected_vars = Some(expected_vars);
+        self.expected_vars.replace(expected_vars);
     }
 
     /// Sets the expected variables for the context, returning the context.
@@ -104,7 +104,7 @@ impl<'names> Context<'names> {
         mut self,
         expected_vars: HashSet<&'names str>,
     ) -> Self {
-        self.expected_vars = Some(expected_vars);
+        self.expected_vars.replace(expected_vars);
         self
     }
 
