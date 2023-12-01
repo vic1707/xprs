@@ -6,7 +6,11 @@ on:
   workflow_dispatch:
 
 jobs:
+  pre_ci:
+    uses: dtolnay/.github/.github/workflows/pre_ci.yml@master
+
   fmt:
+    needs: pre_ci
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
