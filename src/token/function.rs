@@ -100,7 +100,7 @@ impl PartialEq for FnPointer {
     fn eq(&self, other: &Self) -> bool {
         match *self {
             Self::Static(func1) => match *other {
-                Self::Static(func2) => func1 == func2,
+                Self::Static(func2) => func1 as usize == func2 as usize,
                 Self::Dyn(_) => false,
             },
             Self::Dyn(ref func1) => match *other {

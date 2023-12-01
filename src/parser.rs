@@ -369,7 +369,10 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
 impl ParserImpl<'_, '_> {
     /// Skips characters while the given predicate is true.
     fn skip_while(&mut self, predicate: fn(&u8) -> bool) {
-        while self.current().is_some_and(predicate) {
+        while match self.current() {
+            Some(ch) => predicate(ch),
+            None => false,
+        } {
             self.cursor += 1;
         }
     }
