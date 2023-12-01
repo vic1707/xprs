@@ -22,7 +22,7 @@ jobs:
         uses: IronCoreLabs/rust-toolchain@v1
         with:
           toolchain: ${{ inputs.rust-version }}
-      - run: cargo check --no-default-features --features ${{ inputs.enabled-feature-set }}
+      - run: cargo check --no-default-features --features "${{ inputs.enabled-feature-set }}"
 
   # tests:
   #   needs: build
