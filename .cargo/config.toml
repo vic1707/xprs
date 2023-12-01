@@ -11,7 +11,6 @@ rustflags = [
   "-Aclippy::mod_module_files",                 # clippy::self_named_module_files     - `./foo/mod.rs` instead of (`./foo.rs` + `./foo/*.rs`)
   "-Aclippy::separated_literal_suffix",         # clippy::unseparated-literal-suffix  - 2.0_f32 vs 2.0f32
   ## Allowed ##
-  "-Aclippy::arithmetic-side-effects",          # cursor/counters increments
   "-Aclippy::float-arithmetic",                 # used during evaluation
   "-Aclippy::modulo-arithmetic",                # used during evaluation
   "-Aclippy::undocumented-unsafe-blocks",       # ok to not document if using `trust_me!` macro (if we are 100% sure)

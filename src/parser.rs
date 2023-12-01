@@ -187,8 +187,11 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
 
     /// Parses an atomic element of the mathematical expression.
     fn atom(&mut self) -> Result<Element<'input>, ParseError> {
-        let Some(&next) = self.next_trim() else {
-            yeet!(ParseError::new_unexpected_end_of_expression(self));
+        let next = match self.next_trim() {
+            Some(&tok) => tok,
+            None => {
+                yeet!(ParseError::new_unexpected_end_of_expression(self));
+            }
         };
         let atom = match next {
             /* Number */
