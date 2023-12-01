@@ -3,9 +3,6 @@ name: CI
 on:
   workflow_call:
     inputs:
-      os:
-        required: true
-        type: string
       rust-version:
         required: true
         type: string
@@ -15,8 +12,11 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ github.event.inputs.os }}
+    runs-on: ubuntu-latest
     steps:
+      - run: |
+          echo "rust-version: ${{ github.event.inputs.rust-version }}"
+          echo "enabled-feature-set: ${{ github.event.inputs.enabled-feature-set }}"
       - uses: actions/checkout@v4
       - name: Install Rust
         uses: IronCoreLabs/rust-toolchain@v1
