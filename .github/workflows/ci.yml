@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+      rust-version:
+        required: true
+        type: string
+      enabled-feature-set:
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ${{ github.event.inputs.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: IronCoreLabs/rust-toolchain@v1
+        with:
+          toolchain: ${{ github.event.inputs.rust-version }}
+      - run: cargo check --no-default-features --features ${{ github.event.inputs.enabled-feature-set }}
+
+  tests:
+    needs: build
+    runs-on: ${{ github.event.inputs.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: IronCoreLabs/rust-toolchain@v1
+        with:
+          toolchain: ${{ github.event.inputs.rust-version }}
+      - run: cargo test --no-default-features --features ${{ github.event.inputs.enabled-feature-set }}
+
+  miri:
+    needs: build
+    runs-on: ${{ github.event.inputs.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: IronCoreLabs/rust-toolchain@v1
+        with:
+          toolchain: ${{ github.event.inputs.rust-version }}
+      - run: cargo miri setup
+      - run: cargo miri test --no-default-features --features ${{ github.event.inputs.enabled-feature-set }}
+        env:
+          MIRIFLAGS: -Zmiri-strict-provenance
