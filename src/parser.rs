@@ -413,7 +413,7 @@ impl ParserImpl<'_, '_> {
         let current_byte = *self.next_trim()?;
         // check for binary operator
         if let Ok(op) = Operator::try_from(current_byte) {
-            let op_p = precedence::get_for_op(&op);
+            let op_p = precedence::get_for_op(op);
             if op_p <= precedence {
                 return None;
             }
