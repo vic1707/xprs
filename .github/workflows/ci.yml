@@ -17,9 +17,6 @@ jobs:
   build:
     runs-on: ${{ inputs.os }}
     steps:
-      - run: |
-          echo "rust-version: ${{ inputs.rust-version }}"
-          echo "enabled-feature-set: ${{ inputs.enabled-feature-set }}"
       - uses: actions/checkout@v4
       - name: Install Rust
         uses: IronCoreLabs/rust-toolchain@v1
