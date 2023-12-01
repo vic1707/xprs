@@ -50,7 +50,7 @@ impl From<Function> for Symbol {
 /// let expected_vars = context.get_expected_vars();
 /// assert_eq!(expected_vars, Some(&["y"].into()));
 /// ```
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Default, PartialEq, Clone)]
 pub struct Context<'names> {
     /// The symbols that are available in the context.
     symbols: HashMap<&'names str, Symbol>,

@@ -4,7 +4,7 @@ use alloc::sync::Arc;
 use core::{cmp::Ordering, fmt, ops::Deref};
 
 /// Represents a mathematical function core informations.
-#[derive(Debug, PartialEq, PartialOrd, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 #[non_exhaustive]
 pub struct Function {
     /// The name of the function.
@@ -55,6 +55,13 @@ impl Function {
     }
 }
 
+impl PartialOrd for Function {
+    #[inline]
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.name.partial_cmp(other.name)
+    }
+}
+
 /// A dynamic function reference.
 type DynFn = dyn Fn(&[f64]) -> f64 + Send + Sync;
 
@@ -99,24 +106,6 @@ impl PartialEq for FnPointer {
             Self::Dyn(ref func1) => match *other {
                 Self::Dyn(ref func2) => Arc::ptr_eq(func1, func2),
                 Self::Static(_) => false,
-            },
-        }
-    }
-}
-
-impl PartialOrd for FnPointer {
-    #[inline]
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        match *self {
-            Self::Static(func1) => match *other {
-                Self::Static(func2) => Some(func1.cmp(&func2)),
-                Self::Dyn(_) => None,
-            },
-            Self::Dyn(ref func1) => match *other {
-                Self::Dyn(ref func2) => {
-                    Some(Arc::as_ptr(func1).cmp(&Arc::as_ptr(func2)))
-                },
-                Self::Static(_) => None,
             },
         }
     }

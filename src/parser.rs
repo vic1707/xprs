@@ -34,7 +34,7 @@ use crate::{
 /// let result = parser.parse(expression);
 /// assert!(result.is_ok());
 /// ```
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Default, PartialEq, Clone)]
 pub struct Parser<'ctx> {
     /// The context of the parser.
     ctx: Context<'ctx>,
@@ -448,7 +448,7 @@ impl ParserImpl<'_, '_> {
 }
 
 /// Represents an error that occurred during parsing.
-#[derive(Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(Debug, Eq, PartialEq, thiserror::Error, Clone, Hash)]
 #[error("{kind}")]
 pub struct ParseError {
     /// The kind of parsing error.
@@ -524,7 +524,9 @@ impl miette::Diagnostic for ParseError {
 }
 
 /// Represents the kind of error that occurred during parsing.
-#[derive(Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    Debug, Eq, PartialEq, thiserror::Error, PartialOrd, Ord, Clone, Hash,
+)]
 #[non_exhaustive]
 pub enum ErrorKind {
     /// Unexpected end of expression error.

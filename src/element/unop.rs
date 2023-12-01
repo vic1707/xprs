@@ -4,7 +4,7 @@ use core::fmt;
 use crate::{element::Element, token::Operator};
 
 /// Represents a unary operation in the abstract syntax tree (AST).
-#[derive(Debug, PartialEq, PartialOrd)]
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct UnOp<'a> {
     /// The operator of the unary operation.
     pub(crate) op: Operator,

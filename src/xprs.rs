@@ -15,7 +15,7 @@ use crate::{
 };
 
 /// Represents a mathematical expression and its variables.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 #[non_exhaustive]
 pub struct Xprs<'a> {
     /// The root element of the expression.
@@ -362,7 +362,9 @@ impl XprsImpl<'_> {
 }
 
 /// Represents an error that occurs during expression evaluation, indicating that a variable was not provided.
-#[derive(Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    Debug, Eq, PartialEq, thiserror::Error, Clone, Hash, Ord, PartialOrd,
+)]
 #[error("Evaluation error: '{0}' was not provided")]
 pub struct EvalError(String);
 
@@ -727,7 +729,9 @@ impl<'a> Xprs<'a> {
 }
 
 /// Represents errors that occur when binding variables for expression evaluation.
-#[derive(Debug, Eq, PartialEq, thiserror::Error)]
+#[derive(
+    Debug, Eq, PartialEq, thiserror::Error, Clone, Hash, Ord, PartialOrd,
+)]
 #[non_exhaustive]
 pub enum BindError {
     #[error("Variable '{0}' was not provided")]

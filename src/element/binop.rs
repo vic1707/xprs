@@ -4,7 +4,7 @@ use core::fmt;
 use crate::{element::Element, token::Operator};
 
 /// Represents a binary operation in the abstract syntax tree (AST).
-#[derive(Debug, PartialOrd)]
+#[derive(Debug, PartialOrd, Clone)]
 pub struct BinOp<'a> {
     /// The operator of the binary operation.
     pub(crate) op: Operator,

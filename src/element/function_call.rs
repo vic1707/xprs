@@ -4,7 +4,7 @@ use core::fmt;
 use crate::{element::Element, token::Function};
 
 /// Represents a function call in the abstract syntax tree (AST).
-#[derive(Debug, PartialEq, PartialOrd)]
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct FunctionCall<'a> {
     /// The function being called.
     pub(crate) desc: Function,

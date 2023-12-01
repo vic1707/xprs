@@ -2,7 +2,7 @@
 use core::fmt;
 
 /// Represents a mathematical operator.
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Copy, Hash)]
 pub enum Operator {
     /// Addition operator.
     Plus,

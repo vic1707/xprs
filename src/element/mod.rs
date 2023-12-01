@@ -17,7 +17,7 @@ pub use simplify::Simplify;
 pub use unop::UnOp;
 
 /// Represents an element in the abstract syntax tree (AST).
-#[derive(Debug, PartialEq, PartialOrd)]
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 #[non_exhaustive]
 pub enum Element<'a> {
     /// A number.
