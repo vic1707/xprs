@@ -33,7 +33,7 @@ jobs:
         uses: IronCoreLabs/rust-toolchain@v1
         with:
           toolchain: ${{ inputs.rust-version }}
-      - run: cargo test --no-default-features --features ${{ inputs.enabled-feature-set }}
+      - run: cargo test --no-default-features --features "${{ inputs.enabled-feature-set }}"
 
   miri:
     needs: build
@@ -47,7 +47,7 @@ jobs:
           toolchain: ${{ inputs.rust-version }}
           components: miri
       - run: cargo miri setup
-      - run: cargo miri test --no-default-features --features ${{ inputs.enabled-feature-set }}
+      - run: cargo miri test --no-default-features --features "${{ inputs.enabled-feature-set }}"
         env:
           MIRIFLAGS: -Zmiri-strict-provenance
 
@@ -60,4 +60,4 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install Rust
         uses: IronCoreLabs/rust-toolchain@v1
-      - run: cargo clippy --no-default-features --features ${{ inputs.enabled-feature-set }}
+      - run: cargo clippy --no-default-features --features "${{ inputs.enabled-feature-set }}"
