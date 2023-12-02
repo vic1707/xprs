@@ -10,11 +10,11 @@ permissions:
   contents: read
 
 jobs:
-  # pre_ci:
-  #   uses: dtolnay/.github/.github/workflows/pre_ci.yml@master
+  pre_ci:
+    uses: dtolnay/.github/.github/workflows/pre_ci.yml@master
 
   setup_matrix:
-    # needs: pre_ci
+    needs: pre_ci
     strategy:
       fail-fast: true
       matrix:
