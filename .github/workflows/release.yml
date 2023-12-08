@@ -25,22 +25,22 @@ jobs:
       - uses: actions/checkout@v4
       - name: Retreive version from Cargo.toml
         id: new-version
-        run: echo ::set-output name=version::$(grep -m1 version Cargo.toml | cut -d '"' -f2)
+        run: echo "version=$(grep -m1 version Cargo.toml | cut -d '"' -f2)" >> $GITHUB_OUTPUT
       - name: Retreive version from Crates.io
         id: old-version
         # check exact repo name via api call since a crate named `exprs` exists and conflicts with this repo
         run: |
           VERSION=$(curl -s https://crates.io/api/v1/crates/${GITHUB_REPOSITORY#*/} | jq -r '.versions[0].num')
           if [ "$VERSION" == "null" ]; then
-            echo ::set-output name=version::
+            echo "version=" >> $GITHUB_OUTPUT
           else
-            echo ::set-output name=version::$VERSION
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
           fi
       - name: Compare versions
         id: compare-versions
         # if old-version is empty, then this is the first release
         # else we compare the two versions
-        run: echo ::set-output name=should-release::$(if [ -z "${{ steps.old-version.outputs.version }}" ]; then echo true; else echo ${{ steps.new-version.outputs.version }} != ${{ steps.old-version.outputs.version }}; fi)
+        run: echo "should-release=$(if [ -z "${{ steps.old-version.outputs.version }}" ]; then echo true; else echo ${{ steps.new-version.outputs.version }} != ${{ steps.old-version.outputs.version }}; fi)" >> $GITHUB_OUTPUT
 # if we are releasing, then can install rust and publish to crates.io      
       - name: Install Rust
         if: steps.compare-versions.outputs.should-release == 'true'
