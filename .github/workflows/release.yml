@@ -40,7 +40,7 @@ jobs:
         id: compare-versions
         # if old-version is empty, then this is the first release
         # else we compare the two versions
-        run: echo "should-release=$(if [ -z "${{ steps.old-version.outputs.version }}" ]; then echo true; else if [ "${{ steps.old-version.outputs.version }}" == "${{ steps.old-version.outputs.version }}" ]; then echo true; else echo false; fi; fi)" >> $GITHUB_OUTPUT
+        run: echo "should-release=$(if [ -z "${{ steps.old-version.outputs.version }}" ]; then echo true; else if [ "${{ steps.old-version.outputs.version }}" != "${{ steps.new-version.outputs.version }}" ]; then echo true; else echo false; fi; fi)" >> $GITHUB_OUTPUT
 # if we are releasing, then can install rust and publish to crates.io      
       - name: Install Rust
         if: steps.compare-versions.outputs.should-release == 'true'
