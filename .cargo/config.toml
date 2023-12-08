@@ -4,7 +4,9 @@ rustflags = [
   "-Dclippy::pedantic",
   "-Dclippy::restriction",
   "-Dclippy::nursery",
-  # "-Dclippy::cargo",
+  "-Dclippy::cargo",
+  ## Can't fix ##
+  "-Aclippy::multiple_crate_versions",          # can't fix, due to dependencies
   ## Conflicts ##
   "-Aclippy::blanket_clippy_restriction_lints", # clippy::restriction                 - can't enable clippy::restriction if this is enabled
   "-Aclippy::implicit_return",                  # clippy::needless-return             - remove return keyword when not needed
