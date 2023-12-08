@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+      rust-version:
+        required: true
+        type: string
+      enabled-feature-set:
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ${{ inputs.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: IronCoreLabs/rust-toolchain@v1
+        with:
+          toolchain: ${{ inputs.rust-version }}
+      - run: cargo check --no-default-features --features "${{ inputs.enabled-feature-set }}"
+
+  tests:
+    needs: build
+    runs-on: ${{ inputs.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: IronCoreLabs/rust-toolchain@v1
+        with:
+          toolchain: ${{ inputs.rust-version }}
+      - run: cargo test --no-default-features --features "${{ inputs.enabled-feature-set }}"
+
+  miri:
+    needs: build
+    runs-on: ${{ inputs.os }}
+    if: ${{ inputs.rust-version == 'nightly' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: IronCoreLabs/rust-toolchain@v1
+        with:
+          toolchain: ${{ inputs.rust-version }}
+          components: miri
+      - run: cargo miri setup
+      - run: cargo miri test --no-default-features --features "${{ inputs.enabled-feature-set }}"
+        env:
+          MIRIFLAGS: -Zmiri-strict-provenance
+
+  clippy:
+    needs: build
+    # only on stable ubuntu
+    runs-on: ${{ inputs.os }}
+    if: ${{ inputs.rust-version == 'stable' && inputs.os == 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: IronCoreLabs/rust-toolchain@v1
+      - run: cargo clippy --no-default-features --features "${{ inputs.enabled-feature-set }}"

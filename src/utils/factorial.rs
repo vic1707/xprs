@@ -1,6 +1,7 @@
 /* Crate imports */
 use crate::utils::hidden_macros::trust_me;
 
+#[cfg(not(NIGHTLY))]
 extern "C" {
     fn tgamma(x: f64) -> f64;
 }

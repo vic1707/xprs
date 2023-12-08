@@ -325,10 +325,10 @@ mod xprs;
 #[cfg(test)]
 mod tests;
 /* Exports */
-pub use context::{Context, Symbol};
-pub use parser::{ErrorKind, ParseError, Parser};
-pub use token::Function;
-pub use xprs::{BindError, EvalError, Xprs};
+pub use crate::context::{Context, Symbol};
+pub use crate::parser::{ErrorKind, ParseError, Parser};
+pub use crate::token::Function;
+pub use crate::xprs::{BindError, EvalError, Xprs};
 
 /* Feature safety */
 #[cfg(all(feature = "pemdas", feature = "pejmdas"))]
