@@ -11,7 +11,7 @@ fn test_higher_order_functions() {
     let parser = Parser::new_with_ctx(ctx);
 
     let bare_use = parser.parse("hof(2, 3)").unwrap();
-    assert_f64_eq!(bare_use.eval_unchecked(&[].into()), 7.0_f64);
+    assert_f64_eq!(bare_use.eval_unchecked(&[].into()), 7.0);
 
     let invalid_use = parser.parse("hof(2)");
     assert!(
