@@ -3,7 +3,7 @@ name = "xprs"
 version = "0.0.1-beta2"
 edition = "2021"
 authors = ["Victor LEFEBVRE <contact@vic1707.xyz>"]
-description = "**Xprs** is a flexible and extensible mathematical expression parser and evaluator for Rust, designed for simplicity and ease of use."
+description = "Xprs is a flexible and extensible mathematical expression parser and evaluator for Rust, designed for simplicity and ease of use."
 documentation = "https://docs.rs/xprs"
 homepage = "https://github.com/vic1707/xprs"
 license = "WTFPL"
@@ -25,7 +25,7 @@ rust-version = "1.70.0"
 
 [dependencies]
 miette = { version = "5.10.0", features = ["fancy-no-backtrace"] }
-thiserror = "1.0.50"
+thiserror = "1.0.56"
 
 [build-dependencies]
 rustc_version = "0.4.0"
