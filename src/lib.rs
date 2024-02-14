@@ -14,7 +14,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! xprs = "0.0.1"
+//! xprs = "0.0.2"
 //! ```
 //!
 //! or run this command in your terminal:
