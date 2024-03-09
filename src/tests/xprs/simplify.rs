@@ -14,9 +14,9 @@ fn test_simplify() {
     xprs = xprs.simplify_for(X_VAR);
     assert_eq!(xprs, parser.parse("4 + 3y + 8 + 5z").unwrap());
     // simplify for y
-    xprs.simplify_for_inplace(Y_VAR);
+    xprs.simplify_for_in_place(Y_VAR);
     assert_eq!(xprs, parser.parse("21 + 5z").unwrap());
     // try simplifying for an unknown variable
-    xprs.simplify_for_inplace(UNKNOWN_VAR);
+    xprs.simplify_for_in_place(UNKNOWN_VAR);
     assert_eq!(xprs, parser.parse("21 + 5z").unwrap());
 }

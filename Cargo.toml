@@ -1,6 +1,6 @@
 [package]
 name = "xprs"
-version = "0.0.2"
+version = "0.1.0"
 edition = "2021"
 authors = ["Victor LEFEBVRE <contact@vic1707.xyz>"]
 description = "Xprs is a flexible and extensible mathematical expression parser and evaluator for Rust, designed for simplicity and ease of use."
@@ -24,7 +24,7 @@ rust-version = "1.70.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-miette = { version = "5.10.0", features = ["fancy-no-backtrace"] }
+miette = { version = "7.2.0", features = ["fancy-no-backtrace"] }
 thiserror = "1.0.56"
 
 [build-dependencies]

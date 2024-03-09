@@ -2,7 +2,7 @@
 //!
 //! [<img alt="github" src="https://img.shields.io/badge/github-vic1707/xprs-8da0cb?style=for-the-badge&labelColor=555555&logo=github" height="20">](https://github.com/vic1707/xprs)
 //! [<img alt="crates.io" src="https://img.shields.io/crates/v/xprs.svg?style=for-the-badge&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/xprs)
-//! [<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/vic1707/xprs/tests.yml?branch=main&style=for-the-badge" height="20">](https://github.com/vic1707/xprs/actions?query=branch%3Amain)
+//! [<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/vic1707/xprs/global_matrix.yml?branch=main&style=for-the-badge" height="20">](https://github.com/vic1707/xprs/actions?query=branch%3Amain)
 //! [<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-xprs-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs" height="20">](https://docs.rs/xprs)
 //! [<img alt="downloads" src="https://img.shields.io/crates/d/xprs.svg?style=for-the-badge&logo=docs.rs" height="20">](https://crates.io/crates/xprs)
 //!
@@ -14,7 +14,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! xprs = "0.0.2"
+//! xprs = "0.1.0"
 //! ```
 //!
 //! or run this command in your terminal:
@@ -51,7 +51,7 @@
 //!   - `6/2(2+1)` gets interpreted as `6/2*(2+1)` which gives `9` as a result.
 //!   - `1/2x` gets interpreted as `(1/2)*x` which, with `x` being `2`, gives `1` as a result.
 //!
-//!   Note: `Display` and `Debug` shows additionnal parenthesis to make the order of operations more obvious.
+//!   Note: `Display` and `Debug` shows additional parenthesis to make the order of operations more obvious.
 //!
 //! <br />
 //!
@@ -65,7 +65,7 @@
 //!   - `6/2(2+1)` gets interpreted as `6/(2*(2+1))` which gives `1` as a result.
 //!   - `1/2x` gets interpreted as `1/(2*x)` which, with `x` being `2`, gives `0.25` as a result.
 //!
-//!   Note: `Display` and `Debug` shows additionnal parenthesis to make the order of operations more obvious.
+//!   Note: `Display` and `Debug` shows additional parenthesis to make the order of operations more obvious.
 //!
 //! ## Usage
 //!
@@ -114,8 +114,8 @@
 //! If you ever need more, you can use the `bind_n` and `bind_n_runtime` methods which takes an array of size N or a slice respectively.
 //!
 //! Notes:
-//! All `bind` function (except `bind_n_runtime`) returns a [`Result`] of a function which is guarenteed to return a [`f64`].
-//! `bind_n_runtime` returns a [`Result`] of a function which also returns a [`Result`] of a [`f64`] since there are no guarentees that the array/slice will be of the correct size.
+//! All `bind` function (except `bind_n_runtime`) returns a [`Result`] of a function which is guaranteed to return a [`f64`].
+//! `bind_n_runtime` returns a [`Result`] of a function which also returns a [`Result`] of a [`f64`] since there are no guarantees that the array/slice will be of the correct size.
 //!
 //! ### Context and Parser
 //!
@@ -246,7 +246,7 @@
 //!
 //!     println!("{xprs}"); // (w + (sin((x + (2 * y))) * (3 * z)))
 //!
-//!     xprs.simplify_for_inplace(("z", 4.0));
+//!     xprs.simplify_for_in_place(("z", 4.0));
 //!
 //!     println!("{xprs}"); // (w + (sin((x + (2 * y))) * 12))
 //!
@@ -282,12 +282,12 @@
 //!
 //! Complete documentation can be found on [docs.rs](https://docs.rs/xprs).
 //!
-//! ## Licence
+//! ## License
 //!
 //! Copyright © 2023 [Victor LEFEBVRE](contact@vic1707.xyz)
 //! This work is free. You can redistribute it and/or modify it under the
 //! terms of the Do What The Fuck You Want To Public License, Version 2,
-//! as published by Sam Hocevar. See the [LICENCE](./LICENCE). file for more details.
+//! as published by Sam Hocevar. See the [LICENSE](./LICENSE). file for more details.
 //!
 //! ## TODOs
 //!

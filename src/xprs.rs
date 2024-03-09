@@ -133,14 +133,14 @@ impl Xprs<'_> {
     /// assert_eq!(format!("{xprs}"), "((2 * x) + y)");
     /// assert_eq!(xprs.vars, ["x", "y"].into());
     ///
-    /// xprs.simplify_for_inplace(("x", 3.0));
+    /// xprs.simplify_for_in_place(("x", 3.0));
     ///
     /// assert_eq!(format!("{xprs}"), "(6 + y)");
     /// assert_eq!(xprs.vars, ["y"].into());
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
-    pub fn simplify_for_inplace(&mut self, var: (&str, f64)) {
+    pub fn simplify_for_in_place(&mut self, var: (&str, f64)) {
         let mut tmp = trust_me!(ptr::read(&self.root));
         tmp = tmp.simplify_for(var);
         trust_me!(ptr::write(&mut self.root, tmp););
@@ -192,7 +192,7 @@ impl Xprs<'_> {
     #[inline]
     #[must_use]
     pub fn simplify_for(mut self, var: (&str, f64)) -> Self {
-        self.simplify_for_inplace(var);
+        self.simplify_for_in_place(var);
         self
     }
 
@@ -209,15 +209,15 @@ impl Xprs<'_> {
     /// assert_eq!(format!("{xprs}"), "(((2 * x) + y) + (4 * z))");
     /// assert_eq!(xprs.vars, ["x", "y", "z"].into());
     ///
-    /// xprs.simplify_for_multiple_inplace(&[("x", 3.0), ("z", 2.0)]);
+    /// xprs.simplify_for_multiple_in_place(&[("x", 3.0), ("z", 2.0)]);
     ///
     /// assert_eq!(format!("{xprs}"), "((6 + y) + 8)");
     /// assert_eq!(xprs.vars, ["y"].into());
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
-    pub fn simplify_for_multiple_inplace(&mut self, vars: &[(&str, f64)]) {
-        // rewriting `simplify_for_inplace` to avoid dozens of `ptr::read` and `ptr::write`
+    pub fn simplify_for_multiple_in_place(&mut self, vars: &[(&str, f64)]) {
+        // rewriting `simplify_for_in_place` to avoid dozens of `ptr::read` and `ptr::write`
         let mut tmp = trust_me!(ptr::read(&self.root));
         for &var in vars {
             tmp = tmp.simplify_for(var);
@@ -248,7 +248,7 @@ impl Xprs<'_> {
     #[inline]
     #[must_use]
     pub fn simplify_for_multiple(mut self, vars: &[(&str, f64)]) -> Self {
-        self.simplify_for_multiple_inplace(vars);
+        self.simplify_for_multiple_in_place(vars);
         self
     }
 }
@@ -687,7 +687,7 @@ impl<'a> Xprs<'a> {
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
             yeet!(bind_error);
         }
-        Ok(move |vals| self.eval_unchecked(&vars.into_iter().zip(vals).collect()))
+        Ok(move |values| self.eval_unchecked(&vars.into_iter().zip(values).collect()))
     }
 
     /// Creates a function of any number of [`f64`] based on this [`Xprs`] instance.
@@ -724,7 +724,7 @@ impl<'a> Xprs<'a> {
         // can't drop the closure from returning a result because we can't use the unchecked version
         // because we don't know the length of the slice at compile time
         // it could be different from the length of the slice of variables names
-        Ok(move |vals: &[f64]| self.eval(&vars.iter().copied().zip(vals.iter().copied()).collect()))
+        Ok(move |values: &[f64]| self.eval(&vars.iter().copied().zip(values.iter().copied()).collect()))
     }
 }
 

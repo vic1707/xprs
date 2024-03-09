@@ -12,7 +12,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("{xprs}"); // (w + (sin((x + (2 * y))) * (3 * z)))
 
-    xprs.simplify_for_inplace(("z", 4.0));
+    xprs.simplify_for_in_place(("z", 4.0));
 
     println!("{xprs}"); // (w + (sin((x + (2 * y))) * 12))
 
