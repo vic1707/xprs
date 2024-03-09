@@ -3,7 +3,7 @@ extern crate alloc;
 use alloc::sync::Arc;
 use core::{cmp::Ordering, fmt, ops::Deref};
 
-/// Represents a mathematical function core informations.
+/// Represents a mathematical function core infos.
 #[derive(Debug, PartialEq, Clone)]
 #[non_exhaustive]
 pub struct Function {
@@ -162,7 +162,7 @@ macro_rules! xprs_fn {
         )
     };
 
-    //// closure wraping ////
+    //// closure wrapping ////
     (wrap $function:expr, 0) => {
         move |_| $function()
     };

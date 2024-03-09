@@ -477,10 +477,10 @@ impl miette::Diagnostic for ParseError {
             ErrorKind::ExpectedToken(tok) => {
                 format!("Try adding a `{tok}` here.")
             },
-            ErrorKind::VariableNotDeclared(_, ref availables) => {
+            ErrorKind::VariableNotDeclared(_, ref available_vars) => {
                 format!(
                     "Try replacing it with one of the following: `{}`.",
-                    availables.join("`, `")
+                    available_vars.join("`, `")
                 )
             },
             ErrorKind::TooManyArguments(expected, got) => {
@@ -617,10 +617,10 @@ impl ParseError {
     fn new_variable_not_declared(
         input: &str,
         var: &str,
-        availables: Vec<String>,
+        available_vars: Vec<String>,
     ) -> Self {
         Self {
-            kind: ErrorKind::VariableNotDeclared(var.to_owned(), availables),
+            kind: ErrorKind::VariableNotDeclared(var.to_owned(), available_vars),
             span: (0, input.len()).into(),
             src: input.to_owned(),
         }

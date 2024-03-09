@@ -4,8 +4,6 @@ use std::collections::HashMap;
 use super::super::macros::assert_f64_eq;
 use crate::Parser;
 
-// shitty type because of clippy and default numeric fallback
-// https://github.com/rust-lang/rust-clippy/issues/11535
 type InputVarsResult = (&'static str, &'static [(&'static str, f64)], f64);
 /// 2(3)
 /// 2 + 3 ^ 2 * 3 + 4
