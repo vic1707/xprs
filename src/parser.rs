@@ -620,7 +620,10 @@ impl ParseError {
         available_vars: Vec<String>,
     ) -> Self {
         Self {
-            kind: ErrorKind::VariableNotDeclared(var.to_owned(), available_vars),
+            kind: ErrorKind::VariableNotDeclared(
+                var.to_owned(),
+                available_vars,
+            ),
             span: (0, input.len()).into(),
             src: input.to_owned(),
         }
