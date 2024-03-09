@@ -24,7 +24,7 @@ rust-version = "1.70.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-miette = { version = "5.10.0", features = ["fancy-no-backtrace"] }
+miette = { version = "7.2.0", features = ["fancy-no-backtrace"] }
 thiserror = "1.0.56"
 
 [build-dependencies]
