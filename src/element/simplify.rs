@@ -184,7 +184,7 @@ impl<'a> Simplify<'a> for BinOp<'a> {
             BinOp { op: Power, lhs, .. } if lhs == Number(0.0) => Number(0.0),
             // a ^ 0 => 1
             BinOp {
-                op: Divide, rhs, ..
+                op: Power, rhs, ..
             } if rhs == Number(0.0) => Number(1.0),
             // a ^ 1 => a
             BinOp {
