@@ -2,9 +2,10 @@
 #![allow(
     clippy::print_stdout,
     clippy::default_numeric_fallback,
-    clippy::shadow_reuse
+    clippy::shadow_reuse,
+    reason = "demonstrate successive simplifications with ordinary numeric literals and printed results"
 )]
-use std::error::Error;
+use core::error::Error;
 use xprs::Xprs;
 
 fn main() -> Result<(), Box<dyn Error>> {

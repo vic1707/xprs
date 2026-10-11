@@ -27,7 +27,10 @@ Make sure to check the [Crates.io](https://crates.io/crates/xprs) page for the l
 
 ## MSRV (Minimum Supported Rust Version)
 
-Currently, the minimum supported Rust version is `1.70.0`.
+Currently, the minimum supported Rust version is `1.88.0` (Rust 2024 edition).
+
+The development toolchain tracks stable Rust. Nightly builds automatically use
+the experimental `f64::gamma` API; stable builds use the system `tgamma` function.
 
 ## Crate Features
 
@@ -37,7 +40,7 @@ Currently, the minimum supported Rust version is `1.70.0`.
   This feature will automagically transform expressions like `1 + 2 * 3` into `7` during parsing allowing for faster evaluation.
   It also works on functions (e.g. `sin(0)` will be transformed into `0`) and "logical" result like `(x - x) * (....)` will be transformed into `0` since `x - x` is `0` no matter what `x` is.
 
-  Note: nightly channel enables even more optimizations thanks to `box_patterns` feature gate.
+  The same optimizations are available on stable and nightly Rust.
 
 <br />
 

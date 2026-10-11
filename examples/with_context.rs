@@ -1,7 +1,11 @@
 //! Context example
-#![allow(clippy::print_stdout, clippy::default_numeric_fallback)]
-use std::error::Error;
-use xprs::{xprs_fn, Context, Parser};
+#![allow(
+    clippy::print_stdout,
+    clippy::default_numeric_fallback,
+    reason = "examples print their results and use ordinary numeric literals"
+)]
+use core::error::Error;
+use xprs::{Context, Parser, xprs_fn};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut context = Context::default()

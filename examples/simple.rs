@@ -1,6 +1,6 @@
 //! Simple example
-#![allow(clippy::print_stdout)]
-use std::error::Error;
+#![allow(clippy::print_stdout, reason = "examples print their results")]
+use core::error::Error;
 use xprs::Xprs;
 
 fn main() -> Result<(), Box<dyn Error>> {

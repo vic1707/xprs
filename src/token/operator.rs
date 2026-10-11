@@ -41,15 +41,15 @@ impl TryFrom<u8> for Operator {
 }
 
 impl fmt::Display for Operator {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            Self::Factorial => write!(fmt, "!"),
-            Self::Plus => write!(fmt, "+"),
-            Self::Minus => write!(fmt, "-"),
-            Self::Times => write!(fmt, "*"),
-            Self::Divide => write!(fmt, "/"),
-            Self::Power => write!(fmt, "^"),
-            Self::Modulo => write!(fmt, "%"),
+            Self::Factorial => write!(f, "!"),
+            Self::Plus => write!(f, "+"),
+            Self::Minus => write!(f, "-"),
+            Self::Times => write!(f, "*"),
+            Self::Divide => write!(f, "/"),
+            Self::Power => write!(f, "^"),
+            Self::Modulo => write!(f, "%"),
         }
     }
 }

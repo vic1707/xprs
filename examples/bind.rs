@@ -1,6 +1,10 @@
 //! Bind example
-#![allow(clippy::print_stdout, clippy::default_numeric_fallback)]
-use std::error::Error;
+#![allow(
+    clippy::print_stdout,
+    clippy::default_numeric_fallback,
+    reason = "examples print their results and use ordinary numeric literals"
+)]
+use core::error::Error;
 use xprs::Xprs;
 
 fn main() -> Result<(), Box<dyn Error>> {

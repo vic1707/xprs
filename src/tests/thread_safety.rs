@@ -7,10 +7,14 @@ use crate::{
     xprs::{BindError, EvalError, Xprs},
 };
 
-const fn is_sized_send_sync_unpin<T: Sized + Send + Sync + Unpin>() {}
+const fn is_sized_send_sync_unpin<T>()
+where
+    T: Sized + Send + Sync + Unpin,
+{
+}
 
 #[test]
-const fn test_thread_safety() {
+const fn thread_safety() {
     // context module
     is_sized_send_sync_unpin::<Context>();
     is_sized_send_sync_unpin::<Symbol>();

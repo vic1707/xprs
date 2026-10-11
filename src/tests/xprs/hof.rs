@@ -1,9 +1,9 @@
 /* Crate imports */
 use super::super::macros::assert_f64_eq;
-use crate::{xprs_fn, Context, Parser, Xprs};
+use crate::{Context, Parser, Xprs, xprs_fn};
 
 #[test]
-fn test_higher_order_functions() {
+fn higher_order_functions() {
     let xprs_hof = Xprs::try_from("2x + y").unwrap();
     let fn_hof = xprs_hof.bind2("x", "y").unwrap();
     let hof = xprs_fn!("hof", dyn fn_hof, 2);

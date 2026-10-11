@@ -1,5 +1,8 @@
 /* Built-in imports */
-#![allow(clippy::min_ident_chars)]
+#![allow(
+    clippy::min_ident_chars,
+    reason = "regression cases use single-letter variable names"
+)]
 use core::f64::consts::E;
 /* Crate imports */
 use super::super::macros::assert_f64_eq;

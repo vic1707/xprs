@@ -1,5 +1,9 @@
 //! Allowed variables example
-#![allow(clippy::print_stdout, clippy::use_debug)]
+#![allow(
+    clippy::print_stdout,
+    clippy::use_debug,
+    reason = "show the successful and failed parse results"
+)]
 use xprs::{Context, Parser};
 
 fn main() {

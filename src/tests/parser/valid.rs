@@ -2,10 +2,10 @@
 use core::f64;
 /* Crate imports */
 use crate::{
+    Parser, Xprs,
     element::{BinOp, Element, FunctionCall, UnOp},
     token::Operator,
     utils::built_in_functions,
-    Parser, Xprs,
 };
 
 ///// Tests the following expressions:
@@ -37,7 +37,10 @@ use crate::{
 /// 1 / -2
 /// 1 ^ -2
 /// -2 ^ 2
-#[allow(clippy::too_many_lines)]
+#[expect(
+    clippy::too_many_lines,
+    reason = "keep the expression cases and expected ASTs together"
+)]
 fn get_valid_test_cases() -> [(&'static str, Xprs<'static>); 27] {
     [
         (
@@ -431,7 +434,7 @@ fn get_valid_test_cases() -> [(&'static str, Xprs<'static>); 27] {
 }
 
 #[test]
-fn test_valid() {
+fn valid() {
     let parser = Parser::default();
     for (expr, expected) in get_valid_test_cases() {
         let res = parser.parse(expr);
@@ -454,7 +457,7 @@ const WHITESPACES: &[(&str, &str); 10] = &[
 ];
 
 #[test]
-fn test_valid_with_whitespace() {
+fn valid_with_whitespace() {
     let parser = Parser::default();
     for &(expr, expected) in WHITESPACES {
         let res_expr = parser.parse(expr);

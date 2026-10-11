@@ -2,7 +2,7 @@
 use crate::Parser;
 
 #[test]
-fn test_simplify() {
+fn simplify() {
     // these vars need to be declared here because of clippy and default numeric fallback
     // https://github.com/rust-lang/rust-clippy/issues/11535
     const X_VAR: (&str, f64) = ("x", 2.0);

@@ -30,7 +30,7 @@ const IMPLICIT_MULTIPLICATIONS: [(&str, &str); 9] = [
 ];
 
 #[test]
-fn test_implicit_multiplication() {
+fn implicit_multiplication() {
     let parser = Parser::default();
     for &(implicit, explicit) in &IMPLICIT_MULTIPLICATIONS {
         let res_implicit = parser.parse(implicit);
@@ -52,7 +52,7 @@ fn test_implicit_multiplication() {
 
 const INVALID_IMPLICIT_MULTIPLICATIONS: [&str; 1] = ["2 5"];
 #[test]
-fn test_invalid_implicit_multiplication() {
+fn invalid_implicit_multiplication() {
     let parser = Parser::default();
     for &implicit in &INVALID_IMPLICIT_MULTIPLICATIONS {
         let res = parser.parse(implicit);

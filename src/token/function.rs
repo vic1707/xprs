@@ -1,7 +1,7 @@
 /* Built-in imports */
 extern crate alloc;
 use alloc::sync::Arc;
-use core::{cmp::Ordering, fmt, ops::Deref};
+use core::{cmp::Ordering, fmt, ops::Deref, ptr::fn_addr_eq};
 
 /// Represents a mathematical function core infos.
 #[derive(Debug, PartialEq, Clone)]
@@ -43,10 +43,11 @@ impl Function {
     ///
     /// [`Function`] needs a fn taking a slice because Rust variadics are not available yet.
     #[inline]
-    pub fn new_dyn<T>(name: &'static str, func: T, nb_args: Option<u8>) -> Self
-    where
-        T: Fn(&[f64]) -> f64 + Send + Sync + 'static,
-    {
+    pub fn new_dyn(
+        name: &'static str,
+        func: impl Fn(&[f64]) -> f64 + Send + Sync + 'static,
+        nb_args: Option<u8>,
+    ) -> Self {
         Self {
             name,
             func: FnPointer::Dyn(Arc::new(func)),
@@ -76,10 +77,10 @@ pub enum FnPointer {
 }
 
 impl fmt::Debug for FnPointer {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            Self::Static(_) => write!(fmt, "Static"),
-            Self::Dyn(_) => write!(fmt, "Dyn"),
+            Self::Static(_) => write!(f, "Static"),
+            Self::Dyn(_) => write!(f, "Dyn"),
         }
     }
 }
@@ -100,7 +101,7 @@ impl PartialEq for FnPointer {
     fn eq(&self, other: &Self) -> bool {
         match *self {
             Self::Static(func1) => match *other {
-                Self::Static(func2) => func1 == func2,
+                Self::Static(func2) => fn_addr_eq(func1, func2),
                 Self::Dyn(_) => false,
             },
             Self::Dyn(ref func1) => match *other {
@@ -167,39 +168,39 @@ macro_rules! xprs_fn {
         move |_| $function()
     };
     (wrap $function:expr, 1) => {
-        #[allow(clippy::indexing_slicing, clippy::missing_asserts_for_indexing)]
+        #[expect(clippy::indexing_slicing, reason = "the parser checks function arity before calling")]
         move |args| $function(args[0])
     };
     (wrap $function:expr, 2) => {
-        #[allow(clippy::indexing_slicing, clippy::missing_asserts_for_indexing)]
+        #[expect(clippy::indexing_slicing, clippy::missing_asserts_for_indexing, reason = "the parser checks function arity before calling")]
         move |args| $function(args[0], args[1])
     };
     (wrap $function:expr, 3) => {
-        #[allow(clippy::indexing_slicing, clippy::missing_asserts_for_indexing)]
+        #[expect(clippy::indexing_slicing, clippy::missing_asserts_for_indexing, reason = "the parser checks function arity before calling")]
         move |args| $function(args[0], args[1], args[2])
     };
     (wrap $function:expr, 4) => {
-        #[allow(clippy::indexing_slicing, clippy::missing_asserts_for_indexing)]
+        #[expect(clippy::indexing_slicing, clippy::missing_asserts_for_indexing, reason = "the parser checks function arity before calling")]
         move |args| $function(args[0], args[1], args[2], args[3])
     };
     (wrap $function:expr, 5) => {
-        #[allow(clippy::indexing_slicing, clippy::missing_asserts_for_indexing)]
+        #[expect(clippy::indexing_slicing, clippy::missing_asserts_for_indexing, reason = "the parser checks function arity before calling")]
         move |args| $function(args[0], args[1], args[2], args[3], args[4])
     };
     (wrap $function:expr, 6) => {
-        #[allow(clippy::indexing_slicing, clippy::missing_asserts_for_indexing)]
+        #[expect(clippy::indexing_slicing, clippy::missing_asserts_for_indexing, reason = "the parser checks function arity before calling")]
         move |args| $function(args[0], args[1], args[2], args[3], args[4], args[5])
     };
     (wrap $function:expr, 7) => {
-        #[allow(clippy::indexing_slicing, clippy::missing_asserts_for_indexing)]
+        #[expect(clippy::indexing_slicing, clippy::missing_asserts_for_indexing, reason = "the parser checks function arity before calling")]
         move |args| $function(args[0], args[1], args[2], args[3], args[4], args[5], args[6])
     };
     (wrap $function:expr, 8) => {
-        #[allow(clippy::indexing_slicing, clippy::missing_asserts_for_indexing)]
+        #[expect(clippy::indexing_slicing, clippy::missing_asserts_for_indexing, reason = "the parser checks function arity before calling")]
         move |args| $function(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7])
     };
     (wrap $function:expr, 9) => {
-        #[allow(clippy::indexing_slicing, clippy::missing_asserts_for_indexing)]
+        #[expect(clippy::indexing_slicing, clippy::missing_asserts_for_indexing, reason = "the parser checks function arity before calling")]
         move |args| $function(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8])
     };
 }

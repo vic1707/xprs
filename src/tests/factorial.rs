@@ -1,9 +1,18 @@
 /* Crate imports */
 use super::macros::assert_f64_eq;
-use crate::utils::factorial::factorial;
+use crate::utils::factorial::{factorial, gamma};
+use core::f64::consts::PI;
 
 #[test]
-fn test_float_factorial() {
+fn gamma_works() {
+    assert!((gamma(5.0) - 24.0).abs() < 1e-10_f64);
+    assert!((gamma(0.5) - PI.sqrt()).abs() < 1e-10_f64);
+    assert!(gamma(-1.0).is_nan());
+    assert!(gamma(f64::NAN).is_nan());
+}
+
+#[test]
+fn float_factorial() {
     // negatives
     assert!(factorial(-f64::INFINITY).is_nan());
     assert!(factorial(-5.0).is_nan());

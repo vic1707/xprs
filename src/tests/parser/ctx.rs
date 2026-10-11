@@ -1,9 +1,10 @@
 /* Crate imports */
 use crate::{
+    Parser,
     context::Context,
     element::{BinOp, Element, FunctionCall},
     token::{Function, Operator},
-    xprs_fn, Parser,
+    xprs_fn,
 };
 
 fn double(x: f64) -> f64 {
@@ -14,6 +15,11 @@ fn add(x: f64, y: f64) -> f64 {
     x + y
 }
 const ADD: Function = xprs_fn!("add", add, 2);
+#[expect(
+    clippy::as_conversions,
+    clippy::cast_precision_loss,
+    reason = "the mean divides a floating-point sum by the argument count"
+)]
 fn mean(args: &[f64]) -> f64 {
     args.iter().sum::<f64>() / args.len() as f64
 }
@@ -22,15 +28,15 @@ const MEAN: Function = xprs_fn!("mean", mean);
 fn get_parser_with_ctx() -> Parser<'static> {
     let mut ctx = Context::default();
 
-    ctx.set_var("x", 2.0);
-    ctx.set_var("phi", 1.618_033_988_749_895);
+    ctx.set_var("x", 2.0_f64);
+    ctx.set_var("phi", 1.618_033_988_749_895_f64);
 
     ctx.set_fn(DOUBLE);
     ctx.set_fn(ADD);
 
     let mut parser = Parser::new_with_ctx(ctx);
 
-    parser.ctx_mut().set_var("y", 1.0);
+    parser.ctx_mut().set_var("y", 1.0_f64);
     parser.ctx_mut().set_fn(MEAN);
 
     parser
@@ -96,7 +102,7 @@ fn get_valid_test_cases() -> [(&'static str, Element<'static>); 6] {
 }
 
 #[test]
-fn test_ctx() {
+fn ctx() {
     let parser = get_parser_with_ctx();
     for (expr, expected) in get_valid_test_cases() {
         let res = parser.parse(expr);

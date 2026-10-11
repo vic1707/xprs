@@ -1,21 +1,20 @@
 /* Crate imports */
 use crate::utils::hidden_macros::trust_me;
 
-#[cfg(not(NIGHTLY))]
-extern "C" {
-    fn tgamma(x: f64) -> f64;
+#[cfg(not(nightly))]
+unsafe extern "C" {
+    // SAFETY: tgamma accepts every f64; domain errors return NaN.
+    #[doc(hidden)]
+    #[link_name = "tgamma"]
+    pub safe fn gamma(x: f64) -> f64;
 }
 
 #[doc(hidden)]
+#[cfg(nightly)]
 #[inline]
-#[cfg(not(NIGHTLY))]
 pub fn gamma(x: f64) -> f64 {
-    unsafe { tgamma(x) }
+    x.gamma()
 }
-
-#[doc(hidden)]
-#[cfg(NIGHTLY)]
-pub const gamma: fn(f64) -> f64 = f64::gamma;
 
 #[doc(hidden)]
 pub fn factorial(num: f64) -> f64 {
@@ -43,7 +42,10 @@ pub fn factorial(num: f64) -> f64 {
     // and 1 <= num <= 170
     let index = trust_me!(num.to_int_unchecked::<usize>());
 
-    #[allow(clippy::indexing_slicing)]
+    #[expect(
+        clippy::indexing_slicing,
+        reason = "num is a whole number in 0..=170"
+    )]
     FACTORIALS[index]
 }
 

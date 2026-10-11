@@ -1,12 +1,15 @@
 /* Clippy Config */
-#![allow(clippy::std_instead_of_core)]
+#![allow(
+    clippy::std_instead_of_core,
+    reason = "HashMap and HashSet require std"
+)]
 /* Built-in imports */
 use core::{fmt, ptr};
 use std::collections::{HashMap, HashSet};
 /* Crate imports */
 use crate::{
     element::Element,
-    element::Simplify,
+    element::Simplify as _,
     token::Operator,
     utils::{
         factorial::factorial,
@@ -17,11 +20,11 @@ use crate::{
 /// Represents a mathematical expression and its variables.
 #[derive(Debug, PartialEq, Clone)]
 #[non_exhaustive]
-pub struct Xprs<'a> {
+pub struct Xprs<'expr> {
     /// The root element of the expression.
-    pub root: Element<'a>,
+    pub root: Element<'expr>,
     /// The set of variables present in the expression.
-    pub vars: HashSet<&'a str>,
+    pub vars: HashSet<&'expr str>,
 }
 
 impl<'input> TryFrom<&'input str> for Xprs<'input> {
@@ -30,15 +33,14 @@ impl<'input> TryFrom<&'input str> for Xprs<'input> {
     #[inline]
     fn try_from(value: &'input str) -> Result<Self, Self::Error> {
         let parser = crate::Parser::default();
-        let xprs = parser.parse(value);
-        xprs
+        parser.parse(value)
     }
 }
 
 impl fmt::Display for Xprs<'_> {
     #[inline]
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(fmt, "{}", self.root)
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.root)
     }
 }
 
@@ -141,9 +143,9 @@ impl Xprs<'_> {
     /// ```
     #[inline]
     pub fn simplify_for_in_place(&mut self, var: (&str, f64)) {
-        let mut tmp = trust_me!(ptr::read(&self.root));
+        let mut tmp = trust_me!(ptr::read(&raw const self.root));
         tmp = tmp.simplify_for(var);
-        trust_me!(ptr::write(&mut self.root, tmp););
+        trust_me!(ptr::write(&raw mut self.root, tmp););
         self.vars.remove(var.0);
     }
 
@@ -218,12 +220,12 @@ impl Xprs<'_> {
     #[inline]
     pub fn simplify_for_multiple_in_place(&mut self, vars: &[(&str, f64)]) {
         // rewriting `simplify_for_in_place` to avoid dozens of `ptr::read` and `ptr::write`
-        let mut tmp = trust_me!(ptr::read(&self.root));
+        let mut tmp = trust_me!(ptr::read(&raw const self.root));
         for &var in vars {
             tmp = tmp.simplify_for(var);
             self.vars.remove(var.0);
         }
-        trust_me!(ptr::write(&mut self.root, tmp););
+        trust_me!(ptr::write(&raw mut self.root, tmp););
     }
 
     /// Simplifies the expression in-place for multiple variables and returns the expression.
@@ -257,14 +259,16 @@ impl Xprs<'_> {
 ///
 /// This struct is responsible for handling the evaluation of individual elements within an expression.
 /// It is used by the [`Xprs`] struct to perform evaluations with respect to a given set of variable values.
-struct XprsImpl<'a> {
+struct XprsImpl<'vars> {
     /// A reference to the map of variables and their corresponding values.
-    variables: &'a HashMap<&'a str, f64>,
+    variables: &'vars HashMap<&'vars str, f64>,
 }
 
 impl XprsImpl<'_> {
     /// Creates a new [`XprsImpl`] instance.
-    const fn new<'a>(variables: &'a HashMap<&str, f64>) -> XprsImpl<'a> {
+    const fn new<'vars>(
+        variables: &'vars HashMap<&str, f64>,
+    ) -> XprsImpl<'vars> {
         XprsImpl { variables }
     }
 
@@ -278,7 +282,10 @@ impl XprsImpl<'_> {
             )?,
             Element::UnOp(ref unop) => {
                 let operand = self.eval_element(&unop.operand)?;
-                #[allow(clippy::unreachable)]
+                #[expect(
+                    clippy::unreachable,
+                    reason = "binary operators never appear in a unary expression"
+                )]
                 match unop.op {
                     Operator::Plus => operand,
                     Operator::Minus => -operand,
@@ -292,7 +299,10 @@ impl XprsImpl<'_> {
             Element::BinOp(ref binop) => {
                 let left = self.eval_element(&binop.lhs)?;
                 let right = self.eval_element(&binop.rhs)?;
-                #[allow(clippy::unreachable)]
+                #[expect(
+                    clippy::unreachable,
+                    reason = "factorial is never a binary operator"
+                )]
                 match binop.op {
                     Operator::Plus => left + right,
                     Operator::Minus => left - right,
@@ -320,11 +330,17 @@ impl XprsImpl<'_> {
     fn eval_element_unchecked(&self, element: &Element) -> f64 {
         match *element {
             Element::Number(n) => n,
-            #[allow(clippy::unwrap_used)]
+            #[expect(
+                clippy::unwrap_used,
+                reason = "unchecked evaluation requires all variables to be supplied"
+            )]
             Element::Variable(name) => *self.variables.get(name).unwrap(),
             Element::UnOp(ref unop) => {
                 let operand = self.eval_element_unchecked(&unop.operand);
-                #[allow(clippy::unreachable)]
+                #[expect(
+                    clippy::unreachable,
+                    reason = "binary operators never appear in a unary expression"
+                )]
                 match unop.op {
                     Operator::Plus => operand,
                     Operator::Minus => -operand,
@@ -338,7 +354,10 @@ impl XprsImpl<'_> {
             Element::BinOp(ref binop) => {
                 let left = self.eval_element_unchecked(&binop.lhs);
                 let right = self.eval_element_unchecked(&binop.rhs);
-                #[allow(clippy::unreachable)]
+                #[expect(
+                    clippy::unreachable,
+                    reason = "factorial is never a binary operator"
+                )]
                 match binop.op {
                     Operator::Plus => left + right,
                     Operator::Minus => left - right,
@@ -371,9 +390,9 @@ pub struct EvalError(String);
 //////////////////////////////////////////////////////////////////////////////
 //  TODO: replace this with variadic generics when it's available & stable  //
 //////////////////////////////////////////////////////////////////////////////
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments, clippy::type_complexity, reason = "bind methods expose one argument per bound variable")]
 #[rustfmt::skip]
-impl<'a> Xprs<'a> {
+impl<'expr> Xprs<'expr> {
     /// Creates a function of one variable based on this [`Xprs`] instance.
     ///
     /// # Errors
@@ -396,7 +415,7 @@ impl<'a> Xprs<'a> {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
-    pub fn bind(self, var: &'a str) -> Result<impl Fn(f64) -> f64 + 'a, BindError> {
+    pub fn bind(self, var: &'expr str) -> Result<impl Fn(f64) -> f64 + 'expr, BindError> {
         let variables: HashSet<&str> = HashSet::from([var]);
         let missing_vars = self.vars.difference(&variables);
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
@@ -427,7 +446,7 @@ impl<'a> Xprs<'a> {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
-    pub fn bind2(self, var1: &'a str, var2: &'a str) -> Result<impl Fn(f64, f64) -> f64 + 'a, BindError> {
+    pub fn bind2(self, var1: &'expr str, var2: &'expr str) -> Result<impl Fn(f64, f64) -> f64 + 'expr, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2]);
         let missing_vars = self.vars.difference(&variables);
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
@@ -458,7 +477,7 @@ impl<'a> Xprs<'a> {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
-    pub fn bind3(self, var1: &'a str, var2: &'a str, var3: &'a str) -> Result<impl Fn(f64, f64, f64) -> f64 + 'a, BindError> {
+    pub fn bind3(self, var1: &'expr str, var2: &'expr str, var3: &'expr str) -> Result<impl Fn(f64, f64, f64) -> f64 + 'expr, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3]);
         let missing_vars = self.vars.difference(&variables);
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
@@ -489,7 +508,7 @@ impl<'a> Xprs<'a> {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
-    pub fn bind4(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str) -> Result<impl Fn(f64, f64, f64, f64) -> f64 + 'a, BindError> {
+    pub fn bind4(self, var1: &'expr str, var2: &'expr str, var3: &'expr str, var4: &'expr str) -> Result<impl Fn(f64, f64, f64, f64) -> f64 + 'expr, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4]);
         let missing_vars = self.vars.difference(&variables);
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
@@ -520,7 +539,7 @@ impl<'a> Xprs<'a> {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
-    pub fn bind5(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
+    pub fn bind5(self, var1: &'expr str, var2: &'expr str, var3: &'expr str, var4: &'expr str, var5: &'expr str) -> Result<impl Fn(f64, f64, f64, f64, f64) -> f64 + 'expr, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5]);
         let missing_vars = self.vars.difference(&variables);
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
@@ -551,7 +570,7 @@ impl<'a> Xprs<'a> {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
-    pub fn bind6(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
+    pub fn bind6(self, var1: &'expr str, var2: &'expr str, var3: &'expr str, var4: &'expr str, var5: &'expr str, var6: &'expr str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64) -> f64 + 'expr, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6]);
         let missing_vars = self.vars.difference(&variables);
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
@@ -582,7 +601,7 @@ impl<'a> Xprs<'a> {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
-    pub fn bind7(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
+    pub fn bind7(self, var1: &'expr str, var2: &'expr str, var3: &'expr str, var4: &'expr str, var5: &'expr str, var6: &'expr str, var7: &'expr str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64, f64) -> f64 + 'expr, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6, var7]);
         let missing_vars = self.vars.difference(&variables);
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
@@ -613,7 +632,7 @@ impl<'a> Xprs<'a> {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
-    pub fn bind8(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str, var8: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
+    pub fn bind8(self, var1: &'expr str, var2: &'expr str, var3: &'expr str, var4: &'expr str, var5: &'expr str, var6: &'expr str, var7: &'expr str, var8: &'expr str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64, f64, f64) -> f64 + 'expr, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6, var7, var8]);
         let missing_vars = self.vars.difference(&variables);
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
@@ -644,7 +663,7 @@ impl<'a> Xprs<'a> {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
-    pub fn bind9(self, var1: &'a str, var2: &'a str, var3: &'a str, var4: &'a str, var5: &'a str, var6: &'a str, var7: &'a str, var8: &'a str, var9: &'a str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64, f64, f64, f64) -> f64 + 'a, BindError> {
+    pub fn bind9(self, var1: &'expr str, var2: &'expr str, var3: &'expr str, var4: &'expr str, var5: &'expr str, var6: &'expr str, var7: &'expr str, var8: &'expr str, var9: &'expr str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64, f64, f64, f64) -> f64 + 'expr, BindError> {
         let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6, var7, var8, var9]);
         let missing_vars = self.vars.difference(&variables);
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
@@ -681,7 +700,7 @@ impl<'a> Xprs<'a> {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
-    pub fn bind_n<const T: usize>(self, vars: [&'a str; T]) -> Result<impl Fn([f64; T]) -> f64 + 'a, BindError> {
+    pub fn bind_n<const T: usize>(self, vars: [&'expr str; T]) -> Result<impl Fn([f64; T]) -> f64 + 'expr, BindError> {
         let variables: HashSet<&str> = HashSet::from(vars);
         let missing_vars = self.vars.difference(&variables);
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
@@ -715,7 +734,7 @@ impl<'a> Xprs<'a> {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[inline]
-    pub fn bind_n_runtime(self, vars: &'a [&'a str]) -> Result<impl Fn(&[f64]) -> Result<f64, EvalError> + 'a, BindError> {
+    pub fn bind_n_runtime(self, vars: &'expr [&'expr str]) -> Result<impl Fn(&[f64]) -> Result<f64, EvalError> + 'expr, BindError> {
         let variables: HashSet<&str> = vars.iter().copied().collect();
         let missing_vars = self.vars.difference(&variables);
         if let Some(bind_error) = BindError::from_diff(missing_vars) {

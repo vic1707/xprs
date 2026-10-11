@@ -19,27 +19,27 @@ pub use unop::UnOp;
 /// Represents an element in the abstract syntax tree (AST).
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 #[non_exhaustive]
-pub enum Element<'a> {
+pub enum Element<'expr> {
     /// A number.
     Number(f64),
     /// A binary operation.
-    BinOp(Box<BinOp<'a>>),
+    BinOp(Box<BinOp<'expr>>),
     /// A unary operation.
-    UnOp(Box<UnOp<'a>>),
+    UnOp(Box<UnOp<'expr>>),
     /// A function call.
-    Function(Box<FunctionCall<'a>>),
+    Function(Box<FunctionCall<'expr>>),
     /// A variable.
-    Variable(&'a str),
+    Variable(&'expr str),
 }
 
 impl fmt::Display for Element<'_> {
-    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            Self::Number(num) => write!(fmt, "{num}"),
-            Self::BinOp(ref binop) => write!(fmt, "{binop}"),
-            Self::UnOp(ref unop) => write!(fmt, "{unop}"),
-            Self::Function(ref func) => write!(fmt, "{func}"),
-            Self::Variable(var) => write!(fmt, "{var}"),
+            Self::Number(num) => write!(f, "{num}"),
+            Self::BinOp(ref binop) => write!(f, "{binop}"),
+            Self::UnOp(ref unop) => write!(f, "{unop}"),
+            Self::Function(ref func) => write!(f, "{func}"),
+            Self::Variable(var) => write!(f, "{var}"),
         }
     }
 }
@@ -53,27 +53,27 @@ where
     }
 }
 
-impl<'a> From<BinOp<'a>> for Element<'a> {
-    fn from(binop: BinOp<'a>) -> Self {
+impl<'expr> From<BinOp<'expr>> for Element<'expr> {
+    fn from(binop: BinOp<'expr>) -> Self {
         Self::BinOp(Box::new(binop))
     }
 }
 
-impl<'a> From<UnOp<'a>> for Element<'a> {
-    fn from(unop: UnOp<'a>) -> Self {
+impl<'expr> From<UnOp<'expr>> for Element<'expr> {
+    fn from(unop: UnOp<'expr>) -> Self {
         Self::UnOp(Box::new(unop))
     }
 }
 
-impl<'a> From<FunctionCall<'a>> for Element<'a> {
-    fn from(func: FunctionCall<'a>) -> Self {
+impl<'expr> From<FunctionCall<'expr>> for Element<'expr> {
+    fn from(func: FunctionCall<'expr>) -> Self {
         Self::Function(Box::new(func))
     }
 }
 
-impl<'a> Element<'a> {
+impl<'expr> Element<'expr> {
     /// Finds variables in the element and adds them to the provided set.
-    pub(crate) fn find_variables(&self, vars: &mut HashSet<&'a str>) {
+    pub(crate) fn find_variables(&self, vars: &mut HashSet<&'expr str>) {
         match *self {
             Self::Variable(var) => {
                 vars.insert(var);
@@ -89,6 +89,6 @@ impl<'a> Element<'a> {
                 func.args.iter().for_each(|arg| arg.find_variables(vars));
             },
             Self::Number(_) => (),
-        };
+        }
     }
 }

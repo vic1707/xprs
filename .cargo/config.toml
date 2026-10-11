@@ -6,22 +6,28 @@ rustflags = [
   "-Dclippy::nursery",
   "-Dclippy::cargo",
   ## Can't fix ##
-  "-Aclippy::multiple_crate_versions",          # can't fix, due to dependencies
+  "-Aclippy::multiple_crate_versions", # miette needs unicode-width 0.1, textwrap needs 0.2
   ## Conflicts ##
   "-Aclippy::blanket_clippy_restriction_lints", # clippy::restriction                 - can't enable clippy::restriction if this is enabled
   "-Aclippy::implicit_return",                  # clippy::needless-return             - remove return keyword when not needed
+  "-Aclippy::impl_trait_in_params",             # prefer argument-position impl Trait
   "-Aclippy::pub-with-shorthand",               # clippy::pub-without-shorthand       - pub(<scope>) instead of pub(in <scope>)
   "-Aclippy::mod_module_files",                 # clippy::self_named_module_files     - `./foo/mod.rs` instead of (`./foo.rs` + `./foo/*.rs`)
   "-Aclippy::separated_literal_suffix",         # clippy::unseparated-literal-suffix  - 2.0_f32 vs 2.0f32
   ## Allowed ##
-  "-Aclippy::arithmetic-side-effects",          # cursor/counters increments
-  "-Aclippy::float-arithmetic",                 # used during evaluation
-  "-Aclippy::missing_trait_methods",            # can use default impl for methods in traits
-  "-Aclippy::modulo-arithmetic",                # used during evaluation
-  "-Aclippy::question_mark_used",               # convenience
-  "-Aclippy::single_call_fn",                   # function only called once
-  "-Aclippy::undocumented-unsafe-blocks",       # ok to not document if using `trust_me!` macro (if we are 100% sure)
+  "-Aclippy::arbitrary_source_item_ordering",     # gtfo
+  "-Aclippy::definition_in_module_root",          # existing module organization
+  "-Aclippy::doc_paragraphs_missing_punctuation", # docs include expressions and code lists
+  "-Aclippy::field_scoped_visibility_modifiers",  # internal AST fields use pub(crate)
+  "-Aclippy::rest_pattern_accessible_field",      # ignore unused AST fields with ..
+  "-Aclippy::too_long_first_doc_paragraph",       # existing API documentation style
+  "-Aclippy::arithmetic-side-effects",            # cursor/counters increments
+  "-Aclippy::float-arithmetic",                   # used during evaluation
+  "-Aclippy::missing_trait_methods",              # can use default impl for methods in traits
+  "-Aclippy::modulo-arithmetic",                  # used during evaluation
+  "-Aclippy::question_mark_used",                 # convenience
+  "-Aclippy::single_call_fn",                     # function only called once
+  "-Aclippy::undocumented-unsafe-blocks",         # ok to not document if using `trust_me!` macro (if we are 100% sure)
   ## Maybe remove ##
-  "-Aclippy::single_char_lifetime_names",       # common practice to use 'a
-  "-Aclippy::ref_patterns",                     # dunno if/how it can be removed
+  "-Aclippy::ref_patterns",               # dunno if/how it can be removed
 ]

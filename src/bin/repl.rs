@@ -4,13 +4,14 @@
     clippy::expect_used,
     clippy::print_stdout,
     clippy::unreachable,
-    clippy::use_debug
+    clippy::use_debug,
+    reason = "the REPL prints diagnostics and expects interactive input to be valid"
 )]
 /* Built-in imports */
-#![allow(clippy::std_instead_of_core)]
+#![allow(clippy::std_instead_of_core, reason = "the REPL uses standard I/O")]
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
-use std::io::{self, Write};
+use std::io::{self, Write as _};
 /* Crate imports */
 use xprs::Parser;
 
@@ -49,7 +50,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 /// Ask the user for the value of the variables in the given set.
-fn ask_for_variables<'a>(set: &'a HashSet<&str>) -> HashMap<&'a str, f64> {
+fn ask_for_variables<'vars>(
+    set: &'vars HashSet<&str>,
+) -> HashMap<&'vars str, f64> {
     if !set.is_empty() {
         println!("Please enter the following variables:");
     }

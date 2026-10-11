@@ -61,17 +61,17 @@ pub struct Context<'names> {
 impl<'names> Context<'names> {
     /// Sets the value of a variable in the context.
     #[inline]
-    pub fn set_var<T: Into<f64>>(&mut self, name: &'names str, value: T) {
+    pub fn set_var(&mut self, name: &'names str, value: impl Into<f64>) {
         self.symbols.insert(name, value.into().into());
     }
 
     /// Sets the value of a variable in the context, returning the context.
     #[inline]
     #[must_use]
-    pub fn with_var<T: Into<f64>>(
+    pub fn with_var(
         mut self,
         name: &'names str,
-        value: T,
+        value: impl Into<f64>,
     ) -> Self {
         self.symbols.insert(name, value.into().into());
         self

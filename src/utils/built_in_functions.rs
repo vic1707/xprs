@@ -78,7 +78,11 @@ pub const TRUNC: Function = xprs_fn!("trunc", f64::trunc, 1);
 pub const SUM: Function = xprs_fn!("sum", |args| args.iter().sum());
 
 /// Mean (average) of a list of numbers.
-#[allow(clippy::as_conversions, clippy::cast_precision_loss)]
+#[expect(
+    clippy::as_conversions,
+    clippy::cast_precision_loss,
+    reason = "the mean divides a floating-point sum by the argument count"
+)]
 pub const MEAN: Function = xprs_fn!("mean", |args| {
     args.iter().sum::<f64>() / args.len() as f64
 });

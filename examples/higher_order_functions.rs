@@ -1,7 +1,7 @@
 //! Higher order functions example.
-#![allow(clippy::print_stdout)]
-use std::error::Error;
-use xprs::{xprs_fn, Context, Parser, Xprs};
+#![allow(clippy::print_stdout, reason = "examples print their results")]
+use core::error::Error;
+use xprs::{Context, Parser, Xprs, xprs_fn};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let xprs_hof = Xprs::try_from("2x + y")?;

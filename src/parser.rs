@@ -1,11 +1,11 @@
 /* Clippy Config */
-#![allow(clippy::std_instead_of_core)]
+#![allow(clippy::std_instead_of_core, reason = "HashSet requires std")]
 /* Built-in imports */
 use core::{fmt, str};
 use std::collections::HashSet;
 /* Crate imports */
 #[cfg(feature = "compile-time-optimizations")]
-use crate::element::Simplify;
+use crate::element::Simplify as _;
 use crate::{
     context::Context,
     element::{BinOp, Element, FunctionCall, UnOp},
@@ -51,13 +51,13 @@ impl<'ctx> Parser<'ctx> {
     /// Returns a reference to the parser's context.
     #[inline]
     #[must_use]
-    pub const fn ctx(&self) -> &Context {
+    pub const fn ctx(&self) -> &Context<'ctx> {
         &self.ctx
     }
 
     /// Returns a mutable reference to the parser's context.
     #[inline]
-    pub fn ctx_mut(&mut self) -> &mut Context<'ctx> {
+    pub const fn ctx_mut(&mut self) -> &mut Context<'ctx> {
         &mut self.ctx
     }
 
@@ -89,17 +89,17 @@ impl<'ctx> Parser<'ctx> {
         let xprs = ParserImpl::parse(input, &self.ctx)?;
 
         // Check if no unknown variable was found
-        if let Some(expected) = self.ctx.get_expected_vars() {
-            if let Some(unknown_var) = xprs.vars.difference(expected).next() {
-                yeet!(ParseError::new_variable_not_declared(
-                    input,
-                    unknown_var,
-                    expected
-                        .iter()
-                        .map(|&str| str.to_owned())
-                        .collect::<Vec<_>>()
-                ))
-            }
+        if let Some(expected) = self.ctx.get_expected_vars()
+            && let Some(unknown_var) = xprs.vars.difference(expected).next()
+        {
+            yeet!(ParseError::new_variable_not_declared(
+                input,
+                unknown_var,
+                expected
+                    .iter()
+                    .map(|&str| str.to_owned())
+                    .collect::<Vec<_>>()
+            ))
         }
 
         Ok(xprs)
@@ -198,7 +198,10 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
             /* Unary expression */
             op @ (b'+' | b'-') => {
                 self.cursor += 1;
-                #[allow(clippy::unreachable)]
+                #[expect(
+                    clippy::unreachable,
+                    reason = "this arm only handles the plus and minus bytes"
+                )]
                 let operator = match op {
                     b'+' => Operator::Plus,
                     b'-' => Operator::Minus,
@@ -298,7 +301,10 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         let end = self.cursor;
 
         let ident = trust_me!(
-            #[allow(clippy::indexing_slicing)]
+            #[expect(
+                clippy::indexing_slicing,
+                reason = "both offsets come from scanning the input"
+            )]
             str::from_utf8_unchecked(&self.input[begin..end])
         );
 
@@ -360,7 +366,10 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         self.skip_while(predicate);
         let end = self.cursor;
         trust_me!(
-            #[allow(clippy::indexing_slicing)]
+            #[expect(
+                clippy::indexing_slicing,
+                reason = "both offsets come from scanning the input"
+            )]
             str::from_utf8_unchecked(&self.input[start..end])
         )
     }

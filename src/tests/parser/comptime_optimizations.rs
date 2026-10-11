@@ -1,10 +1,11 @@
 /* Built-in imports */
 use core::f64;
 /* Crate imports */
+use crate::tests::macros::assert_f64_eq;
 use crate::{
+    Parser, Xprs,
     element::{BinOp, Element},
     token::Operator,
-    Parser, Xprs,
 };
 
 ///// Tests the following expressions:
@@ -23,7 +24,6 @@ use crate::{
 /// x - x
 ////// Commutativity
 /// (a + b) - (b + a)
-#[allow(clippy::too_many_lines)]
 fn get_valid_test_cases() -> [(&'static str, Xprs<'static>); 13] {
     [
         (
@@ -125,11 +125,52 @@ fn get_valid_test_cases() -> [(&'static str, Xprs<'static>); 13] {
 }
 
 #[test]
-fn test_valid() {
+fn valid() {
     let parser = Parser::default();
     for (expr, expected) in get_valid_test_cases() {
         let res = parser.parse(expr);
         assert!(res.is_ok(), "\nShould have passed for {expr}\n{res:?}");
-        assert_eq!(res.unwrap(), expected, "\n{expr}");
+        let actual = res.unwrap();
+        assert_eq!(actual.vars, expected.vars, "{expr}");
+        match (&actual.root, &expected.root) {
+            (&Element::Number(actual_num), &Element::Number(expected_num)) => {
+                assert_f64_eq!(actual_num, expected_num, "{expr}");
+            },
+            _ => assert_eq!(actual.root, expected.root, "{expr}"),
+        }
+    }
+}
+
+#[test]
+fn algebraic_simplifications() {
+    let parser = Parser::default();
+    for (expression, expected) in [
+        ("(-x) + x", "0"),
+        ("x + (-x)", "0"),
+        ("x - (-y)", "(x + y)"),
+        ("(-x) * (-y)", "(x * y)"),
+        ("(-x) / (-y)", "(x / y)"),
+        ("x + x!", "(x + (!x))"),
+        ("x - y!", "(x - (!y))"),
+        ("(-x) * y!", "((-x) * (!y))"),
+        ("x! / (-y)", "((!x) / (-y))"),
+        ("x ^ 0", "1"),
+        ("x * 1", "x"),
+        ("x / 1", "x"),
+        ("x ^ 1", "x"),
+        ("-0 + x", "x"),
+        ("0 * x", "0"),
+        ("x * 0", "0"),
+        ("0 / x", "0"),
+        ("0 % x", "0"),
+        ("0 / 0", "NaN"),
+        ("0 % 0", "NaN"),
+        ("0 ^ 0", "1"),
+    ] {
+        assert_eq!(
+            parser.parse(expression).unwrap().to_string(),
+            expected,
+            "{expression}"
+        );
     }
 }

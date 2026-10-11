@@ -36,7 +36,7 @@ const VALID: [InputVarsResult; 10] = [
 ];
 
 #[test]
-fn test_valid_eval() {
+fn valid_eval() {
     let parser = Parser::default();
 
     for (input, vars, expected) in VALID {
@@ -52,7 +52,7 @@ fn test_valid_eval() {
 }
 
 #[test]
-fn test_invalid_eval() {
+fn invalid_eval() {
     // this var needs to be declared here because of clippy and default numeric fallback
     // https://github.com/rust-lang/rust-clippy/issues/11535
     const VARS: [(&str, f64); 1] = [("x", 2.0)];

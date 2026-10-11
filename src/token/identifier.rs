@@ -5,19 +5,19 @@ use crate::{context::Symbol, token::Function, utils::built_in_functions};
 
 /// Represents a mathematical identifier, which can be a function, constant, or variable.
 #[derive(Debug, PartialEq, PartialOrd)]
-pub enum Identifier<'a> {
+pub enum Identifier<'input> {
     /// A mathematical function.
     Function(Function),
     /// A constant numeric value.
     Constant(f64),
     /// A variable identified by its name.
-    Variable(&'a str),
+    Variable(&'input str),
 }
 
-impl<'a> Identifier<'a> {
+impl<'input> Identifier<'input> {
     /// Converts a string into an [`Identifier`].
     /// Cannot fail because unknown identifiers are treated as variables.
-    pub(crate) fn from_str(value: &'a str) -> Self {
+    pub(crate) fn from_str(value: &'input str) -> Self {
         match value {
             /* Constants */
             "pi" => f64::consts::PI.into(),

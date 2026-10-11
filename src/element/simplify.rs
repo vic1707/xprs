@@ -7,15 +7,15 @@ use crate::{
 
 /// Trait for simplifying abstract syntax tree (AST) elements.
 /// Is enabled with the `compile-time-optimizations` feature (on by default).
-pub trait Simplify<'a> {
+pub trait Simplify<'expr> {
     /// Simplifies the element for the specified variable.
-    fn simplify_for(self, var: (&str, f64)) -> Element<'a>;
+    fn simplify_for(self, var: (&str, f64)) -> Element<'expr>;
 
     /// Simplifies the element.
-    fn simplify(self) -> Element<'a>;
+    fn simplify(self) -> Element<'expr>;
 }
 
-impl<'a> Simplify<'a> for Element<'a> {
+impl<'expr> Simplify<'expr> for Element<'expr> {
     fn simplify_for(self, var: (&str, f64)) -> Self {
         match self {
             Self::BinOp(binop) => binop.simplify_for(var),
@@ -36,15 +36,18 @@ impl<'a> Simplify<'a> for Element<'a> {
     }
 }
 
-impl<'a> Simplify<'a> for BinOp<'a> {
-    fn simplify_for(mut self, var: (&str, f64)) -> Element<'a> {
+impl<'expr> Simplify<'expr> for BinOp<'expr> {
+    fn simplify_for(mut self, var: (&str, f64)) -> Element<'expr> {
         self.lhs = self.lhs.simplify_for(var);
         self.rhs = self.rhs.simplify_for(var);
         self.simplify()
     }
 
-    #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
-    fn simplify(mut self) -> Element<'a> {
+    #[expect(
+        clippy::too_many_lines,
+        reason = "keep algebraic simplification rules in one match"
+    )]
+    fn simplify(mut self) -> Element<'expr> {
         use Element::Number;
         use Operator::{Divide, Factorial, Minus, Modulo, Plus, Power, Times};
         self.lhs = self.lhs.simplify();
@@ -52,165 +55,153 @@ impl<'a> Simplify<'a> for BinOp<'a> {
         match self {
             /////////////////////////// Additions ///////////////////////////
             // 0 + a => a
-            BinOp { op: Plus, lhs, rhs } if lhs == Number(0.0) => rhs,
+            BinOp {
+                op: Plus,
+                lhs: Number(0.0),
+                rhs,
+            } => rhs,
             // a + 0 => a
-            BinOp { op: Plus, lhs, rhs } if rhs == Number(0.0) => lhs,
-            ////// NIGHTLY FEATURES //////
-            #[cfg(NIGHTLY)]
+            BinOp {
+                op: Plus,
+                lhs,
+                rhs: Number(0.0),
+            } => lhs,
             // (-a) + a => 0
             BinOp {
                 op: Plus,
-                lhs: Element::UnOp(box UnOp { op: Minus, operand }),
+                lhs: Element::UnOp(unop),
                 rhs,
-            } if operand == rhs => Number(0.0),
-            #[cfg(NIGHTLY)]
+            } if unop.op == Minus && unop.operand == rhs => Number(0.0),
             // a + (-a) => 0
             BinOp {
                 op: Plus,
                 lhs,
-                rhs: Element::UnOp(box UnOp { op: Minus, operand }),
-            } if lhs == operand => Number(0.0),
+                rhs: Element::UnOp(unop),
+            } if unop.op == Minus && lhs == unop.operand => Number(0.0),
             ////////////////////////// Subtractions /////////////////////////
             // 0 - a => -a
             BinOp {
                 op: Minus,
-                lhs,
+                lhs: Number(0.0),
                 rhs,
-            } if lhs == Number(0.0) => UnOp::new_element(Operator::Minus, rhs),
+            } => UnOp::new_element(Operator::Minus, rhs),
             // a - 0 => a
             BinOp {
                 op: Minus,
                 lhs,
-                rhs,
-            } if rhs == Number(0.0) => lhs,
+                rhs: Number(0.0),
+            } => lhs,
             // a - a => 0
             BinOp {
                 op: Minus,
                 lhs,
                 rhs,
             } if lhs == rhs => Number(0.0),
-            ////// NIGHTLY FEATURES //////
-            #[cfg(NIGHTLY)]
             // a - (-b) => a + b
             BinOp {
                 op: Minus,
                 lhs,
-                rhs: Element::UnOp(box UnOp { op: Minus, operand }),
-            } => BinOp::new_element(Operator::Plus, lhs, operand),
+                rhs: Element::UnOp(unop),
+            } if unop.op == Minus => {
+                BinOp::new_element(Operator::Plus, lhs, unop.operand)
+            },
             //////////////////////// Multiplications ////////////////////////
-            // 0 * a => 0
-            BinOp { op: Times, lhs, .. } if lhs == Number(0.0) => Number(0.0),
-            // a * 0 => 0
-            BinOp { op: Times, rhs, .. } if rhs == Number(0.0) => Number(0.0),
+            // 0 * a and a * 0 => 0
+            BinOp {
+                op: Times,
+                lhs: Number(0.0),
+                ..
+            }
+            | BinOp {
+                op: Times,
+                rhs: Number(0.0),
+                ..
+            } => Number(0.0),
             // 1 * a => a
             BinOp {
                 op: Times,
-                lhs,
+                lhs: Number(1.0),
                 rhs,
-            } if lhs == Number(1.0) => rhs,
-            // a * 1 => a
+            } => rhs,
+            // a * 1, a / 1 and a ^ 1 => a
             BinOp {
-                op: Times,
+                op: Times | Divide | Power,
                 lhs,
-                rhs,
-            } if rhs == Number(1.0) => lhs,
-            ////// NIGHTLY FEATURES //////
+                rhs: Number(1.0),
+            } => lhs,
             // (-a) * (-b) => a * b
-            #[cfg(NIGHTLY)]
             BinOp {
                 op: Times,
-                lhs:
-                    Element::UnOp(box UnOp {
-                        op: Minus,
-                        operand: lhs,
-                    }),
-                rhs:
-                    Element::UnOp(box UnOp {
-                        op: Minus,
-                        operand: rhs,
-                    }),
-            } => BinOp::new_element(Operator::Times, lhs, rhs),
+                lhs: Element::UnOp(lhs),
+                rhs: Element::UnOp(rhs),
+            } if lhs.op == Minus && rhs.op == Minus => {
+                BinOp::new_element(Operator::Times, lhs.operand, rhs.operand)
+            },
             /////////////////////////// Divisions ///////////////////////////
-            // 0/0 => NaN // special case
+            // 0/0 and 0%0 => NaN // special cases
             BinOp {
-                op: Divide,
-                lhs,
-                rhs,
-            } if lhs == Number(0.0) && rhs == Number(0.0) => Number(f64::NAN),
-            // 0 / a => 0
+                op: Divide | Modulo,
+                lhs: Number(0.0),
+                rhs: Number(0.0),
+            } => Number(f64::NAN),
+            // 0 / a and 0 % a => 0
             BinOp {
-                op: Divide, lhs, ..
-            } if lhs == Number(0.0) => Number(0.0),
+                op: Divide | Modulo,
+                lhs: Number(0.0),
+                ..
+            } => Number(0.0),
             // a / 0 => inf
             BinOp {
-                op: Divide, rhs, ..
-            } if rhs == Number(0.0) => Number(f64::INFINITY),
-            // a / 1 => a
-            BinOp {
                 op: Divide,
-                lhs,
-                rhs,
-            } if rhs == Number(1.0) => lhs,
+                rhs: Number(0.0),
+                ..
+            } => Number(f64::INFINITY),
             // a / a => 1
             BinOp {
                 op: Divide,
                 lhs,
                 rhs,
             } if lhs == rhs => Number(1.0),
-            ////// NIGHTLY FEATURES //////
             // (-a) / (-b) => a / b
-            #[cfg(NIGHTLY)]
             BinOp {
                 op: Divide,
-                lhs:
-                    Element::UnOp(box UnOp {
-                        op: Minus,
-                        operand: lhs,
-                    }),
-                rhs:
-                    Element::UnOp(box UnOp {
-                        op: Minus,
-                        operand: rhs,
-                    }),
-            } => BinOp::new_element(Operator::Divide, lhs, rhs),
+                lhs: Element::UnOp(lhs),
+                rhs: Element::UnOp(rhs),
+            } if lhs.op == Minus && rhs.op == Minus => {
+                BinOp::new_element(Operator::Divide, lhs.operand, rhs.operand)
+            },
             ///////////////////////////// Powers ////////////////////////////
             // 0 ^ 0 => 1 // special case
             BinOp {
                 op: Power,
-                lhs,
-                rhs,
-            } if lhs == Number(0.0) && rhs == Number(0.0) => Number(1.0),
+                lhs: Number(0.0),
+                rhs: Number(0.0),
+            } => Number(1.0),
             // 0 ^ a => 0
-            BinOp { op: Power, lhs, .. } if lhs == Number(0.0) => Number(0.0),
-            // a ^ 0 => 1
-            BinOp {
-                op: Power, rhs, ..
-            } if rhs == Number(0.0) => Number(1.0),
-            // a ^ 1 => a
             BinOp {
                 op: Power,
-                lhs,
-                rhs,
-            } if rhs == Number(1.0) => lhs,
+                lhs: Number(0.0),
+                ..
+            } => Number(0.0),
+            // a ^ 0 => 1
+            BinOp {
+                op: Power,
+                rhs: Number(0.0),
+                ..
+            } => Number(1.0),
             //////////////////////////// Modulos ////////////////////////////
-            // 0 % 0 => NaN // special case
-            BinOp {
-                op: Modulo,
-                lhs,
-                rhs,
-            } if lhs == Number(0.0) && rhs == Number(0.0) => Number(f64::NAN),
-            // 0 % a => 0
-            BinOp {
-                op: Modulo, lhs, ..
-            } if lhs == Number(0.0) => Number(0.0),
             // a % 0 => NaN
             BinOp {
-                op: Modulo, rhs, ..
-            } if rhs == Number(0.0) => Number(f64::NAN),
+                op: Modulo,
+                rhs: Number(0.0),
+                ..
+            } => Number(f64::NAN),
             // a % 1 => 0
             BinOp {
-                op: Modulo, rhs, ..
-            } if rhs == Number(1.0) => Number(0.0),
+                op: Modulo,
+                rhs: Number(1.0),
+                ..
+            } => Number(0.0),
             // a % a => 0
             BinOp {
                 op: Modulo,
@@ -223,7 +214,10 @@ impl<'a> Simplify<'a> for BinOp<'a> {
                 rhs: Number(rhs),
                 lhs: Number(lhs),
             } => {
-                #[allow(clippy::unreachable)]
+                #[expect(
+                    clippy::unreachable,
+                    reason = "factorial is never a binary operator"
+                )]
                 let result = match op {
                     Plus => lhs + rhs,
                     Minus => lhs - rhs,
@@ -240,15 +234,18 @@ impl<'a> Simplify<'a> for BinOp<'a> {
     }
 }
 
-impl<'a> Simplify<'a> for UnOp<'a> {
-    fn simplify_for(mut self, var: (&str, f64)) -> Element<'a> {
+impl<'expr> Simplify<'expr> for UnOp<'expr> {
+    fn simplify_for(mut self, var: (&str, f64)) -> Element<'expr> {
         self.operand = self.operand.simplify_for(var);
         self.simplify()
     }
 
-    fn simplify(mut self) -> Element<'a> {
+    fn simplify(mut self) -> Element<'expr> {
         self.operand = self.operand.simplify();
-        #[allow(clippy::unreachable)]
+        #[expect(
+            clippy::unreachable,
+            reason = "binary operators never appear in a unary expression"
+        )]
         match self.op {
             Operator::Plus => self.operand,
             Operator::Factorial => match self.operand {
@@ -273,8 +270,8 @@ impl<'a> Simplify<'a> for UnOp<'a> {
     }
 }
 
-impl<'a> Simplify<'a> for FunctionCall<'a> {
-    fn simplify_for(mut self, var: (&str, f64)) -> Element<'a> {
+impl<'expr> Simplify<'expr> for FunctionCall<'expr> {
+    fn simplify_for(mut self, var: (&str, f64)) -> Element<'expr> {
         self.args = self
             .args
             .into_iter()
@@ -283,7 +280,7 @@ impl<'a> Simplify<'a> for FunctionCall<'a> {
         self.simplify()
     }
 
-    fn simplify(mut self) -> Element<'a> {
+    fn simplify(mut self) -> Element<'expr> {
         // TODO: Not a big fan of the second vector.
         // We need to simplify the arguments in all cases, but
         // if they are all numbers, we can call the function.

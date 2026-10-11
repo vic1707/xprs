@@ -19,7 +19,7 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        rust: [stable, beta, nightly, 1.70.0]
+        rust: [stable, beta, nightly, 1.88.0]
         enabled-feature-set:
           [
             "pemdas",
