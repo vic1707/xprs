@@ -84,7 +84,7 @@ impl<'expr> Simplify<'expr> for BinOp<'expr> {
                 op: Minus,
                 lhs: Number(0.0),
                 rhs,
-            } => UnOp::new_element(Operator::Minus, rhs),
+            } => UnOp::new_element(Operator::Minus, rhs).simplify(),
             // a - 0 => a
             BinOp {
                 op: Minus,
@@ -103,7 +103,7 @@ impl<'expr> Simplify<'expr> for BinOp<'expr> {
                 lhs,
                 rhs: Element::UnOp(unop),
             } if unop.op == Minus => {
-                BinOp::new_element(Operator::Plus, lhs, unop.operand)
+                BinOp::new_element(Operator::Plus, lhs, unop.operand).simplify()
             },
             //////////////////////// Multiplications ////////////////////////
             // 0 * a and a * 0 => 0
@@ -136,6 +136,7 @@ impl<'expr> Simplify<'expr> for BinOp<'expr> {
                 rhs: Element::UnOp(rhs),
             } if lhs.op == Minus && rhs.op == Minus => {
                 BinOp::new_element(Operator::Times, lhs.operand, rhs.operand)
+                    .simplify()
             },
             /////////////////////////// Divisions ///////////////////////////
             // 0/0 and 0%0 => NaN // special cases
@@ -169,6 +170,7 @@ impl<'expr> Simplify<'expr> for BinOp<'expr> {
                 rhs: Element::UnOp(rhs),
             } if lhs.op == Minus && rhs.op == Minus => {
                 BinOp::new_element(Operator::Divide, lhs.operand, rhs.operand)
+                    .simplify()
             },
             ///////////////////////////// Powers ////////////////////////////
             // 0 ^ 0 => 1 // special case
@@ -257,6 +259,10 @@ impl<'expr> Simplify<'expr> for UnOp<'expr> {
             },
             Operator::Minus => match self.operand {
                 Element::Number(num) => Element::Number(-num),
+                // -(-a) => a, including signed zero and NaN.
+                Element::UnOp(unop) if unop.op == Operator::Minus => {
+                    unop.operand
+                },
                 Element::UnOp(_)
                 | Element::BinOp(_)
                 | Element::Function(_)
