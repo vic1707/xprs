@@ -2,12 +2,16 @@
 use crate::Parser;
 
 #[cfg(feature = "pemdas")]
-const IMPLICIT_MULTIPLICATIONS: [(&str, &str); 9] = [
+const IMPLICIT_MULTIPLICATIONS: [(&str, &str); 13] = [
     ("2(3)", "2*(3)"),
     ("2(3+4)", "2*(3+4)"),
     ("2 (3+4)5", "2*(3+4)*5"),
     ("2 (3+4) 5", "2*(3+4)*5"),
     ("2(3+4)(5+6)", "2*(3+4)*(5+6)"),
+    ("(2*3)4", "(2*3)*4"),
+    ("(x-x)2", "(x-x)*2"),
+    ("x 2", "x*2"),
+    ("-x 2", "-x*2"),
     ("2x + 3 x y", "2*x + 3*x*y"),
     ("12 + 3-1x+3y x", "12 + 3-1*x+3*y*x"),
     // These ones are different for the `pejmdas` feature
@@ -16,12 +20,16 @@ const IMPLICIT_MULTIPLICATIONS: [(&str, &str); 9] = [
 ];
 
 #[cfg(feature = "pejmdas")]
-const IMPLICIT_MULTIPLICATIONS: [(&str, &str); 9] = [
+const IMPLICIT_MULTIPLICATIONS: [(&str, &str); 13] = [
     ("2(3)", "2*(3)"),
     ("2(3+4)", "2*(3+4)"),
     ("2 (3+4)5", "2*(3+4)*5"),
     ("2 (3+4) 5", "2*(3+4)*5"),
     ("2(3+4)(5+6)", "2*(3+4)*(5+6)"),
+    ("(2*3)4", "(2*3)*4"),
+    ("(x-x)2", "(x-x)*2"),
+    ("x 2", "x*2"),
+    ("-x 2", "-x*2"),
     ("2x + 3 x y", "2*x + 3*x*y"),
     ("12 + 3-1x+3y x", "12 + 3-1*x+3*y*x"),
     // These ones are different for the `pemdas` feature
@@ -50,7 +58,18 @@ fn implicit_multiplication() {
     }
 }
 
-const INVALID_IMPLICIT_MULTIPLICATIONS: [&str; 1] = ["2 5"];
+const INVALID_IMPLICIT_MULTIPLICATIONS: [&str; 10] = [
+    "2 5",
+    "2 * 3 4",
+    "2 + 3 4",
+    "2 / 3 4",
+    "2 % 3 4",
+    "2 ^ 3 4",
+    "-2 3",
+    "sin(2 3)",
+    "sum(1, 2 3)",
+    "2x 3 4",
+];
 #[test]
 fn invalid_implicit_multiplication() {
     let parser = Parser::default();

@@ -116,6 +116,8 @@ struct ParserImpl<'input, 'ctx> {
     input: &'input [u8],
     /// The current cursor position in the input expression.
     cursor: usize,
+    /// Whether the last parsed atom ended in a numeric literal.
+    last_atom_is_number: bool,
     /// The context of the parser.
     ctx: &'ctx Context<'ctx>,
 }
@@ -126,6 +128,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         Self {
             input: input.as_bytes(),
             cursor: 0,
+            last_atom_is_number: false,
             ctx,
         }
     }
@@ -167,11 +170,12 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         // Right-associative unary operators
         if self.consume_if_eq(b'!') {
             el = UnOp::new_element(Operator::Factorial, el);
+            self.last_atom_is_number = false;
         }
 
         // BinOp with higher precedence
         while let Some((op, op_precedence)) =
-            self.get_operator_infos(&el, precedence)
+            self.get_operator_infos(precedence)
         {
             let rhs = self.element(op_precedence)?;
             el = BinOp::new_element(op, el, rhs);
@@ -224,6 +228,10 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
             },
         };
 
+        // Unary signs retain the operand's ending; groups and calls end with ')'.
+        if !matches!(next, b'+' | b'-') {
+            self.last_atom_is_number = matches!(next, b'0'..=b'9' | b'.');
+        }
         Ok(atom)
     }
 
@@ -414,7 +422,6 @@ impl ParserImpl<'_, '_> {
     /// Returns the operator and its precedence if it's a valid operator.
     fn get_operator_infos(
         &mut self,
-        current_atom: &Element<'_>,
         precedence: usize,
     ) -> Option<(Operator, usize)> {
         use precedence::IMPLICIT_MULTIPLICATION_INFO;
@@ -437,9 +444,9 @@ impl ParserImpl<'_, '_> {
             // if it's an identifier or an opening parenthesis
             // we can consider its an implicit multiplication
             b'a'..=b'z' | b'(' => Some(IMPLICIT_MULTIPLICATION_INFO),
-            // if it's a number implicit multiplication is
-            // only possible if previous atom isn't a number
-            b'0'..=b'9' if !matches!(*current_atom, Element::Number(_)) => {
+            // Consecutive numeric literals need an explicit operator, even
+            // when the preceding literal is inside a larger binary expression.
+            b'0'..=b'9' if !self.last_atom_is_number => {
                 Some(IMPLICIT_MULTIPLICATION_INFO)
             },
             _ => None,
