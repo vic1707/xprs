@@ -8,12 +8,15 @@ use core::f64::consts::E;
 use super::super::macros::assert_f64_eq;
 use crate::Parser;
 
-const VALID_TEST_CASES: [(&str, f64); 9] = [
+const VALID_TEST_CASES: [(&str, f64); 12] = [
     ("1", 1.0),
     ("1.2", 1.2),
     ("1.2e3", 1.2e3),
     ("1.2e-3", 1.2e-3),
     ("1.2e+3", 1.2e+3),
+    ("1_000", 1000.0),
+    ("1_234.5", 1234.5),
+    ("1_000e-3", 1.0),
     ("1e", 1. * E),
     ("1.2e", 1.2 * E),
     // invalidated by #16 allowing for numbers in identifiers

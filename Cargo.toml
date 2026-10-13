@@ -23,6 +23,7 @@ rust-version = "1.88.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+lexical-parse-float = { version = "1.0.6", default-features = false, features = ["format"] }
 miette = { version = "7.6.0", default-features = false, features = ["fancy-no-backtrace"] }
 thiserror = "2.0.21"
 

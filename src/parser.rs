@@ -1,8 +1,12 @@
 /* Clippy Config */
 #![allow(clippy::std_instead_of_core, reason = "HashSet requires std")]
 /* Built-in imports */
-use core::{fmt, str};
+use core::{fmt, num::NonZeroU8, str};
 use std::collections::HashSet;
+/* Dependencies imports */
+use lexical_parse_float::{
+    FromLexicalWithOptions as _, NumberFormatBuilder, Options,
+};
 /* Crate imports */
 #[cfg(feature = "compile-time-optimizations")]
 use crate::element::Simplify as _;
@@ -292,36 +296,82 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
 
     /// Parses a number in the mathematical expression.
     fn parse_number(&mut self) -> Result<Element<'input>, ParseError> {
+        const FORMAT: u128 = NumberFormatBuilder::new()
+            .digit_separator(NonZeroU8::new(b'_'))
+            .leading_digit_separator(true)
+            .trailing_digit_separator(true)
+            .internal_digit_separator(true)
+            .consecutive_digit_separator(true)
+            .build_strict();
+        const OPTIONS: Options = Options::new();
+
         let begin = self.cursor;
         self.skip_while(|&ch| matches!(ch, b'0'..=b'9' | b'.' | b'_'));
-        // make sure to not mistake exponent (10^) with exponential (e = 2.71828..)
+        let mantissa_end = self.cursor;
+        // An e/E without a following number remains an identifier (Euler's e).
+        let numeric_start = |candidate: Option<&u8>| {
+            candidate.is_some_and(|&byte| matches!(byte, b'0'..=b'9' | b'.'))
+        };
         let might_be_exponent = matches!(self.current(), Some(&b'e' | &b'E'));
         let is_exponent_with_sign = might_be_exponent
             && matches!(self.next(), Some(&b'+' | &b'-'))
-            && matches!(self.next_at(2), Some(&(b'0'..=b'9')));
-        let is_exponent =
-            might_be_exponent && matches!(self.next(), Some(&(b'0'..=b'9')));
+            && numeric_start(self.next_at(2));
+        let is_exponent = might_be_exponent && numeric_start(self.next());
 
-        self.cursor +=
-            usize::from(is_exponent_with_sign) * 2 + usize::from(is_exponent);
-
-        self.skip_while(u8::is_ascii_digit);
+        if is_exponent_with_sign || is_exponent {
+            self.cursor += 1 + usize::from(is_exponent_with_sign);
+            self.skip_while(|&ch| matches!(ch, b'0'..=b'9' | b'.' | b'_'));
+        }
         let end = self.cursor;
-
-        let ident = trust_me!(
-            #[expect(
-                clippy::indexing_slicing,
-                reason = "both offsets come from scanning the input"
-            )]
-            str::from_utf8_unchecked(&self.input[begin..end])
-        );
-
-        let num = ident.replace('_', "").parse().map_err(
+        #[expect(
+            clippy::indexing_slicing,
+            reason = "both offsets come from scanning the input"
+        )]
+        let bytes = &self.input[begin..end];
+        let (mantissa, tail) = bytes.split_at(mantissa_end - begin);
+        let parse = |digits: &[u8]| {
+            f64::from_lexical_with_options::<FORMAT>(digits, &OPTIONS)
+        };
+        let number = if let Some((_, exponent)) = tail.split_first()
+            && let Some(dot) = exponent.iter().position(|&byte| byte == b'.')
+        {
+            parse(exponent).and_then(|power| {
+                let (integer, fraction) = exponent.split_at(dot);
+                if fraction
+                    .iter()
+                    .skip(1)
+                    .all(|&byte| matches!(byte, b'0' | b'_'))
+                {
+                    // Integral exponents written with .0 keep correctly rounded conversion.
+                    if integer.iter().any(u8::is_ascii_digit) {
+                        parse(bytes.split_at(mantissa.len() + 1 + dot).0)
+                    } else {
+                        parse(mantissa)
+                    }
+                } else {
+                    // Fractional scientific exponents use ordinary f64 power arithmetic.
+                    parse(mantissa).map(|value| match value {
+                        // A zero coefficient stays zero even if the power overflows.
+                        0.0_f64 => 0.0_f64,
+                        _ => value * 10.0_f64.powf(power),
+                    })
+                }
+            })
+        } else {
+            parse(bytes)
+        }
+        .map_err(
             #[cold]
-            |_err| ParseError::new_malformed_number(self, ident),
+            |_err| {
+                ParseError::new_malformed_number(
+                    self,
+                    // The scanner accepts only ASCII number characters.
+                    trust_me!(str::from_utf8_unchecked(bytes)),
+                )
+            },
         )?;
 
-        Ok(Element::Number(num))
+        Ok(Element::Number(number))
     }
 
     /// Parses a list of arguments in a function call.

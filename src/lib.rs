@@ -84,6 +84,10 @@
 //!
 //! Note: Numbers are parsed as [`f64`] so you can use scientific notation (e.g. `1e-3`) with underscores (e.g. `1_000_000e2`).
 //!
+//! Scientific notation also accepts fractional exponents: `1e1.5` means `1 * 10^1.5`.
+//! Integer exponents use correctly rounded conversion; fractional exponents use ordinary `f64` power arithmetic.
+//! `1e2e3` means `100 * e3`, with `e3` treated as a variable. A bare `1e` still means `1 * e` (Euler's constant).
+//!
 //! If you want to evaluate a calculus that contains variables, you can use the `eval` method (or `eval_unchecked` if you know for sure you're not missing any variables):
 //!
 //! ```rust
