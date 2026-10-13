@@ -4,6 +4,7 @@ use crate::{
     token::Operator,
     utils::factorial::factorial,
 };
+use ::core::mem;
 
 /// Trait for simplifying abstract syntax tree (AST) elements.
 /// Is enabled with the `compile-time-optimizations` feature (on by default).
@@ -36,7 +37,7 @@ impl<'expr> Simplify<'expr> for Element<'expr> {
     }
 }
 
-impl<'expr> Simplify<'expr> for BinOp<'expr> {
+impl<'expr> Simplify<'expr> for Box<BinOp<'expr>> {
     fn simplify_for(mut self, var: (&str, f64)) -> Element<'expr> {
         self.lhs = self.lhs.simplify_for(var);
         self.rhs = self.rhs.simplify_for(var);
@@ -52,7 +53,28 @@ impl<'expr> Simplify<'expr> for BinOp<'expr> {
         use Operator::{Divide, Factorial, Minus, Modulo, Plus, Power, Times};
         self.lhs = self.lhs.simplify();
         self.rhs = self.rhs.simplify();
-        match self {
+        match *self {
+            // Literal arithmetic must precede symbolic identities.
+            BinOp {
+                op,
+                rhs: Number(rhs),
+                lhs: Number(lhs),
+            } => {
+                #[expect(
+                    clippy::unreachable,
+                    reason = "factorial is never a binary operator"
+                )]
+                let result = match op {
+                    Plus => lhs + rhs,
+                    Minus => lhs - rhs,
+                    Times => lhs * rhs,
+                    Divide => lhs / rhs,
+                    Power => lhs.powf(rhs),
+                    Modulo => lhs % rhs,
+                    Factorial => unreachable!(),
+                };
+                Number(result)
+            },
             /////////////////////////// Additions ///////////////////////////
             // 0 + a => a
             BinOp {
@@ -139,15 +161,9 @@ impl<'expr> Simplify<'expr> for BinOp<'expr> {
                     .simplify()
             },
             /////////////////////////// Divisions ///////////////////////////
-            // 0/0 and 0%0 => NaN // special cases
+            // 0 / a, 0 % a and 0 ^ a => 0 (literal cases handled above).
             BinOp {
-                op: Divide | Modulo,
-                lhs: Number(0.0),
-                rhs: Number(0.0),
-            } => Number(f64::NAN),
-            // 0 / a and 0 % a => 0
-            BinOp {
-                op: Divide | Modulo,
+                op: Divide | Modulo | Power,
                 lhs: Number(0.0),
                 ..
             } => Number(0.0),
@@ -173,18 +189,6 @@ impl<'expr> Simplify<'expr> for BinOp<'expr> {
                     .simplify()
             },
             ///////////////////////////// Powers ////////////////////////////
-            // 0 ^ 0 => 1 // special case
-            BinOp {
-                op: Power,
-                lhs: Number(0.0),
-                rhs: Number(0.0),
-            } => Number(1.0),
-            // 0 ^ a => 0
-            BinOp {
-                op: Power,
-                lhs: Number(0.0),
-                ..
-            } => Number(0.0),
             // a ^ 0 => 1
             BinOp {
                 op: Power,
@@ -210,33 +214,13 @@ impl<'expr> Simplify<'expr> for BinOp<'expr> {
                 lhs,
                 rhs,
             } if lhs == rhs => Number(0.0),
-            /////////////////////////// 2 Numbers ///////////////////////////
-            BinOp {
-                op,
-                rhs: Number(rhs),
-                lhs: Number(lhs),
-            } => {
-                #[expect(
-                    clippy::unreachable,
-                    reason = "factorial is never a binary operator"
-                )]
-                let result = match op {
-                    Plus => lhs + rhs,
-                    Minus => lhs - rhs,
-                    Times => lhs * rhs,
-                    Divide => lhs / rhs,
-                    Power => lhs.powf(rhs),
-                    Modulo => lhs % rhs,
-                    Factorial => unreachable!(),
-                };
-                Number(result)
-            },
-            _ => self.into(),
+            // Preserve the allocation when the node remains symbolic.
+            _ => Element::BinOp(self),
         }
     }
 }
 
-impl<'expr> Simplify<'expr> for UnOp<'expr> {
+impl<'expr> Simplify<'expr> for Box<UnOp<'expr>> {
     fn simplify_for(mut self, var: (&str, f64)) -> Element<'expr> {
         self.operand = self.operand.simplify_for(var);
         self.simplify()
@@ -255,7 +239,7 @@ impl<'expr> Simplify<'expr> for UnOp<'expr> {
                 Element::UnOp(_)
                 | Element::BinOp(_)
                 | Element::Function(_)
-                | Element::Variable(_) => self.into(),
+                | Element::Variable(_) => Element::UnOp(self),
             },
             Operator::Minus => match self.operand {
                 Element::Number(num) => Element::Number(-num),
@@ -266,7 +250,7 @@ impl<'expr> Simplify<'expr> for UnOp<'expr> {
                 Element::UnOp(_)
                 | Element::BinOp(_)
                 | Element::Function(_)
-                | Element::Variable(_) => self.into(),
+                | Element::Variable(_) => Element::UnOp(self),
             },
             Operator::Times
             | Operator::Divide
@@ -276,38 +260,36 @@ impl<'expr> Simplify<'expr> for UnOp<'expr> {
     }
 }
 
-impl<'expr> Simplify<'expr> for FunctionCall<'expr> {
+impl<'expr> Simplify<'expr> for Box<FunctionCall<'expr>> {
     fn simplify_for(mut self, var: (&str, f64)) -> Element<'expr> {
-        self.args = self
-            .args
-            .into_iter()
-            .map(|arg| arg.simplify_for(var))
-            .collect();
+        for arg in &mut self.args {
+            *arg = mem::replace(arg, Element::Number(0.0)).simplify_for(var);
+        }
         self.simplify()
     }
 
     fn simplify(mut self) -> Element<'expr> {
-        // TODO: Not a big fan of the second vector.
-        // We need to simplify the arguments in all cases, but
-        // if they are all numbers, we can call the function.
-        let mut args_values: Vec<f64> = Vec::with_capacity(self.args.len());
-
-        self.args = self
+        for arg in &mut self.args {
+            *arg = mem::replace(arg, Element::Number(0.0)).simplify();
+        }
+        if !self
             .args
-            .into_iter()
-            .map(|arg| {
-                let simplified = arg.simplify();
-                if let Element::Number(num) = simplified {
-                    args_values.push(num);
+            .iter()
+            .all(|arg| matches!(arg, Element::Number(_)))
+        {
+            return Element::Function(self);
+        }
+        let args_values: Vec<f64> = self
+            .args
+            .iter()
+            .filter_map(|arg| {
+                if let &Element::Number(num) = arg {
+                    Some(num)
+                } else {
+                    None
                 }
-                simplified
             })
             .collect();
-
-        if args_values.len() == self.args.len() {
-            self.call(&args_values).into()
-        } else {
-            self.into()
-        }
+        self.call(&args_values).into()
     }
 }

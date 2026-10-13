@@ -4,17 +4,14 @@
     reason = "HashMap and HashSet require std"
 )]
 /* Built-in imports */
-use core::{fmt, ptr};
+use core::{fmt, mem};
 use std::collections::{HashMap, HashSet};
 /* Crate imports */
 use crate::{
     element::Element,
     element::Simplify as _,
     token::Operator,
-    utils::{
-        factorial::factorial,
-        hidden_macros::{trust_me, yeet},
-    },
+    utils::{factorial::factorial, hidden_macros::yeet},
 };
 
 /// Represents a mathematical expression and its variables.
@@ -143,9 +140,8 @@ impl Xprs<'_> {
     /// ```
     #[inline]
     pub fn simplify_for_in_place(&mut self, var: (&str, f64)) {
-        let mut tmp = trust_me!(ptr::read(&raw const self.root));
-        tmp = tmp.simplify_for(var);
-        trust_me!(ptr::write(&raw mut self.root, tmp););
+        let root = mem::replace(&mut self.root, Element::Number(0.0));
+        self.root = root.simplify_for(var);
         self.vars.remove(var.0);
     }
 
@@ -219,13 +215,12 @@ impl Xprs<'_> {
     /// ```
     #[inline]
     pub fn simplify_for_multiple_in_place(&mut self, vars: &[(&str, f64)]) {
-        // rewriting `simplify_for_in_place` to avoid dozens of `ptr::read` and `ptr::write`
-        let mut tmp = trust_me!(ptr::read(&raw const self.root));
+        let mut tmp = mem::replace(&mut self.root, Element::Number(0.0));
         for &var in vars {
             tmp = tmp.simplify_for(var);
             self.vars.remove(var.0);
         }
-        trust_me!(ptr::write(&raw mut self.root, tmp););
+        self.root = tmp;
     }
 
     /// Simplifies the expression in-place for multiple variables and returns the expression.

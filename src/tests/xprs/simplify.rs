@@ -1,5 +1,8 @@
 /* Crate imports */
-use crate::Parser;
+use super::super::macros::assert_f64_eq;
+use crate::{Context, Function, Parser, element::Element};
+use core::{panic::AssertUnwindSafe, ptr};
+use std::panic;
 
 #[test]
 fn simplify() {
@@ -19,4 +22,80 @@ fn simplify() {
     // try simplifying for an unknown variable
     xprs.simplify_for_in_place(UNKNOWN_VAR);
     assert_eq!(xprs, parser.parse("21 + 5z").unwrap());
+}
+
+#[test]
+fn retains_unfolded_allocations() {
+    let allocations = |root: &Element<'_>| match *root {
+        Element::BinOp(ref node) => {
+            (ptr::from_ref(node.as_ref()).cast::<()>(), ptr::null())
+        },
+        Element::UnOp(ref node) => {
+            (ptr::from_ref(node.as_ref()).cast::<()>(), ptr::null())
+        },
+        Element::Function(ref node) => (
+            ptr::from_ref(node.as_ref()).cast::<()>(),
+            node.args.as_ptr().cast::<()>(),
+        ),
+        Element::Number(_) | Element::Variable(_) => (ptr::null(), ptr::null()),
+    };
+    for input in ["x + y", "-x", "sum(x, y)"] {
+        let mut tree = Parser::default().parse(input).unwrap();
+        let before = allocations(&tree.root);
+        tree.simplify_for_in_place(("unknown", 0.0_f64));
+        assert_eq!(allocations(&tree.root), before, "{input}");
+    }
+}
+
+#[test]
+fn literal_folding_preserves_float_behavior() {
+    for (input, expected) in [
+        ("-1 / 0", f64::NEG_INFINITY),
+        ("1 / -0", f64::NEG_INFINITY),
+        ("0 ^ -1", f64::INFINITY),
+        ("5.5 % 1", 0.5_f64),
+        ("0 * (0 / 0)", f64::NAN),
+        ("-0 * 1", -0.0_f64),
+        ("(0 / 0) ^ 0", 1.0_f64),
+    ] {
+        let tree = Parser::default()
+            .parse(input)
+            .unwrap()
+            .simplify_for(("unknown", 0.0_f64));
+        let actual = tree.eval_no_vars().unwrap();
+        if expected.is_nan() {
+            assert!(actual.is_nan(), "{input}");
+        } else if expected.is_normal() {
+            assert_f64_eq!(actual, expected, "{input}");
+        } else {
+            assert_eq!(actual.to_bits(), expected.to_bits(), "{input}");
+        }
+    }
+}
+
+#[test]
+fn simplification_is_panic_safe() {
+    #[expect(
+        clippy::panic,
+        reason = "exercise unwinding during constant folding"
+    )]
+    let context = Context::default().with_fn(Function::new_static(
+        "fail",
+        |_args| panic!("intentional folding failure"),
+        Some(1),
+    ));
+    let parser = Parser::new_with_ctx(context);
+    for multiple in [false, true] {
+        let mut tree = parser.parse("fail(x) + y").unwrap();
+        let result = panic::catch_unwind(AssertUnwindSafe(|| {
+            if multiple {
+                tree.simplify_for_multiple_in_place(&[("x", 2.0_f64)]);
+            } else {
+                tree.simplify_for_in_place(("x", 2.0_f64));
+            }
+        }));
+        result.unwrap_err();
+        // The root is still initialized and can be inspected and dropped safely.
+        assert_f64_eq!(tree.eval_no_vars().unwrap(), 0.0);
+    }
 }
