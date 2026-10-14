@@ -9,7 +9,7 @@ use lexical_parse_float::{
 };
 /* Crate imports */
 #[cfg(feature = "compile-time-optimizations")]
-use crate::element::Simplify as _;
+use crate::element::Fold as _;
 use crate::{
     context::Context,
     element::{BinOp, Element, FunctionCall, UnOp},
@@ -172,7 +172,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         let mut el = self.atom()?;
         #[cfg(feature = "compile-time-optimizations")]
         {
-            el = el.simplify();
+            el = el.fold();
         };
 
         // Right-associative unary operators
@@ -181,7 +181,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
             self.last_atom_is_number = false;
             #[cfg(feature = "compile-time-optimizations")]
             {
-                el = el.simplify();
+                el = el.fold();
             };
         }
 
@@ -197,9 +197,7 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
                     (Element::Number(left), Element::Number(right)) => {
                         Element::Number(op.eval_binary(left, right))
                     },
-                    (left, right) => {
-                        BinOp::new_element(op, left, right).simplify()
-                    },
+                    (left, right) => BinOp::new_element(op, left, right).fold(),
                 };
             }
             #[cfg(not(feature = "compile-time-optimizations"))]

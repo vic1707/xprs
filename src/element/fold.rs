@@ -6,49 +6,48 @@ use crate::{
 };
 use ::core::mem;
 
-/// Trait for simplifying abstract syntax tree (AST) elements.
-/// Is enabled with the `compile-time-optimizations` feature (on by default).
-pub trait Simplify<'expr> {
-    /// Simplifies the element for the specified variable.
-    fn simplify_for(self, var: (&str, f64)) -> Element<'expr>;
+/// Folding operations for abstract syntax tree (AST) elements.
+pub trait Fold<'expr> {
+    /// Substitutes a variable throughout the subtree and folds the result.
+    fn substitute_and_fold(self, var: (&str, f64)) -> Element<'expr>;
 
     /// Folds this node; its children must already have been folded.
-    fn simplify(self) -> Element<'expr>;
+    fn fold(self) -> Element<'expr>;
 }
 
-impl<'expr> Simplify<'expr> for Element<'expr> {
-    fn simplify_for(self, var: (&str, f64)) -> Self {
+impl<'expr> Fold<'expr> for Element<'expr> {
+    fn substitute_and_fold(self, var: (&str, f64)) -> Self {
         match self {
-            Self::BinOp(binop) => binop.simplify_for(var),
-            Self::UnOp(unop) => unop.simplify_for(var),
-            Self::Function(func) => func.simplify_for(var),
+            Self::BinOp(binop) => binop.substitute_and_fold(var),
+            Self::UnOp(unop) => unop.substitute_and_fold(var),
+            Self::Function(func) => func.substitute_and_fold(var),
             Self::Variable(name) if name == var.0 => Self::Number(var.1),
             Self::Number(_) | Self::Variable(_) => self,
         }
     }
 
-    fn simplify(self) -> Self {
+    fn fold(self) -> Self {
         match self {
-            Self::BinOp(binop) => binop.simplify(),
-            Self::UnOp(unop) => unop.simplify(),
-            Self::Function(func) => func.simplify(),
+            Self::BinOp(binop) => binop.fold(),
+            Self::UnOp(unop) => unop.fold(),
+            Self::Function(func) => func.fold(),
             Self::Number(_) | Self::Variable(_) => self,
         }
     }
 }
 
-impl<'expr> Simplify<'expr> for Box<BinOp<'expr>> {
-    fn simplify_for(mut self, var: (&str, f64)) -> Element<'expr> {
-        self.lhs = self.lhs.simplify_for(var);
-        self.rhs = self.rhs.simplify_for(var);
-        self.simplify()
+impl<'expr> Fold<'expr> for Box<BinOp<'expr>> {
+    fn substitute_and_fold(mut self, var: (&str, f64)) -> Element<'expr> {
+        self.lhs = self.lhs.substitute_and_fold(var);
+        self.rhs = self.rhs.substitute_and_fold(var);
+        self.fold()
     }
 
     #[expect(
         clippy::too_many_lines,
         reason = "keep algebraic simplification rules in one match"
     )]
-    fn simplify(self) -> Element<'expr> {
+    fn fold(self) -> Element<'expr> {
         use Element::Number;
         use Operator::{Divide, Minus, Modulo, Plus, Power, Times};
         match *self {
@@ -89,7 +88,7 @@ impl<'expr> Simplify<'expr> for Box<BinOp<'expr>> {
                 op: Minus,
                 lhs: Number(0.0),
                 rhs,
-            } => UnOp::new_element(Operator::Minus, rhs).simplify(),
+            } => UnOp::new_element(Operator::Minus, rhs).fold(),
             // a - 0 => a
             BinOp {
                 op: Minus,
@@ -108,7 +107,7 @@ impl<'expr> Simplify<'expr> for Box<BinOp<'expr>> {
                 lhs,
                 rhs: Element::UnOp(unop),
             } if unop.op == Minus => {
-                BinOp::new_element(Operator::Plus, lhs, unop.operand).simplify()
+                BinOp::new_element(Operator::Plus, lhs, unop.operand).fold()
             },
             //////////////////////// Multiplications ////////////////////////
             // 0 * a and a * 0 => 0
@@ -141,7 +140,7 @@ impl<'expr> Simplify<'expr> for Box<BinOp<'expr>> {
                 rhs: Element::UnOp(rhs),
             } if lhs.op == Minus && rhs.op == Minus => {
                 BinOp::new_element(Operator::Times, lhs.operand, rhs.operand)
-                    .simplify()
+                    .fold()
             },
             /////////////////////////// Divisions ///////////////////////////
             // 0 / a, 0 % a and 0 ^ a => 0 (literal cases handled above).
@@ -169,7 +168,7 @@ impl<'expr> Simplify<'expr> for Box<BinOp<'expr>> {
                 rhs: Element::UnOp(rhs),
             } if lhs.op == Minus && rhs.op == Minus => {
                 BinOp::new_element(Operator::Divide, lhs.operand, rhs.operand)
-                    .simplify()
+                    .fold()
             },
             ///////////////////////////// Powers ////////////////////////////
             // a ^ 0 => 1
@@ -203,13 +202,13 @@ impl<'expr> Simplify<'expr> for Box<BinOp<'expr>> {
     }
 }
 
-impl<'expr> Simplify<'expr> for Box<UnOp<'expr>> {
-    fn simplify_for(mut self, var: (&str, f64)) -> Element<'expr> {
-        self.operand = self.operand.simplify_for(var);
-        self.simplify()
+impl<'expr> Fold<'expr> for Box<UnOp<'expr>> {
+    fn substitute_and_fold(mut self, var: (&str, f64)) -> Element<'expr> {
+        self.operand = self.operand.substitute_and_fold(var);
+        self.fold()
     }
 
-    fn simplify(self) -> Element<'expr> {
+    fn fold(self) -> Element<'expr> {
         #[expect(
             clippy::unreachable,
             reason = "binary operators never appear in a unary expression"
@@ -242,15 +241,16 @@ impl<'expr> Simplify<'expr> for Box<UnOp<'expr>> {
     }
 }
 
-impl<'expr> Simplify<'expr> for Box<FunctionCall<'expr>> {
-    fn simplify_for(mut self, var: (&str, f64)) -> Element<'expr> {
+impl<'expr> Fold<'expr> for Box<FunctionCall<'expr>> {
+    fn substitute_and_fold(mut self, var: (&str, f64)) -> Element<'expr> {
         for arg in &mut self.args {
-            *arg = mem::replace(arg, Element::Number(0.0)).simplify_for(var);
+            *arg = mem::replace(arg, Element::Number(0.0))
+                .substitute_and_fold(var);
         }
-        self.simplify()
+        self.fold()
     }
 
-    fn simplify(self) -> Element<'expr> {
+    fn fold(self) -> Element<'expr> {
         if !self
             .args
             .iter()

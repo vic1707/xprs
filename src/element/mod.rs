@@ -4,16 +4,16 @@ use std::collections::HashSet;
 /* Modules */
 /// Binary operation module.
 mod binop;
+/// Folding operations module.
+mod fold;
 /// Function call module.
 mod function_call;
-/// Simplification's trait module.
-mod simplify;
 /// Unary operation module.
 mod unop;
 /* Exports */
 pub use binop::BinOp;
+pub use fold::Fold;
 pub use function_call::FunctionCall;
-pub use simplify::Simplify;
 pub use unop::UnOp;
 
 /// Represents an element in the abstract syntax tree (AST).

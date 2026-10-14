@@ -9,7 +9,7 @@ use std::collections::{HashMap, HashSet};
 /* Crate imports */
 use crate::{
     element::Element,
-    element::Simplify as _,
+    element::Fold as _,
     token::Operator,
     utils::{factorial::factorial, hidden_macros::yeet},
 };
@@ -141,7 +141,7 @@ impl Xprs<'_> {
     #[inline]
     pub fn simplify_for_in_place(&mut self, var: (&str, f64)) {
         let root = mem::replace(&mut self.root, Element::Number(0.0));
-        self.root = root.simplify_for(var);
+        self.root = root.substitute_and_fold(var);
         self.vars.remove(var.0);
     }
 
@@ -217,7 +217,7 @@ impl Xprs<'_> {
     pub fn simplify_for_multiple_in_place(&mut self, vars: &[(&str, f64)]) {
         let mut tmp = mem::replace(&mut self.root, Element::Number(0.0));
         for &var in vars {
-            tmp = tmp.simplify_for(var);
+            tmp = tmp.substitute_and_fold(var);
             self.vars.remove(var.0);
         }
         self.root = tmp;
