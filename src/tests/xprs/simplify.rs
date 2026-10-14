@@ -1,7 +1,13 @@
 /* Crate imports */
+extern crate alloc;
 use super::super::macros::assert_f64_eq;
-use crate::{Context, Function, Parser, element::Element};
-use core::{panic::AssertUnwindSafe, ptr};
+use crate::{Context, Function, Parser, element::Element, xprs_fn};
+use alloc::sync::Arc;
+use core::{
+    panic::AssertUnwindSafe,
+    ptr,
+    sync::atomic::{AtomicUsize, Ordering},
+};
 use std::panic;
 
 #[test]
@@ -45,6 +51,24 @@ fn retains_unfolded_allocations() {
         tree.simplify_for_in_place(("unknown", 0.0_f64));
         assert_eq!(allocations(&tree.root), before, "{input}");
     }
+}
+
+#[test]
+fn partial_folding_calls_functions_once() {
+    let calls = Arc::new(AtomicUsize::new(0));
+    let counter = Arc::clone(&calls);
+    let count = move |value: f64| {
+        counter.fetch_add(1, Ordering::Relaxed);
+        value
+    };
+    let context = Context::default().with_fn(xprs_fn!("count", dyn count, 1));
+    let mut tree = Parser::new_with_ctx(context)
+        .parse("count(x) + count(x) + y")
+        .unwrap();
+    tree.simplify_for_in_place(("x", 2.0_f64));
+    tree.simplify_for_in_place(("unknown", 0.0_f64));
+    assert_eq!(calls.load(Ordering::Relaxed), 2);
+    assert_f64_eq!(tree.eval(&[("y", 1.0_f64)].into()).unwrap(), 5.0);
 }
 
 #[test]

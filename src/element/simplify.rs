@@ -12,7 +12,7 @@ pub trait Simplify<'expr> {
     /// Simplifies the element for the specified variable.
     fn simplify_for(self, var: (&str, f64)) -> Element<'expr>;
 
-    /// Simplifies the element.
+    /// Folds this node; its children must already have been folded.
     fn simplify(self) -> Element<'expr>;
 }
 
@@ -48,13 +48,11 @@ impl<'expr> Simplify<'expr> for Box<BinOp<'expr>> {
         clippy::too_many_lines,
         reason = "keep algebraic simplification rules in one match"
     )]
-    fn simplify(mut self) -> Element<'expr> {
+    fn simplify(self) -> Element<'expr> {
         use Element::Number;
         use Operator::{Divide, Minus, Modulo, Plus, Power, Times};
-        self.lhs = self.lhs.simplify();
-        self.rhs = self.rhs.simplify();
         match *self {
-            // Literal arithmetic must precede symbolic identities.
+            // Evaluate literals before symbolic identities (NaN, signed zero, etc.).
             BinOp {
                 op,
                 rhs: Number(rhs),
@@ -199,7 +197,7 @@ impl<'expr> Simplify<'expr> for Box<BinOp<'expr>> {
                 lhs,
                 rhs,
             } if lhs == rhs => Number(0.0),
-            // Preserve the allocation when the node remains symbolic.
+            // Keep the existing allocation when the node survives folding.
             _ => Element::BinOp(self),
         }
     }
@@ -211,8 +209,7 @@ impl<'expr> Simplify<'expr> for Box<UnOp<'expr>> {
         self.simplify()
     }
 
-    fn simplify(mut self) -> Element<'expr> {
-        self.operand = self.operand.simplify();
+    fn simplify(self) -> Element<'expr> {
         #[expect(
             clippy::unreachable,
             reason = "binary operators never appear in a unary expression"
@@ -253,10 +250,7 @@ impl<'expr> Simplify<'expr> for Box<FunctionCall<'expr>> {
         self.simplify()
     }
 
-    fn simplify(mut self) -> Element<'expr> {
-        for arg in &mut self.args {
-            *arg = mem::replace(arg, Element::Number(0.0)).simplify();
-        }
+    fn simplify(self) -> Element<'expr> {
         if !self
             .args
             .iter()

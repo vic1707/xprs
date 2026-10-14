@@ -155,6 +155,10 @@ fn algebraic_simplifications() {
         ("(-x) * y!", "((-x) * (!y))"),
         ("x! / (-y)", "((!x) / (-y))"),
         ("x ^ 0", "1"),
+        ("sin(0)!", "1"),
+        ("sum(1, 2)!", "6"),
+        ("sin(0)! + x", "(1 + x)"),
+        ("x + 0 + sum(1, 2 * 3)!", "(x + 5040)"),
         ("-(-x)", "x"),
         ("0 - (-x)", "x"),
         ("x - (-x)", "(x + x)"),
@@ -174,6 +178,17 @@ fn algebraic_simplifications() {
             parser.parse(expression).unwrap().to_string(),
             expected,
             "{expression}"
+        );
+    }
+}
+
+#[test]
+fn folding_preserves_implicit_multiplication_rules() {
+    let parser = Parser::default();
+    for (input, expected) in [("sin(0)2", 0.0_f64), ("3!2", 12.0_f64)] {
+        assert_f64_eq!(
+            parser.parse(input).unwrap().eval_no_vars().unwrap(),
+            expected
         );
     }
 }

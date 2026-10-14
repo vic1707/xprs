@@ -170,11 +170,19 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         precedence: usize,
     ) -> Result<Element<'input>, ParseError> {
         let mut el = self.atom()?;
+        #[cfg(feature = "compile-time-optimizations")]
+        {
+            el = el.simplify();
+        };
 
         // Right-associative unary operators
         if self.consume_if_eq(b'!') {
             el = UnOp::new_element(Operator::Factorial, el);
             self.last_atom_is_number = false;
+            #[cfg(feature = "compile-time-optimizations")]
+            {
+                el = el.simplify();
+            };
         }
 
         // BinOp with higher precedence
@@ -182,13 +190,23 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
             self.get_operator_infos(precedence)
         {
             let rhs = self.element(op_precedence)?;
-            el = BinOp::new_element(op, el, rhs);
+            #[cfg(feature = "compile-time-optimizations")]
+            {
+                el = match (el, rhs) {
+                    // Literal arithmetic needs no temporary boxed node.
+                    (Element::Number(left), Element::Number(right)) => {
+                        Element::Number(op.eval_binary(left, right))
+                    },
+                    (left, right) => {
+                        BinOp::new_element(op, left, right).simplify()
+                    },
+                };
+            }
+            #[cfg(not(feature = "compile-time-optimizations"))]
+            {
+                el = BinOp::new_element(op, el, rhs);
+            }
         }
-
-        #[cfg(feature = "compile-time-optimizations")]
-        {
-            el = el.simplify();
-        };
 
         Ok(el)
     }
