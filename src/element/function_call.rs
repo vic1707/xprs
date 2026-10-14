@@ -26,9 +26,22 @@ impl<'expr> FunctionCall<'expr> {
         Element::Function(Box::new(Self::new(desc, args)))
     }
 
-    /// Calls the function with the provided arguments.
-    pub(crate) fn call(&self, args: &[f64]) -> f64 {
-        (self.desc.func)(args)
+    /// Calls the function from fallible argument values, preserving their order.
+    pub(crate) fn call<Error>(
+        &self,
+        args: impl ExactSizeIterator<Item = Result<f64, Error>>,
+    ) -> Result<f64, Error> {
+        // ponytail: stack space covers fixed arities 0..=9; larger variadics use Vec.
+        let mut small = [0.0_f64; 9];
+        if let Some(values) = small.get_mut(..args.len()) {
+            for (value, arg) in values.iter_mut().zip(args) {
+                *value = arg?;
+            }
+            Ok((self.desc.func)(values))
+        } else {
+            let values = args.collect::<Result<Vec<_>, _>>()?;
+            Ok((self.desc.func)(&values))
+        }
     }
 }
 

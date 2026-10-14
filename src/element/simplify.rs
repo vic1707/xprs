@@ -264,17 +264,13 @@ impl<'expr> Simplify<'expr> for Box<FunctionCall<'expr>> {
         {
             return Element::Function(self);
         }
-        let args_values: Vec<f64> = self
-            .args
-            .iter()
-            .filter_map(|arg| {
-                if let &Element::Number(num) = arg {
-                    Some(num)
-                } else {
-                    None
-                }
-            })
-            .collect();
-        self.call(&args_values).into()
+        self.call(self.args.iter().map(|arg| {
+            if let &Element::Number(num) = arg {
+                Ok(num)
+            } else {
+                Err(())
+            }
+        }))
+        .map_or_else(|()| Element::Function(self), Element::Number)
     }
 }

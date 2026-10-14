@@ -4,7 +4,7 @@
     reason = "HashMap and HashSet require std"
 )]
 /* Built-in imports */
-use core::{fmt, mem};
+use core::{convert::Infallible, fmt, mem};
 use std::collections::{HashMap, HashSet};
 /* Crate imports */
 use crate::{
@@ -297,12 +297,7 @@ impl XprsImpl<'_> {
                 binop.op.eval_binary(left, right)
             },
             Element::Function(ref func) => {
-                let args = func
-                    .args
-                    .iter()
-                    .map(|arg| self.eval_element(arg))
-                    .collect::<Result<Vec<_>, EvalError>>()?;
-                func.call(&args)
+                func.call(func.args.iter().map(|arg| self.eval_element(arg)))?
             },
         };
 
@@ -339,14 +334,13 @@ impl XprsImpl<'_> {
                 let right = self.eval_element_unchecked(&binop.rhs);
                 binop.op.eval_binary(left, right)
             },
-            Element::Function(ref func) => {
-                let args = func
-                    .args
-                    .iter()
-                    .map(|arg| self.eval_element_unchecked(arg))
-                    .collect::<Vec<_>>();
-                func.call(&args)
-            },
+            Element::Function(ref func) => func
+                .call::<Infallible>(
+                    func.args
+                        .iter()
+                        .map(|arg| Ok(self.eval_element_unchecked(arg))),
+                )
+                .unwrap(),
         }
     }
 }

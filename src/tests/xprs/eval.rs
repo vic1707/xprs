@@ -65,3 +65,22 @@ fn invalid_eval() {
         "Should have failed because `y` is not provided"
     );
 }
+
+#[test]
+fn function_argument_buffer_boundaries() {
+    const CASES: [(usize, f64); 4] =
+        [(1, 2.0), (9, 18.0), (10, 20.0), (32, 64.0)];
+    let parser = Parser::default();
+    for (arity, expected) in CASES {
+        let input = format!("sum({})", vec!["x"; arity].join(","));
+        let tree = parser.parse(&input).unwrap();
+        let variables = [("x", 2.0_f64)].into();
+        tree.eval(&[].into()).unwrap_err();
+        assert_f64_eq!(tree.eval(&variables).unwrap(), expected);
+        assert_f64_eq!(tree.eval_unchecked(&variables), expected);
+        assert_f64_eq!(
+            tree.simplify_for(("x", 2.0_f64)).eval_no_vars().unwrap(),
+            expected
+        );
+    }
+}
