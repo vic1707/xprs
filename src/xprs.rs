@@ -294,19 +294,7 @@ impl XprsImpl<'_> {
             Element::BinOp(ref binop) => {
                 let left = self.eval_element(&binop.lhs)?;
                 let right = self.eval_element(&binop.rhs)?;
-                #[expect(
-                    clippy::unreachable,
-                    reason = "factorial is never a binary operator"
-                )]
-                match binop.op {
-                    Operator::Plus => left + right,
-                    Operator::Minus => left - right,
-                    Operator::Times => left * right,
-                    Operator::Divide => left / right,
-                    Operator::Power => left.powf(right),
-                    Operator::Modulo => left % right,
-                    Operator::Factorial => unreachable!(),
-                }
+                binop.op.eval_binary(left, right)
             },
             Element::Function(ref func) => {
                 let args = func
@@ -349,19 +337,7 @@ impl XprsImpl<'_> {
             Element::BinOp(ref binop) => {
                 let left = self.eval_element_unchecked(&binop.lhs);
                 let right = self.eval_element_unchecked(&binop.rhs);
-                #[expect(
-                    clippy::unreachable,
-                    reason = "factorial is never a binary operator"
-                )]
-                match binop.op {
-                    Operator::Plus => left + right,
-                    Operator::Minus => left - right,
-                    Operator::Times => left * right,
-                    Operator::Divide => left / right,
-                    Operator::Power => left.powf(right),
-                    Operator::Modulo => left % right,
-                    Operator::Factorial => unreachable!(),
-                }
+                binop.op.eval_binary(left, right)
             },
             Element::Function(ref func) => {
                 let args = func

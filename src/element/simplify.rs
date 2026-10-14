@@ -50,7 +50,7 @@ impl<'expr> Simplify<'expr> for Box<BinOp<'expr>> {
     )]
     fn simplify(mut self) -> Element<'expr> {
         use Element::Number;
-        use Operator::{Divide, Factorial, Minus, Modulo, Plus, Power, Times};
+        use Operator::{Divide, Minus, Modulo, Plus, Power, Times};
         self.lhs = self.lhs.simplify();
         self.rhs = self.rhs.simplify();
         match *self {
@@ -59,22 +59,7 @@ impl<'expr> Simplify<'expr> for Box<BinOp<'expr>> {
                 op,
                 rhs: Number(rhs),
                 lhs: Number(lhs),
-            } => {
-                #[expect(
-                    clippy::unreachable,
-                    reason = "factorial is never a binary operator"
-                )]
-                let result = match op {
-                    Plus => lhs + rhs,
-                    Minus => lhs - rhs,
-                    Times => lhs * rhs,
-                    Divide => lhs / rhs,
-                    Power => lhs.powf(rhs),
-                    Modulo => lhs % rhs,
-                    Factorial => unreachable!(),
-                };
-                Number(result)
-            },
+            } => Number(op.eval_binary(lhs, rhs)),
             /////////////////////////// Additions ///////////////////////////
             // 0 + a => a
             BinOp {

@@ -20,6 +20,25 @@ pub enum Operator {
     Factorial,
 }
 
+impl Operator {
+    /// Evaluates a binary operator on two numbers.
+    #[expect(
+        clippy::unreachable,
+        reason = "factorial is never a binary operator"
+    )]
+    pub(crate) fn eval_binary(self, lhs: f64, rhs: f64) -> f64 {
+        match self {
+            Self::Plus => lhs + rhs,
+            Self::Minus => lhs - rhs,
+            Self::Times => lhs * rhs,
+            Self::Divide => lhs / rhs,
+            Self::Power => lhs.powf(rhs),
+            Self::Modulo => lhs % rhs,
+            Self::Factorial => unreachable!(),
+        }
+    }
+}
+
 impl TryFrom<u8> for Operator {
     type Error = &'static str;
 
