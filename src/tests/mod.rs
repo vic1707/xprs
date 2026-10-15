@@ -1,8 +1,6 @@
 /* Modules */
-mod context_macro;
+mod allocations;
 mod factorial;
-mod issues;
+#[path = "../../tests/common/mod.rs"]
 mod macros;
-mod parser;
 mod thread_safety;
-mod xprs;

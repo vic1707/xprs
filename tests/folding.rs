@@ -1,14 +1,14 @@
 /* Crate imports */
 extern crate alloc;
-use super::super::macros::assert_f64_eq;
-use crate::{Context, Function, Parser, element::Element, xprs_fn};
+use crate::common::assert_f64_eq;
 use alloc::sync::Arc;
 use core::{
     panic::AssertUnwindSafe,
-    ptr,
     sync::atomic::{AtomicUsize, Ordering},
 };
+use rstest::rstest;
 use std::panic;
+use xprs::{Context, Function, Parser, xprs_fn};
 
 #[test]
 fn simplify() {
@@ -45,29 +45,6 @@ fn substitution_rebuilds_remaining_variables() {
 }
 
 #[test]
-fn retains_unfolded_allocations() {
-    let allocations = |root: &Element<'_>| match *root {
-        Element::BinOp(ref node) => {
-            (ptr::from_ref(node.as_ref()).cast::<()>(), ptr::null())
-        },
-        Element::UnOp(ref node) => {
-            (ptr::from_ref(node.as_ref()).cast::<()>(), ptr::null())
-        },
-        Element::Function(ref node) => (
-            ptr::from_ref(node.as_ref()).cast::<()>(),
-            node.args.as_ptr().cast::<()>(),
-        ),
-        Element::Number(_) | Element::Variable(_) => (ptr::null(), ptr::null()),
-    };
-    for input in ["x + y", "-x", "sum(x, y)"] {
-        let mut tree = Parser::default().parse(input).unwrap();
-        let before = allocations(&tree.root);
-        tree.simplify_for_in_place(("unknown", 0.0_f64));
-        assert_eq!(allocations(&tree.root), before, "{input}");
-    }
-}
-
-#[test]
 fn partial_folding_calls_functions_once() {
     let calls = Arc::new(AtomicUsize::new(0));
     let counter = Arc::clone(&calls);
@@ -85,29 +62,30 @@ fn partial_folding_calls_functions_once() {
     assert_f64_eq!(tree.eval(&[("y", 1.0_f64)].into()).unwrap(), 5.0);
 }
 
-#[test]
-fn literal_folding_preserves_float_behavior() {
-    for (input, expected) in [
-        ("-1 / 0", f64::NEG_INFINITY),
-        ("1 / -0", f64::NEG_INFINITY),
-        ("0 ^ -1", f64::INFINITY),
-        ("5.5 % 1", 0.5_f64),
-        ("0 * (0 / 0)", f64::NAN),
-        ("-0 * 1", -0.0_f64),
-        ("(0 / 0) ^ 0", 1.0_f64),
-    ] {
-        let tree = Parser::default()
-            .parse(input)
-            .unwrap()
-            .simplify_for(("unknown", 0.0_f64));
-        let actual = tree.eval_no_vars().unwrap();
-        if expected.is_nan() {
-            assert!(actual.is_nan(), "{input}");
-        } else if expected.is_normal() {
-            assert_f64_eq!(actual, expected, "{input}");
-        } else {
-            assert_eq!(actual.to_bits(), expected.to_bits(), "{input}");
-        }
+#[rstest]
+#[case::negative_infinity("-1 / 0", f64::NEG_INFINITY)]
+#[case::negative_zero_divisor("1 / -0", f64::NEG_INFINITY)]
+#[case::negative_power("0 ^ -1", f64::INFINITY)]
+#[case::fractional_remainder("5.5 % 1", 0.5)]
+#[case::negative_remainder_zero("-5 % 1", -0.0)]
+#[case::nan_product("0 * (0 / 0)", f64::NAN)]
+#[case::signed_zero("-0 * 1", -0.0)]
+#[case::nan_power_zero("(0 / 0) ^ 0", 1.0)]
+fn literal_folding_preserves_float_behavior(
+    #[case] input: &str,
+    #[case] expected: f64,
+) {
+    let tree = Parser::default()
+        .parse(input)
+        .unwrap()
+        .simplify_for(("unknown", 0.0_f64));
+    let actual = tree.eval_no_vars().unwrap();
+    if expected.is_nan() {
+        assert!(actual.is_nan(), "{input}");
+    } else if expected.is_normal() {
+        assert_f64_eq!(actual, expected, "{input}");
+    } else {
+        assert_eq!(actual.to_bits(), expected.to_bits(), "{input}");
     }
 }
 
@@ -136,4 +114,70 @@ fn simplification_is_panic_safe() {
         // The root is still initialized and can be inspected and dropped safely.
         assert_f64_eq!(tree.eval_no_vars().unwrap(), 0.0);
     }
+}
+
+#[rstest]
+#[case("(-x) + x", "0")]
+#[case("x + (-x)", "0")]
+#[case("x - (-y)", "(x + y)")]
+#[case("(-x) * (-y)", "(x * y)")]
+#[case("(-x) / (-y)", "(x / y)")]
+#[case("x + x!", "(x + (!x))")]
+#[case("x - y!", "(x - (!y))")]
+#[case("(-x) * y!", "((-x) * (!y))")]
+#[case("x! / (-y)", "((!x) / (-y))")]
+#[case("x ^ 0", "1")]
+#[case("sin(0)!", "1")]
+#[case("sum(1, 2)!", "6")]
+#[case("sin(0)! + x", "(1 + x)")]
+#[case("x + 0 + sum(1, 2 * 3)!", "(x + 5040)")]
+#[case("-(-x)", "x")]
+#[case("0 - (-x)", "x")]
+#[case("x - (-x)", "(x + x)")]
+#[case("x * 1", "x")]
+#[case("x / 1", "x")]
+#[case("x ^ 1", "x")]
+#[case("-0 + x", "x")]
+#[case("0 * x", "0")]
+#[case("x * 0", "0")]
+#[case("0 / x", "0")]
+#[case("0 % x", "0")]
+#[case("0 / 0", "NaN")]
+#[case("0 % 0", "NaN")]
+#[case("0 ^ 0", "1")]
+#[case("x - x", "0")]
+#[case("(a + b) - (b + a)", "0")]
+fn algebraic_simplifications(#[case] input: &str, #[case] expected: &str) {
+    let tree = Parser::default()
+        .parse(input)
+        .unwrap()
+        .simplify_for(("unknown", 0.0_f64));
+    assert_eq!(tree.to_string(), expected);
+}
+
+#[rstest]
+#[case::constant_expression("2 + 3 * 4", "(2 + (3 * 4))", "14")]
+#[case::factorial("sum(1, 2)!", "(!sum(1, 2))", "6")]
+#[case::eliminated_variable("x - x", "(x - x)", "0")]
+#[case::zero_arguments("sum()", "sum()", "-0")]
+#[case::single_argument("sin(x)", "sin(x)", "sin(x)")]
+#[case::nested_arguments(
+    "max(x, min(y, z))",
+    "max(x, min(y, z))",
+    "max(x, min(y, z))"
+)]
+fn parse_time_folding_and_display(
+    #[case] input: &str,
+    #[case] unoptimized: &str,
+    #[case] optimized: &str,
+) {
+    let expected = if cfg!(feature = "compile-time-optimizations") {
+        optimized
+    } else {
+        unoptimized
+    };
+    assert_eq!(
+        Parser::default().parse(input).unwrap().to_string(),
+        expected
+    );
 }

@@ -1,7 +1,9 @@
 //! Context macro syntax, captures, and inferred arity.
 extern crate alloc;
-use crate::{Context, Parser, context, xprs_fn};
+use crate::common::assert_f64_eq;
 use alloc::sync::Arc;
+use rstest::{fixture, rstest};
+use xprs::{Context, ErrorKind, Parser, Symbol, Xprs, context, xprs_fn};
 
 #[test]
 fn mixed_entries_and_captures() {
@@ -86,7 +88,7 @@ fn empty_trailing_comma_and_single_evaluation() {
         "x'": 4_i32,
     };
     assert_eq!(evaluations, 2);
-    assert_eq!(ctx.get("x'"), Some(&crate::Symbol::Variable(4.0)));
+    assert_eq!(ctx.get("x'"), Some(&Symbol::Variable(4.0)));
     assert_eq!(
         Parser::new_with_ctx(ctx)
             .parse("x")
@@ -103,5 +105,87 @@ fn empty_trailing_comma_and_single_evaluation() {
             .eval_no_vars()
             .unwrap(),
         3.0_f64
+    );
+}
+
+#[fixture]
+fn parser_with_context() -> Parser<'static> {
+    let mut context = Context::default()
+        .with_var("x", 2.0_f64)
+        .with_var("phi", 1.618_033_988_749_895_f64)
+        .with_fn(xprs_fn!(double(value): 2.0_f64 * value))
+        .with_fn(xprs_fn!(add(left, right): left + right));
+    context.set_var("y", 1.0_f64);
+    let mut parser = Parser::new_with_ctx(context);
+    parser
+        .ctx_mut()
+        .set_fn(xprs_fn!(total(args: &[f64]): args.iter().sum::<f64>()));
+    parser
+}
+
+#[rstest]
+#[case("y", 1.0)]
+#[case("2 + phi", 3.618_033_988_749_895)]
+#[case("2 + phi * x", 5.236_067_977_499_79)]
+#[case("double(2 + phi * x)", 10.472_135_954_999_58)]
+#[case("add(2, 3)", 5.0)]
+#[case("total(2, 3, 4)", 9.0)]
+fn constants_and_functions(
+    parser_with_context: Parser<'static>,
+    #[case] input: &str,
+    #[case] expected: f64,
+) {
+    assert_f64_eq!(
+        parser_with_context
+            .parse(input)
+            .unwrap()
+            .eval_no_vars()
+            .unwrap(),
+        expected
+    );
+}
+
+#[test]
+fn allowed_variables() {
+    let parser = Parser::new_with_ctx(
+        Context::default().with_expected_vars(["x", "y"].into()),
+    );
+    parser.parse("x + y").unwrap();
+    let error = parser.parse("x + z").unwrap_err();
+    assert!(
+        matches!(error.kind(), ErrorKind::VariableNotDeclared(name, available)
+        if name == "z" && available.iter().any(|value| value == "x")
+            && available.iter().any(|value| value == "y"))
+    );
+    assert_eq!(error.span(), 0..5);
+}
+
+#[test]
+fn higher_order_functions() {
+    let bound = Xprs::try_from("2x + y").unwrap().bind2("x", "y").unwrap();
+    let parser = Parser::new_with_ctx(
+        Context::default()
+            .with_fn(xprs_fn!(hof(left, right): bound(left, right))),
+    );
+    assert_f64_eq!(
+        parser.parse("hof(2, 3)").unwrap().eval_no_vars().unwrap(),
+        7.0
+    );
+    parser.parse("hof(2)").unwrap_err();
+    assert_f64_eq!(
+        parser
+            .parse("hof(2, 3) + 3 * hof(4, 5)")
+            .unwrap()
+            .eval_no_vars()
+            .unwrap(),
+        46.0
+    );
+    assert_f64_eq!(
+        parser
+            .parse("hof(x, hof(2, 3))")
+            .unwrap()
+            .eval(&[("x", 42.0_f64)].into())
+            .unwrap(),
+        91.0
     );
 }

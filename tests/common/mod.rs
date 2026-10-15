@@ -1,3 +1,4 @@
+//! Floating-point assertions shared by behavior and internal tests.
 macro_rules! assert_f64_eq {
     ($left:expr, $right:expr $(, $($arg:tt)+)?) => {{
         let (left, right): (f64, f64) = ($left, $right);

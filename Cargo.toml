@@ -2,6 +2,7 @@
 name = "xprs"
 version = "0.1.0"
 edition = "2024"
+autotests = false
 authors = ["Victor LEFEBVRE <contact@vic1707.xyz>"]
 description = "Xprs is a flexible and extensible mathematical expression parser and evaluator for Rust, designed for simplicity and ease of use."
 documentation = "https://docs.rs/xprs"
@@ -10,6 +11,7 @@ readme = "README.md"
 repository = "https://github.com/vic1707/xprs"
 include = [
     "src/**/*",
+    "tests/**/*",
     "Cargo.toml",
     "Cargo.lock",
     "build.rs",
@@ -34,9 +36,16 @@ thiserror = "2.0.21"
 [build-dependencies]
 rustc_version = "0.4.1"
 
+[dev-dependencies]
+rstest = { version = "0.27.0", default-features = false }
+
 [[bin]]
 name = "repl"
 path = "src/bin/repl.rs"
+
+[[test]]
+name = "integration"
+path = "tests/lib.rs"
 
 [features]
 default = ["pemdas", "compile-time-optimizations"]
