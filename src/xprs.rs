@@ -75,7 +75,8 @@ impl Xprs<'_> {
         &self,
         variables: &HashMap<&str, f64>,
     ) -> Result<f64, EvalError> {
-        XprsImpl::new(variables).eval_element(&self.root)
+        XprsImpl::new(|name: &str| variables.get(name).copied())
+            .eval_element(&self.root)
     }
 
     /// Evaluates the expression using the provided variable values without error handling.
@@ -116,7 +117,8 @@ impl Xprs<'_> {
     #[inline]
     #[must_use]
     pub fn eval_unchecked(&self, variables: &HashMap<&str, f64>) -> f64 {
-        XprsImpl::new(variables).eval_element_unchecked(&self.root)
+        XprsImpl::new(|name: &str| variables.get(name).copied())
+            .eval_element_unchecked(&self.root)
     }
 
     /// Simplifies the expression in-place for a single variable.
@@ -250,30 +252,61 @@ impl Xprs<'_> {
         self.simplify_for_multiple_in_place(vars);
         self
     }
+
+    /// Evaluates bound arguments without constructing a map for small bindings.
+    fn eval_bound(
+        &self,
+        names: &[&str],
+        values: &[f64],
+    ) -> Result<f64, EvalError> {
+        // ponytail: linear lookup covers the fixed bind APIs; large bindings keep hashing.
+        if names.len() <= 9 {
+            XprsImpl::new(|name: &str| {
+                names.iter().zip(values).rev().find_map(|(&bound, &value)| {
+                    (bound == name).then_some(value)
+                })
+            })
+            .eval_element(&self.root)
+        } else {
+            self.eval(
+                &names.iter().copied().zip(values.iter().copied()).collect(),
+            )
+        }
+    }
+
+    /// Evaluates fixed bindings whose names and value count were validated.
+    #[expect(
+        clippy::unwrap_used,
+        reason = "fixed binding constructors validate coverage and their argument counts are static"
+    )]
+    fn eval_bound_unchecked(&self, names: &[&str], values: &[f64]) -> f64 {
+        self.eval_bound(names, values).unwrap()
+    }
 }
 
 /// An internal struct used for evaluating expressions.
 ///
 /// This struct is responsible for handling the evaluation of individual elements within an expression.
 /// It is used by the [`Xprs`] struct to perform evaluations with respect to a given set of variable values.
-struct XprsImpl<'vars> {
-    /// A reference to the map of variables and their corresponding values.
-    variables: &'vars HashMap<&'vars str, f64>,
+struct XprsImpl<Lookup> {
+    /// Resolves a variable name to its value.
+    lookup: Lookup,
 }
 
-impl XprsImpl<'_> {
+impl<Lookup> XprsImpl<Lookup>
+where
+    Lookup: Fn(&str) -> Option<f64>,
+{
     /// Creates a new [`XprsImpl`] instance.
-    const fn new<'vars>(
-        variables: &'vars HashMap<&str, f64>,
-    ) -> XprsImpl<'vars> {
-        XprsImpl { variables }
+    const fn new(lookup: Lookup) -> Self {
+        Self { lookup }
     }
 
     /// Evaluates an element within an expression and returns the result.
     fn eval_element(&self, element: &Element) -> Result<f64, EvalError> {
         let res = match *element {
             Element::Number(n) => n,
-            Element::Variable(name) => *self.variables.get(name).ok_or_else(
+            Element::Variable(name) => (self.lookup)(name).ok_or_else(
                 #[cold]
                 || EvalError(name.to_owned()),
             )?,
@@ -314,7 +347,7 @@ impl XprsImpl<'_> {
                 clippy::unwrap_used,
                 reason = "unchecked evaluation requires all variables to be supplied"
             )]
-            Element::Variable(name) => *self.variables.get(name).unwrap(),
+            Element::Variable(name) => (self.lookup)(name).unwrap(),
             Element::UnOp(ref unop) => {
                 let operand = self.eval_element_unchecked(&unop.operand);
                 #[expect(
@@ -388,7 +421,7 @@ impl<'expr> Xprs<'expr> {
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
             yeet!(bind_error);
         }
-        Ok(move |val| self.eval_unchecked(&[(var, val)].into()))
+        Ok(move |val| self.eval_bound_unchecked(&[var], &[val]))
     }
 
     /// Creates a function of two [`f64`] based on this [`Xprs`] instance.
@@ -419,7 +452,7 @@ impl<'expr> Xprs<'expr> {
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
             yeet!(bind_error);
         }
-        Ok(move |val1, val2| self.eval_unchecked(&[(var1, val1), (var2, val2)].into()))
+        Ok(move |val1, val2| self.eval_bound_unchecked(&[var1, var2], &[val1, val2]))
     }
 
     /// Creates a function of three [`f64`] based on this [`Xprs`] instance.
@@ -450,7 +483,7 @@ impl<'expr> Xprs<'expr> {
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
             yeet!(bind_error);
         }
-        Ok(move |val1, val2, val3| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3)].into()))
+        Ok(move |val1, val2, val3| self.eval_bound_unchecked(&[var1, var2, var3], &[val1, val2, val3]))
     }
 
     /// Creates a function of four [`f64`] based on this [`Xprs`] instance.
@@ -481,7 +514,7 @@ impl<'expr> Xprs<'expr> {
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
             yeet!(bind_error);
         }
-        Ok(move |val1, val2, val3, val4| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4)].into()))
+        Ok(move |val1, val2, val3, val4| self.eval_bound_unchecked(&[var1, var2, var3, var4], &[val1, val2, val3, val4]))
     }
 
     /// Creates a function of five [`f64`] based on this [`Xprs`] instance.
@@ -512,7 +545,7 @@ impl<'expr> Xprs<'expr> {
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
             yeet!(bind_error);
         }
-        Ok(move |val1, val2, val3, val4, val5| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5)].into()))
+        Ok(move |val1, val2, val3, val4, val5| self.eval_bound_unchecked(&[var1, var2, var3, var4, var5], &[val1, val2, val3, val4, val5]))
     }
 
     /// Creates a function of six [`f64`] based on this [`Xprs`] instance.
@@ -543,7 +576,7 @@ impl<'expr> Xprs<'expr> {
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
             yeet!(bind_error);
         }
-        Ok(move |val1, val2, val3, val4, val5, val6| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5), (var6, val6)].into()))
+        Ok(move |val1, val2, val3, val4, val5, val6| self.eval_bound_unchecked(&[var1, var2, var3, var4, var5, var6], &[val1, val2, val3, val4, val5, val6]))
     }
 
     /// Creates a function of seven [`f64`] based on this [`Xprs`] instance.
@@ -574,7 +607,7 @@ impl<'expr> Xprs<'expr> {
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
             yeet!(bind_error);
         }
-        Ok(move |val1, val2, val3, val4, val5, val6, val7| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5), (var6, val6), (var7, val7)].into()))
+        Ok(move |val1, val2, val3, val4, val5, val6, val7| self.eval_bound_unchecked(&[var1, var2, var3, var4, var5, var6, var7], &[val1, val2, val3, val4, val5, val6, val7]))
     }
 
     /// Creates a function of eight [`f64`] based on this [`Xprs`] instance.
@@ -605,7 +638,7 @@ impl<'expr> Xprs<'expr> {
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
             yeet!(bind_error);
         }
-        Ok(move |val1, val2, val3, val4, val5, val6, val7, val8| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5), (var6, val6), (var7, val7), (var8, val8)].into()))
+        Ok(move |val1, val2, val3, val4, val5, val6, val7, val8| self.eval_bound_unchecked(&[var1, var2, var3, var4, var5, var6, var7, var8], &[val1, val2, val3, val4, val5, val6, val7, val8]))
     }
 
     /// Creates a function of nine [`f64`] based on this [`Xprs`] instance.
@@ -636,7 +669,7 @@ impl<'expr> Xprs<'expr> {
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
             yeet!(bind_error);
         }
-        Ok(move |val1, val2, val3, val4, val5, val6, val7, val8, val9| self.eval_unchecked(&[(var1, val1), (var2, val2), (var3, val3), (var4, val4), (var5, val5), (var6, val6), (var7, val7), (var8, val8), (var9, val9)].into()))
+        Ok(move |val1, val2, val3, val4, val5, val6, val7, val8, val9| self.eval_bound_unchecked(&[var1, var2, var3, var4, var5, var6, var7, var8, var9], &[val1, val2, val3, val4, val5, val6, val7, val8, val9]))
     }
 
     // NOTE: Too lazy to implement this for more than 9 variables even with Copilot
@@ -673,7 +706,7 @@ impl<'expr> Xprs<'expr> {
         if let Some(bind_error) = BindError::from_diff(missing_vars) {
             yeet!(bind_error);
         }
-        Ok(move |values| self.eval_unchecked(&vars.into_iter().zip(values).collect()))
+        Ok(move |values: [f64; T]| self.eval_bound_unchecked(&vars, &values))
     }
 
     /// Creates a function of any number of [`f64`] based on this [`Xprs`] instance.
@@ -710,7 +743,7 @@ impl<'expr> Xprs<'expr> {
         // can't drop the closure from returning a result because we can't use the unchecked version
         // because we don't know the length of the slice at compile time
         // it could be different from the length of the slice of variables names
-        Ok(move |values: &[f64]| self.eval(&vars.iter().copied().zip(values.iter().copied()).collect()))
+        Ok(move |values: &[f64]| self.eval_bound(vars, values))
     }
 }
 

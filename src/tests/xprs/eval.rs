@@ -105,3 +105,31 @@ fn function_argument_buffer_boundaries() {
         );
     }
 }
+
+#[test]
+fn binding_lookups_preserve_order_duplicates_and_missing_values() {
+    const NAMES: [&str; 10] =
+        ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"];
+    const VALUES: [f64; 10] =
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
+    let parser = Parser::default();
+    assert_f64_eq!(
+        parser.parse("x - y").unwrap().bind2("y", "x").unwrap()(3.0, 2.0),
+        -1.0
+    );
+    assert_f64_eq!(
+        parser.parse("x").unwrap().bind2("x", "x").unwrap()(1.0, 2.0),
+        2.0
+    );
+    let runtime = parser
+        .parse("x + y")
+        .unwrap()
+        .bind_n_runtime(&["x", "y"])
+        .unwrap();
+    runtime(&[1.0_f64]).unwrap_err();
+    assert_f64_eq!(runtime(&[1.0_f64, 2.0_f64, 3.0_f64]).unwrap(), 3.0);
+    assert_f64_eq!(
+        parser.parse("a + j").unwrap().bind_n(NAMES).unwrap()(VALUES),
+        11.0
+    );
+}
