@@ -1,4 +1,4 @@
-#![doc = include_str!("../README.md")]
+#![cfg_attr(doc, doc = include_str!("../README.md"))]
 /* Nightly features */
 #![cfg_attr(nightly, feature(float_gamma))]
 /* Clippy config */
