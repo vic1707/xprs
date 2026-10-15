@@ -47,11 +47,12 @@ impl<'expr> FunctionCall<'expr> {
 
 impl fmt::Display for FunctionCall<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let args = self
-            .args
-            .iter()
-            .map(|arg| format!("{arg}"))
-            .collect::<Vec<_>>();
-        write!(f, "{}({})", self.desc.name, args.join(", "))
+        write!(f, "{}(", self.desc.name)?;
+        let mut separator = "";
+        for arg in &self.args {
+            write!(f, "{separator}{arg}")?;
+            separator = ", ";
+        }
+        f.write_str(")")
     }
 }
