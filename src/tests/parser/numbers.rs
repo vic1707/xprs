@@ -1,5 +1,6 @@
 //! Scientific-notation grammar and diagnostic integration checks.
 use crate::{Parser, tests::macros::assert_f64_eq};
+#[cfg(feature = "miette")]
 use miette::Diagnostic as _;
 
 #[test]
@@ -87,9 +88,19 @@ fn exponent_and_identifier_boundaries() {
 
 #[test]
 fn malformed_exponent_span() {
-    let error = Parser::default().parse("2 + 1e1..5").unwrap_err();
+    let input = "2 + 1e1..5";
+    let error = Parser::default().parse(input).unwrap_err();
     assert_eq!(error.to_string(), "Malformed number: `1e1..5`");
-    let label = error.labels().unwrap().next().unwrap();
-    assert_eq!(label.offset(), 4);
-    assert_eq!(label.len(), 6);
+    assert_eq!(
+        error.kind(),
+        &crate::ErrorKind::MalformedNumber("1e1..5".to_owned())
+    );
+    assert_eq!(error.input(), input);
+    assert_eq!(error.span(), 4..10);
+    #[cfg(feature = "miette")]
+    {
+        let label = error.labels().unwrap().next().unwrap();
+        assert_eq!(label.offset(), 4);
+        assert_eq!(label.len(), 6);
+    }
 }

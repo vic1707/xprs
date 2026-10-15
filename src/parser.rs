@@ -1,7 +1,9 @@
 /* Clippy Config */
 #![allow(clippy::std_instead_of_core, reason = "HashSet requires std")]
 /* Built-in imports */
-use core::{fmt, iter, num::NonZeroU8, str};
+#[cfg(feature = "miette")]
+use core::{fmt, iter};
+use core::{num::NonZeroU8, ops::Range, str};
 use std::collections::HashSet;
 /* Dependencies imports */
 use lexical_parse_float::{
@@ -614,11 +616,12 @@ pub struct ParseError {
     /// The kind of parsing error.
     kind: ErrorKind,
     /// The span of the error in the source input.
-    span: miette::SourceSpan,
+    span: Range<usize>,
     /// The source input string.
     src: String,
 }
 
+#[cfg(feature = "miette")]
 impl miette::Diagnostic for ParseError {
     #[inline]
     fn help(&self) -> Option<Box<dyn fmt::Display + '_>> {
@@ -670,7 +673,7 @@ impl miette::Diagnostic for ParseError {
     ) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
         Some(Box::new(iter::once(miette::LabeledSpan::new_with_span(
             Some("here".to_owned()),
-            self.span,
+            self.span.clone(),
         ))))
     }
 
@@ -716,6 +719,29 @@ pub enum ErrorKind {
 }
 
 impl ParseError {
+    /// Returns the kind of parsing error.
+    #[inline]
+    #[must_use]
+    pub const fn kind(&self) -> &ErrorKind {
+        &self.kind
+    }
+
+    /// Returns the error's byte range in the original input.
+    ///
+    /// An empty range points to a position rather than a token.
+    #[inline]
+    #[must_use]
+    pub fn span(&self) -> Range<usize> {
+        self.span.clone()
+    }
+
+    /// Returns the original input that failed to parse.
+    #[inline]
+    #[must_use]
+    pub const fn input(&self) -> &str {
+        self.src.as_str()
+    }
+
     /// Creates a new [`ParseError`] for an unexpected end of expression.
     #[cold]
     fn new_unexpected_end_of_expression(parser: &ParserImpl) -> Self {
@@ -723,7 +749,8 @@ impl ParseError {
             kind: ErrorKind::UnexpectedEndOfExpression,
             // - 1 because we want to point to the last character
             // (without it, we would point to a `None` value)
-            span: parser.cursor.saturating_sub(1).into(),
+            span: parser.cursor.saturating_sub(1)
+                ..parser.cursor.saturating_sub(1),
             src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
         }
     }
@@ -733,7 +760,7 @@ impl ParseError {
     fn new_unexpected_token(parser: &ParserImpl, tok: u8) -> Self {
         Self {
             kind: ErrorKind::UnexpectedToken(char::from(tok)),
-            span: parser.cursor.into(),
+            span: parser.cursor..parser.cursor,
             src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
         }
     }
@@ -744,7 +771,7 @@ impl ParseError {
         let num_len = ident.len();
         Self {
             kind: ErrorKind::MalformedNumber(ident.to_owned()),
-            span: (parser.cursor - num_len, num_len).into(),
+            span: parser.cursor - num_len..parser.cursor,
             src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
         }
     }
@@ -754,7 +781,7 @@ impl ParseError {
     fn new_illegal_character(parser: &ParserImpl, tok: u8) -> Self {
         Self {
             kind: ErrorKind::IllegalCharacter(char::from(tok)),
-            span: parser.cursor.into(),
+            span: parser.cursor..parser.cursor,
             src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
         }
     }
@@ -764,7 +791,7 @@ impl ParseError {
     fn new_expected_token(parser: &ParserImpl, tok: u8) -> Self {
         Self {
             kind: ErrorKind::ExpectedToken(char::from(tok)),
-            span: parser.cursor.into(),
+            span: parser.cursor..parser.cursor,
             src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
         }
     }
@@ -781,7 +808,7 @@ impl ParseError {
                 var.to_owned(),
                 available_vars,
             ),
-            span: (0, input.len()).into(),
+            span: 0..input.len(),
             src: input.to_owned(),
         }
     }
@@ -796,7 +823,7 @@ impl ParseError {
     ) -> Self {
         Self {
             kind: ErrorKind::TooFewArguments(expected, got),
-            span: (start..parser.cursor).into(),
+            span: start..parser.cursor,
             src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
         }
     }
@@ -811,7 +838,7 @@ impl ParseError {
     ) -> Self {
         Self {
             kind: ErrorKind::TooManyArguments(expected, got),
-            span: (start..parser.cursor).into(),
+            span: start..parser.cursor,
             src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
         }
     }
@@ -821,7 +848,7 @@ impl ParseError {
     fn new_missing_argument(parser: &ParserImpl) -> Self {
         Self {
             kind: ErrorKind::MissingArgument,
-            span: (parser.cursor - 1, 2).into(),
+            span: parser.cursor - 1..parser.cursor + 1,
             src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
         }
     }

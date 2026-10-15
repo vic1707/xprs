@@ -39,7 +39,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                         ast.eval(&variables).unwrap_or_else(|_| unreachable!())
                     );
                 },
-                Err(err) => println!("{:?}", miette::Report::new(err)),
+                Err(err) => {
+                    #[cfg(feature = "miette")]
+                    println!("{:?}", miette::Report::new(err));
+                    #[cfg(not(feature = "miette"))]
+                    println!("{err}");
+                },
             },
         }
         input.clear();

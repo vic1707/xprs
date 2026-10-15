@@ -72,6 +72,16 @@ the experimental `f64::gamma` API; stable builds use the system `tgamma` functio
 
 ## Usage
 
+### Optional diagnostics
+
+The default build has no `miette` dependency. Parse errors implement
+`std::error::Error` and expose `kind()`, `span()` (a byte range), and `input()`.
+Enable `miette` for its `Diagnostic` implementation and rich REPL errors:
+
+```toml
+xprs = { version = "0.1.0", features = ["miette"] }
+```
+
 ### Simple examples
 
 If you want to evaluate a simple calculus that doesn't contains any variables, you can use the `eval_no_vars` method (or `eval_no_vars_unchecked` if you know for sure that no variables are present):
