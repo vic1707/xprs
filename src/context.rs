@@ -133,3 +133,83 @@ impl<'names> Context<'names> {
         self.expected_vars.as_ref()
     }
 }
+
+/// Creates a context from values and inline mathematical functions.
+///
+/// Fixed-arity functions infer their argument count from the parameter list.
+/// A parameter declared as `args: &[f64]` is variadic. Functions capture by move and
+/// use shared closure storage, just like [`Function::new_dyn`]. Captures must
+/// therefore satisfy its `Send + Sync + 'static` bounds; no `dyn` keyword is needed.
+/// Entries are evaluated once, in order, and later entries replace earlier ones.
+/// Values accept either identifier keys (`x: 2`) or quoted keys (`"x'": 2`).
+///
+/// # Example
+///
+/// ```
+/// use xprs::{context, Parser};
+///
+/// let offset = 3.0;
+/// let context = context! {
+///     x: 2,
+///     double(x): 2.0 * x,
+///     shift(x): x + offset,
+///     sum(args: &[f64]): args.iter().sum::<f64>(),
+/// };
+/// let expression = Parser::new_with_ctx(context)
+///     .parse("sum(x, double(2), shift(1))")?;
+/// assert_eq!(expression.eval_no_vars()?, 10.0);
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
+///
+/// Functions must use named parameter-list notation:
+///
+/// ```compile_fail
+/// use xprs::context;
+/// let context = context! { "double": |x| 2.0 * x };
+/// ```
+///
+/// ```compile_fail
+/// use xprs::context;
+/// let context = context! { "answer": move || 42.0 };
+/// ```
+#[macro_export]
+macro_rules! context {
+    (@one $_arg:ident) => { 1_u8 };
+    (@key $name:ident) => { stringify!($name) };
+    (@key $name:literal) => { $name };
+    (@entries $ctx:expr;) => { $ctx };
+    (@entries $ctx:expr; $name:ident($arg:ident: &[f64]): $body:expr $(, $($rest:tt)*)?) => {
+        $crate::context!(@entries ($ctx).with_fn(
+            $crate::xprs_fn!(stringify!($name), dyn move |$arg: &[f64]| $body)
+        ); $($($rest)*)?)
+    };
+    (@entries $ctx:expr; $name:ident($($arg:ident),* $(,)?): $body:expr $(, $($rest:tt)*)?) => {{
+        const ARITY: u8 = 0_u8 $(+ $crate::context!(@one $arg))*;
+        let context = $ctx;
+        let mut function = $crate::xprs_fn!(stringify!($name), dyn move |args: &[f64]| {
+            let &[$($arg),*] = args else {
+                panic!("incorrect argument count for context function");
+            };
+            $body
+        });
+        function.nb_args = Some(ARITY);
+        $crate::context!(@entries context.with_fn(function); $($($rest)*)?)
+    }};
+    (@entries $ctx:expr; $name:tt: $(move)? | $($invalid:tt)*) => {
+        compile_error!("context! functions must use name(args): expression, not a closure after a key")
+    };
+    (@entries $ctx:expr; $name:tt: $(move)? || $($invalid:tt)*) => {
+        compile_error!("context! functions must use name(args): expression, not a closure after a key")
+    };
+    (@entries $ctx:expr; $name:tt: $value:expr $(, $($rest:tt)*)?) => {{
+        let context = $ctx;
+        let value = $value;
+        $crate::context!(@entries context.with_var($crate::context!(@key $name), value); $($($rest)*)?)
+    }};
+    (@entries $ctx:expr; $($invalid:tt)+) => {
+        compile_error!("expected name: value, \"name\": value, name(args): expression, or name(args: &[f64]): expression")
+    };
+    ($($entries:tt)*) => {
+        $crate::context!(@entries $crate::Context::default(); $($entries)*)
+    };
+}

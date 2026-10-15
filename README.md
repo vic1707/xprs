@@ -130,6 +130,32 @@ You can also create a [`Context`] and a [`Parser`] instance if you want to defin
 
 Constants and Functions can have any name that starts with a letter (uppercase of not) and contains only `[A-Za-z0-9_']`.
 
+The `context!` macro provides a dict-like shorthand, with inferred argument counts:
+
+```rust
+use xprs::{context, Parser};
+
+let offset = 3.0;
+let context = context! {
+    x: 2,
+    double(x): 2.0 * x,
+    add(x, y): x + y,
+    shift(x): x + offset,
+    sum(args: &[f64]): args.iter().sum::<f64>(),
+};
+let expression = Parser::new_with_ctx(context)
+    .parse("sum(x, double(2), add(1, 2), shift(1))")
+    .unwrap();
+assert_eq!(expression.eval_no_vars().unwrap(), 13.0);
+```
+
+Function definitions capture automatically by move; no `dyn` keyword or manual arity is needed.
+Their bodies return `f64`, and captures follow the existing `Send + Sync + 'static` requirements.
+Functions use the existing shared closure storage (one `Arc` allocation at context creation).
+Use `name(args: &[f64]): expression` for variadics, and `name(): expression` for zero-argument functions.
+Trailing commas and empty contexts are supported; entries are evaluated once and later keys replace earlier ones.
+Value keys can be identifiers (`x: 2`) or strings (`"x'": 2`). Functions always use `name(args): expression`.
+
 Functions need to have a signature of `fn(&[f64]) -> f64` so they all have the same signature and can be called the same way.
 We also need a name and the number of arguments the function takes, which is an [`Option<usize>`], if [`None`] then the function can take any number of arguments.
 You can define functions like so:
@@ -303,7 +329,7 @@ Here is a non-exhaustive list of the things I want to do/add in the future:
 - [ ] Better CI/CD.
 - [ ] Remove lifetimes by replacing `&str` with something like [`byteyarn`](https://crates.io/crates/byteyarn).
 - [ ] Complex numbers support.
-- [ ] Macro for defining the [`Context`] like the one in [`evalexpr`](https://crates.io/crates/evalexpr).
+- [x] Macro for defining the [`Context`] (`context!`).
 - [ ] Support for dynamic [`Function`] name.
 - [ ] Native variadics (when rust supports them in stable).
 - [ ] Have [`Xprs`] be generic, taking float for its return type if that's even possible (regarding the dependency on [`Context`]).

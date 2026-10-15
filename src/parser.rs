@@ -274,8 +274,6 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
             Identifier::Constant(val) => Element::Number(val),
             Identifier::Variable(var) => Element::Variable(var),
             Identifier::Function(func) if self.consume_if_eq(b'(') => {
-                // for now the minimum number of arguments is 1
-                // self.parse_arguments() will fail if no argument is found
                 let args = self.parse_arguments()?;
                 self.assert_eq_consume(b')')?;
                 if let Some(nb_args) = func.nb_args {
@@ -393,6 +391,9 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     /// Parses a list of arguments in a function call.
     fn parse_arguments(&mut self) -> Result<Vec<Element<'input>>, ParseError> {
         let mut args = Vec::new();
+        if self.next_trim() == Some(&b')') {
+            return Ok(args);
+        }
 
         loop {
             let arg = self.argument()?;

@@ -300,7 +300,7 @@
 //! - [ ] Better CI/CD.
 //! - [ ] Remove lifetimes by replacing `&str` with something like [`byteyarn`](https://crates.io/crates/byteyarn).
 //! - [ ] Complex numbers support.
-//! - [ ] Macro for defining the [`Context`] like the one in [`evalexpr`](https://crates.io/crates/evalexpr).
+//! - [x] Macro for defining the [`Context`] ([`context!`]).
 //! - [ ] Support for dynamic [`Function`] name.
 //! - [ ] Native variadics (when rust supports them in stable).
 //! - [ ] Have [`Xprs`] be generic, taking float for its return type if that's even possible (regarding the dependency on [`Context`]).
