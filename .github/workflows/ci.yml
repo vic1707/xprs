@@ -1,52 +1,104 @@
 name: CI
 
 on:
-  workflow_call:
-    inputs:
-      os:
-        required: true
-        type: string
-      rust-version:
-        required: true
-        type: string
-      enabled-feature-set:
-        required: true
-        type: string
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  tests:
-    runs-on: ${{ inputs.os }}
+  hygiene:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Install Rust
-        uses: IronCoreLabs/rust-toolchain@v1
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          toolchain: ${{ inputs.rust-version }}
-      - run: cargo test --no-default-features --features "${{ inputs.enabled-feature-set }}"
+          persist-credentials: false
+      - uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+          rustflags: ""
+      - run: cargo fmt --all --check
+      - name: Clippy (all supported feature combinations)
+        run: |
+          for precedence in pemdas pejmdas; do
+            for folding in "" compile-time-optimizations; do
+              for diagnostics in "" miette; do
+                cargo clippy --locked --all-targets --no-default-features \
+                  --features "$precedence $folding $diagnostics" -- -D warnings
+              done
+            done
+          done
+      - name: Documentation
+        run: cargo doc --locked --no-deps --features miette
+        env:
+          RUSTDOCFLAGS: -D warnings
+
+  tests:
+    name: Tests (${{ matrix.os }}, Rust ${{ matrix.rust }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        rust: [stable, 1.88.0]
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
+        with:
+          toolchain: ${{ matrix.rust }}
+          rustflags: ""
+      - name: Tests (all supported feature combinations)
+        shell: bash
+        run: |
+          for precedence in pemdas pejmdas; do
+            for folding in "" compile-time-optimizations; do
+              for diagnostics in "" miette; do
+                cargo test --locked --no-default-features \
+                  --features "$precedence $folding $diagnostics" --no-fail-fast
+              done
+            done
+          done
 
   miri:
-    needs: tests
-    runs-on: ${{ inputs.os }}
-    if: ${{ inputs.rust-version == 'nightly' }}
+    name: Miri (${{ matrix.precedence }}, folding=${{ matrix.folding }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        precedence: [pemdas, pejmdas]
+        folding: ["", compile-time-optimizations]
     steps:
-      - uses: actions/checkout@v4
-      - name: Install Rust
-        uses: IronCoreLabs/rust-toolchain@v1
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          toolchain: ${{ inputs.rust-version }}
+          persist-credentials: false
+      - uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
+        with:
+          toolchain: nightly
           components: miri
+          rustflags: ""
       - run: cargo miri setup
-      - run: cargo miri test --no-default-features --features "${{ inputs.enabled-feature-set }}"
+      - run: cargo miri test --locked --tests --no-default-features --features "${{ matrix.precedence }} ${{ matrix.folding }}"
         env:
           MIRIFLAGS: -Zmiri-strict-provenance
 
-  clippy:
-    needs: tests
-    # only on stable ubuntu
-    runs-on: ${{ inputs.os }}
-    if: ${{ inputs.rust-version == 'stable' && inputs.os == 'ubuntu-latest' }}
+  workflows:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Install Rust
-        uses: IronCoreLabs/rust-toolchain@v1
-      - run: cargo clippy --no-default-features --features "${{ inputs.enabled-feature-set }}"
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - uses: taiki-e/install-action@25435dc8dd3baed7417e0c96d3fe89013a5b2e09 # v2.81.3
+        with:
+          tool: actionlint,zizmor
+      - run: actionlint
+      - run: zizmor --offline --min-severity low .github/workflows

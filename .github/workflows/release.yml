@@ -5,48 +5,42 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   ensure-doc:
     name: Ensure documentation builds
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: IronCoreLabs/rust-toolchain@v1
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
         with:
           toolchain: nightly
-      - uses: dtolnay/install@cargo-docs-rs
-      - run: cargo docs-rs
+          rustflags: ""
+      - run: cargo doc --locked --no-deps --no-default-features --features "pemdas compile-time-optimizations miette"
+        env:
+          RUSTDOCFLAGS: -D warnings
 
   release:
-    name: Release
-    runs-on: ubuntu-latest
     needs: ensure-doc
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Retreive version from Cargo.toml
-        id: new-version
-        run: echo "version=$(grep -m1 version Cargo.toml | cut -d '"' -f2)" >> $GITHUB_OUTPUT
-      - name: Retreive version from Crates.io
-        id: old-version
-        # check exact repo name via api call since a crate named `exprs` exists and conflicts with this repo
-        run: |
-          VERSION=$(curl -s https://crates.io/api/v1/crates/${GITHUB_REPOSITORY#*/} | jq -r '.versions[0].num')
-          if [ "$VERSION" == "null" ]; then
-            echo "version=" >> $GITHUB_OUTPUT
-          else
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
-          fi
-      - name: Compare versions
-        id: compare-versions
-        # if old-version is empty, then this is the first release
-        # else we compare the two versions
-        run: echo "should-release=$(if [ -z "${{ steps.old-version.outputs.version }}" ]; then echo true; else if [ "${{ steps.old-version.outputs.version }}" != "${{ steps.new-version.outputs.version }}" ]; then echo true; else echo false; fi; fi)" >> $GITHUB_OUTPUT
-# if we are releasing, then can install rust and publish to crates.io      
-      - name: Install Rust
-        if: steps.compare-versions.outputs.should-release == 'true'
-        uses: IronCoreLabs/rust-toolchain@v1
-      - name: Release
-        if: steps.compare-versions.outputs.should-release == 'true'
-        uses: katyo/publish-crates@v2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          persist-credentials: false
+      - uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
+        with:
+          toolchain: stable
+          rustflags: ""
+      - name: Publish a new version
+        run: |
+          version=$(cargo metadata --locked --no-deps --format-version 1 | jq -er '.packages[0].version')
+          published=$(curl --fail --silent --show-error https://crates.io/api/v1/crates/xprs | jq -er '.crate.max_version')
+          if [[ "$version" != "$published" ]]; then
+            cargo publish --locked
+          fi
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
