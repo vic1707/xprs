@@ -1,7 +1,7 @@
 /* Clippy Config */
 #![allow(clippy::std_instead_of_core, reason = "HashSet requires std")]
 /* Built-in imports */
-use core::{fmt, num::NonZeroU8, str};
+use core::{fmt, iter, num::NonZeroU8, str};
 use std::collections::HashSet;
 /* Dependencies imports */
 use lexical_parse_float::{
@@ -668,13 +668,10 @@ impl miette::Diagnostic for ParseError {
     fn labels(
         &self,
     ) -> Option<Box<dyn Iterator<Item = miette::LabeledSpan> + '_>> {
-        Some(Box::new(
-            <[_]>::into_vec(Box::new([miette::LabeledSpan::new_with_span(
-                Some("here".to_owned()),
-                self.span,
-            )]))
-            .into_iter(),
-        ))
+        Some(Box::new(iter::once(miette::LabeledSpan::new_with_span(
+            Some("here".to_owned()),
+            self.span,
+        ))))
     }
 
     #[inline]
