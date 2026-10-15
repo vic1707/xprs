@@ -2,7 +2,9 @@
 use crate::Parser;
 
 // TODO: add & test specific error messages
-const ERRORS: [&str; 9] = [
+const ERRORS: [&str; 11] = [
+    "",
+    "3!!2",
     "sin 2",
     "sin+2",
     "sin(2",

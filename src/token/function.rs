@@ -118,8 +118,23 @@ impl PartialEq for FnPointer {
 /// Be aware that the provided function gets moved into the closure, so if you want to use it again, you'll have to clone it.
 ///
 /// Don't provide the number of arguments if your function is variadic (takes any number of arguments).
+/// Named definitions infer arity and capture by move: `xprs_fn!(double(x): 2.0 * x)`.
+/// Use `xprs_fn!(sum(args: &[f64]): args.iter().sum())` for variadic definitions.
 #[macro_export]
 macro_rules! xprs_fn {
+    (@one $_arg:ident) => { 1_u8 };
+    ($name:ident($arg:ident: &[f64]): $body:expr) => {
+        $crate::Function::new_dyn(stringify!($name), move |$arg: &[f64]| $body, None)
+    };
+    ($name:ident($($arg:ident),* $(,)?): $body:expr) => {{
+        const ARITY: u8 = 0_u8 $(+ $crate::xprs_fn!(@one $arg))*;
+        $crate::Function::new_dyn(stringify!($name), move |args: &[f64]| {
+            let &[$($arg),*] = args else {
+                panic!("incorrect argument count for xprs function");
+            };
+            $body
+        }, Some(ARITY))
+    }};
     // variadics
     ($name:expr, $function:expr) => {
         $crate::Function::new_static($name, $function, None)
@@ -141,13 +156,14 @@ macro_rules! xprs_fn {
             Some($nb_args),
         )
     };
-    ($name:expr, dyn $function:expr, $nb_args:tt) => {
+    ($name:expr, dyn $function:expr, $nb_args:tt) => {{
+        let function = $function;
         $crate::Function::new_dyn(
             $name,
-            $crate::xprs_fn!(wrap $function, $nb_args),
+            $crate::xprs_fn!(wrap function, $nb_args),
             Some($nb_args),
         )
-    };
+    }};
     ($function:expr, $nb_args:tt) => {
         $crate::Function::new_static(
             stringify!($function),
@@ -155,52 +171,32 @@ macro_rules! xprs_fn {
             Some($nb_args),
         )
     };
-    (dyn $function:expr, $nb_args:tt) => {
+    (dyn $function:expr, $nb_args:tt) => {{
+        let function = $function;
         $crate::Function::new_dyn(
             stringify!($function),
-            $crate::xprs_fn!(wrap $function, $nb_args),
+            $crate::xprs_fn!(wrap function, $nb_args),
             Some($nb_args),
         )
-    };
+    }};
 
     //// closure wrapping ////
-    (wrap $function:expr, 0) => {
-        move |_| $function()
+    (@wrap $function:expr; $($arg:ident),*) => {
+        move |args: &[f64]| {
+            let &[$($arg),*] = args else {
+                panic!("incorrect argument count for xprs function");
+            };
+            $function($($arg),*)
+        }
     };
-    (wrap $function:expr, 1) => {
-        #[expect(clippy::indexing_slicing, reason = "the parser checks function arity before calling")]
-        move |args| $function(args[0])
-    };
-    (wrap $function:expr, 2) => {
-        #[expect(clippy::indexing_slicing, clippy::missing_asserts_for_indexing, reason = "the parser checks function arity before calling")]
-        move |args| $function(args[0], args[1])
-    };
-    (wrap $function:expr, 3) => {
-        #[expect(clippy::indexing_slicing, clippy::missing_asserts_for_indexing, reason = "the parser checks function arity before calling")]
-        move |args| $function(args[0], args[1], args[2])
-    };
-    (wrap $function:expr, 4) => {
-        #[expect(clippy::indexing_slicing, clippy::missing_asserts_for_indexing, reason = "the parser checks function arity before calling")]
-        move |args| $function(args[0], args[1], args[2], args[3])
-    };
-    (wrap $function:expr, 5) => {
-        #[expect(clippy::indexing_slicing, clippy::missing_asserts_for_indexing, reason = "the parser checks function arity before calling")]
-        move |args| $function(args[0], args[1], args[2], args[3], args[4])
-    };
-    (wrap $function:expr, 6) => {
-        #[expect(clippy::indexing_slicing, clippy::missing_asserts_for_indexing, reason = "the parser checks function arity before calling")]
-        move |args| $function(args[0], args[1], args[2], args[3], args[4], args[5])
-    };
-    (wrap $function:expr, 7) => {
-        #[expect(clippy::indexing_slicing, clippy::missing_asserts_for_indexing, reason = "the parser checks function arity before calling")]
-        move |args| $function(args[0], args[1], args[2], args[3], args[4], args[5], args[6])
-    };
-    (wrap $function:expr, 8) => {
-        #[expect(clippy::indexing_slicing, clippy::missing_asserts_for_indexing, reason = "the parser checks function arity before calling")]
-        move |args| $function(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7])
-    };
-    (wrap $function:expr, 9) => {
-        #[expect(clippy::indexing_slicing, clippy::missing_asserts_for_indexing, reason = "the parser checks function arity before calling")]
-        move |args| $function(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8])
-    };
+    (wrap $function:expr, 0) => { $crate::xprs_fn!(@wrap $function;) };
+    (wrap $function:expr, 1) => { $crate::xprs_fn!(@wrap $function; arg0) };
+    (wrap $function:expr, 2) => { $crate::xprs_fn!(@wrap $function; arg0, arg1) };
+    (wrap $function:expr, 3) => { $crate::xprs_fn!(@wrap $function; arg0, arg1, arg2) };
+    (wrap $function:expr, 4) => { $crate::xprs_fn!(@wrap $function; arg0, arg1, arg2, arg3) };
+    (wrap $function:expr, 5) => { $crate::xprs_fn!(@wrap $function; arg0, arg1, arg2, arg3, arg4) };
+    (wrap $function:expr, 6) => { $crate::xprs_fn!(@wrap $function; arg0, arg1, arg2, arg3, arg4, arg5) };
+    (wrap $function:expr, 7) => { $crate::xprs_fn!(@wrap $function; arg0, arg1, arg2, arg3, arg4, arg5, arg6) };
+    (wrap $function:expr, 8) => { $crate::xprs_fn!(@wrap $function; arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) };
+    (wrap $function:expr, 9) => { $crate::xprs_fn!(@wrap $function; arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8) };
 }

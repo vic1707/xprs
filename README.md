@@ -157,6 +157,18 @@ Trailing commas and empty contexts are supported; entries are evaluated once and
 Value keys can be identifiers (`x: 2`) or strings (`"x'": 2`). Functions always use `name(args): expression`.
 
 Functions need to have a signature of `fn(&[f64]) -> f64` so they all have the same signature and can be called the same way.
+Standalone definitions can use the same inferred-arity notation:
+
+```rust
+use xprs::{Context, xprs_fn};
+
+let offset = 3.0;
+let shift = xprs_fn!(shift(x): x + offset);
+let sum = xprs_fn!(sum(args: &[f64]): args.iter().sum::<f64>());
+let context = Context::default().with_fn(shift).with_fn(sum);
+```
+
+Explicit-arity forms below remain available for static function pointers and constant definitions.
 We also need a name and the number of arguments the function takes, which is an [`Option<usize>`], if [`None`] then the function can take any number of arguments.
 You can define functions like so:
 

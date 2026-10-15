@@ -31,6 +31,20 @@ fn simplify() {
 }
 
 #[test]
+fn substitution_rebuilds_remaining_variables() {
+    let parser = Parser::default();
+    let mut cancelled = parser.parse("x * y").unwrap();
+    cancelled.simplify_for_in_place(("x", 0.0_f64));
+    assert!(cancelled.vars.is_empty());
+    assert_f64_eq!(cancelled.bind_n([]).unwrap()([]), 0.0);
+
+    let mut retained = parser.parse("2 * x * y + y").unwrap();
+    retained.simplify_for_multiple_in_place(&[("x", 0.0_f64)]);
+    assert_eq!(retained.vars, ["y"].into());
+    assert_f64_eq!(retained.bind("y").unwrap()(3.0), 3.0);
+}
+
+#[test]
 fn retains_unfolded_allocations() {
     let allocations = |root: &Element<'_>| match *root {
         Element::BinOp(ref node) => {

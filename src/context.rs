@@ -174,27 +174,19 @@ impl<'names> Context<'names> {
 /// ```
 #[macro_export]
 macro_rules! context {
-    (@one $_arg:ident) => { 1_u8 };
     (@key $name:ident) => { stringify!($name) };
     (@key $name:literal) => { $name };
     (@entries $ctx:expr;) => { $ctx };
     (@entries $ctx:expr; $name:ident($arg:ident: &[f64]): $body:expr $(, $($rest:tt)*)?) => {
         $crate::context!(@entries ($ctx).with_fn(
-            $crate::xprs_fn!(stringify!($name), dyn move |$arg: &[f64]| $body)
+            $crate::xprs_fn!($name($arg: &[f64]): $body)
         ); $($($rest)*)?)
     };
-    (@entries $ctx:expr; $name:ident($($arg:ident),* $(,)?): $body:expr $(, $($rest:tt)*)?) => {{
-        const ARITY: u8 = 0_u8 $(+ $crate::context!(@one $arg))*;
-        let context = $ctx;
-        let mut function = $crate::xprs_fn!(stringify!($name), dyn move |args: &[f64]| {
-            let &[$($arg),*] = args else {
-                panic!("incorrect argument count for context function");
-            };
-            $body
-        });
-        function.nb_args = Some(ARITY);
-        $crate::context!(@entries context.with_fn(function); $($($rest)*)?)
-    }};
+    (@entries $ctx:expr; $name:ident($($arg:ident),* $(,)?): $body:expr $(, $($rest:tt)*)?) => {
+        $crate::context!(@entries ($ctx).with_fn(
+            $crate::xprs_fn!($name($($arg),*): $body)
+        ); $($($rest)*)?)
+    };
     (@entries $ctx:expr; $name:tt: $(move)? | $($invalid:tt)*) => {
         compile_error!("context! functions must use name(args): expression, not a closure after a key")
     };

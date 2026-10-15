@@ -32,6 +32,34 @@ fn fractional_exponents() {
 }
 
 #[test]
+fn fractional_exponents_cancel_large_decimal_scales() {
+    let parser = Parser::default();
+    let large = format!("1{}e-400.5", "0".repeat(400));
+    let small = format!("0.{}1e400.5", "0".repeat(399));
+    assert_f64_eq!(
+        parser.parse(&large).unwrap().eval_no_vars().unwrap(),
+        10.0_f64.powf(-0.5)
+    );
+    assert_f64_eq!(
+        parser.parse(&small).unwrap().eval_no_vars().unwrap(),
+        10.0_f64.sqrt()
+    );
+    assert_eq!(
+        parser
+            .parse("9e-324.5")
+            .unwrap()
+            .eval_no_vars()
+            .unwrap()
+            .to_bits(),
+        1
+    );
+    assert_f64_eq!(
+        parser.parse("1e308.25").unwrap().eval_no_vars().unwrap(),
+        10.0_f64.powf(0.25) * 1e308
+    );
+}
+
+#[test]
 fn exponent_and_identifier_boundaries() {
     let parser = Parser::default();
     for (input, expected) in [

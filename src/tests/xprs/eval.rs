@@ -52,6 +52,27 @@ fn valid_eval() {
 }
 
 #[test]
+fn fractional_remainder_and_uppercase_multiplication() {
+    let parser = Parser::default();
+    assert_f64_eq!(
+        parser
+            .parse("x % 1")
+            .unwrap()
+            .eval(&[("x", 2.5_f64)].into())
+            .unwrap(),
+        0.5
+    );
+    assert_f64_eq!(
+        parser
+            .parse("2X")
+            .unwrap()
+            .eval(&[("X", 3.0_f64)].into())
+            .unwrap(),
+        6.0
+    );
+}
+
+#[test]
 fn invalid_eval() {
     // this var needs to be declared here because of clippy and default numeric fallback
     // https://github.com/rust-lang/rust-clippy/issues/11535

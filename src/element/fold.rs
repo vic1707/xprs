@@ -184,12 +184,6 @@ impl<'expr> Fold<'expr> for Box<BinOp<'expr>> {
                 rhs: Number(0.0),
                 ..
             } => Number(f64::NAN),
-            // a % 1 => 0
-            BinOp {
-                op: Modulo,
-                rhs: Number(1.0),
-                ..
-            } => Number(0.0),
             // a % a => 0
             BinOp {
                 op: Modulo,

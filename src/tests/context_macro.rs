@@ -1,6 +1,6 @@
 //! Context macro syntax, captures, and inferred arity.
 extern crate alloc;
-use crate::{Context, Parser, context};
+use crate::{Context, Parser, context, xprs_fn};
 use alloc::sync::Arc;
 
 #[test]
@@ -27,6 +27,32 @@ fn mixed_entries_and_captures() {
     parser.parse("double()").unwrap_err();
     parser.parse("add(1)").unwrap_err();
     parser.parse("add(1, 2, 3)").unwrap_err();
+}
+
+#[test]
+fn standalone_functions_infer_arity_and_capture_once() {
+    let offset = Arc::new(3.0_f64);
+    let named_offset = Arc::clone(&offset);
+    let legacy = xprs_fn!("legacy", dyn move |value: f64| value + *offset, 1);
+    let inferred = xprs_fn!(shift(value): value + *named_offset);
+    assert_eq!(inferred.nb_args, Some(1));
+    let total = xprs_fn!(total(values: &[f64]): values.iter().sum::<f64>());
+    assert_eq!(total.nb_args, None);
+    let ctx = Context::default()
+        .with_fn(legacy)
+        .with_fn(inferred)
+        .with_fn(total);
+    let parser = Parser::new_with_ctx(ctx);
+    for _ in 0_u32..2 {
+        assert_eq!(
+            parser
+                .parse("total(legacy(1), shift(2))")
+                .unwrap()
+                .eval_no_vars()
+                .unwrap(),
+            9.0_f64
+        );
+    }
 }
 
 #[test]

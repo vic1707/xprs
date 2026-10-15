@@ -142,7 +142,8 @@ impl Xprs<'_> {
     pub fn simplify_for_in_place(&mut self, var: (&str, f64)) {
         let root = mem::replace(&mut self.root, Element::Number(0.0));
         self.root = root.substitute_and_fold(var);
-        self.vars.remove(var.0);
+        self.vars.clear();
+        self.root.find_variables(&mut self.vars);
     }
 
     /// Simple wrapper around [`Xprs::eval`] that doesn't require any variables.
@@ -218,9 +219,10 @@ impl Xprs<'_> {
         let mut tmp = mem::replace(&mut self.root, Element::Number(0.0));
         for &var in vars {
             tmp = tmp.substitute_and_fold(var);
-            self.vars.remove(var.0);
         }
         self.root = tmp;
+        self.vars.clear();
+        self.root.find_variables(&mut self.vars);
     }
 
     /// Simplifies the expression in-place for multiple variables and returns the expression.

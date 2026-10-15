@@ -5,7 +5,8 @@ use core::{fmt, num::NonZeroU8, str};
 use std::collections::HashSet;
 /* Dependencies imports */
 use lexical_parse_float::{
-    FromLexicalWithOptions as _, NumberFormatBuilder, Options,
+    Error as FloatParseError, FromLexicalWithOptions as _, NumberFormatBuilder,
+    Options,
 };
 /* Crate imports */
 #[cfg(feature = "compile-time-optimizations")]
@@ -364,11 +365,9 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
                     }
                 } else {
                     // Fractional scientific exponents use ordinary f64 power arithmetic.
-                    parse(mantissa).map(|value| match value {
-                        // A zero coefficient stays zero even if the power overflows.
-                        0.0_f64 => 0.0_f64,
-                        _ => value * 10.0_f64.powf(power),
-                    })
+                    Self::parse_fractional_number::<FORMAT>(
+                        mantissa, power, &OPTIONS,
+                    )
                 }
             })
         } else {
@@ -386,6 +385,80 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
         )?;
 
         Ok(Element::Number(number))
+    }
+
+    /// Normalizes a fractional scientific literal before applying its power.
+    fn parse_fractional_number<const FORMAT: u128>(
+        mantissa: &[u8],
+        power: f64,
+        options: &Options,
+    ) -> Result<f64, FloatParseError> {
+        // Validate the full spelling even when its standalone value over/underflows.
+        let _validated =
+            f64::from_lexical_with_options::<FORMAT>(mantissa, options)?;
+        // In [1, 10), f64 rounding midpoints have at most 53 fractional decimal
+        // digits. Retain those plus a sticky digit for any nonzero discarded tail.
+        let mut normalized = [b'0'; 56];
+        normalized[1] = b'.';
+        let mut used = 0;
+        let mut integer = true;
+        let mut decimal_shift = -1_i64;
+        let mut sticky = false;
+        for &byte in mantissa {
+            match byte {
+                b'.' => integer = false,
+                b'_' => {},
+                _ => {
+                    decimal_shift += i64::from(integer);
+                    if used == 0 && byte == b'0' {
+                        decimal_shift -= 1;
+                    } else if used == 0 {
+                        normalized[0] = byte;
+                        used = 2;
+                    } else if used < 55 {
+                        #[expect(
+                            clippy::indexing_slicing,
+                            reason = "used is bounded by the normalized digit capacity"
+                        )]
+                        let digit = &mut normalized[used];
+                        *digit = byte;
+                        used += 1;
+                    } else {
+                        sticky |= byte != b'0';
+                    }
+                },
+            }
+        }
+        if used == 0 {
+            return Ok(0.0);
+        }
+        if sticky {
+            normalized[55] = b'1';
+            used = 56;
+        }
+        #[expect(
+            clippy::indexing_slicing,
+            reason = "used is bounded by the normalized digit capacity"
+        )]
+        let value = f64::from_lexical_with_options::<FORMAT>(
+            &normalized[..used],
+            options,
+        )?;
+        #[expect(
+            clippy::as_conversions,
+            clippy::cast_precision_loss,
+            reason = "decimal position is combined with an f64 exponent; loss requires petabyte-sized input"
+        )]
+        let exponent = power + decimal_shift as f64;
+        // Keep the power normal until the final multiplication, so neither an
+        // overflowing coefficient nor an underflowing factor destroys the result.
+        Ok(if exponent > 308.0 {
+            value * 10.0_f64.powf(exponent - 308.0) * 1e308
+        } else if exponent < -308.0 {
+            value * 10.0_f64.powf(exponent + 308.0) * 1e-308
+        } else {
+            value * 10.0_f64.powf(exponent)
+        })
     }
 
     /// Parses a list of arguments in a function call.
@@ -495,7 +568,9 @@ impl ParserImpl<'_, '_> {
 
         let current_byte = *self.next_trim()?;
         // check for binary operator
-        if let Ok(op) = Operator::try_from(current_byte) {
+        if let Ok(op) = Operator::try_from(current_byte)
+            && op != Operator::Factorial
+        {
             let op_p = precedence::get_for_op(op);
             if op_p <= precedence {
                 return None;
@@ -510,7 +585,9 @@ impl ParserImpl<'_, '_> {
             _ if IMPLICIT_MULTIPLICATION_INFO.1 <= precedence => None,
             // if it's an identifier or an opening parenthesis
             // we can consider its an implicit multiplication
-            b'a'..=b'z' | b'(' => Some(IMPLICIT_MULTIPLICATION_INFO),
+            b'A'..=b'Z' | b'a'..=b'z' | b'(' => {
+                Some(IMPLICIT_MULTIPLICATION_INFO)
+            },
             // Consecutive numeric literals need an explicit operator, even
             // when the preceding literal is inside a larger binary expression.
             b'0'..=b'9' if !self.last_atom_is_number => {
@@ -649,7 +726,7 @@ impl ParseError {
             kind: ErrorKind::UnexpectedEndOfExpression,
             // - 1 because we want to point to the last character
             // (without it, we would point to a `None` value)
-            span: (parser.cursor - 1).into(),
+            span: parser.cursor.saturating_sub(1).into(),
             src: trust_me!(str::from_utf8_unchecked(parser.input)).to_owned(),
         }
     }
