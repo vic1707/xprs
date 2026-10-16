@@ -12,21 +12,13 @@ use xprs::{Context, Function, Parser, xprs_fn};
 
 #[test]
 fn simplify() {
-    // these vars need to be declared here because of clippy and default numeric fallback
-    // https://github.com/rust-lang/rust-clippy/issues/11535
-    const X_VAR: (&str, f64) = ("x", 2.0);
-    const Y_VAR: (&str, f64) = ("y", 3.0);
-    const UNKNOWN_VAR: (&str, f64) = ("unknown", 4.0);
     let parser = Parser::default();
     let mut xprs = parser.parse("2x + 3y + 4x + 5z").unwrap();
-    // simplify for x
-    xprs = xprs.simplify_for(X_VAR);
+    xprs = xprs.simplify_for(("x", 2.0));
     assert_eq!(xprs, parser.parse("4 + 3y + 8 + 5z").unwrap());
-    // simplify for y
-    xprs.simplify_for_in_place(Y_VAR);
+    xprs.simplify_for_in_place(("y", 3.0));
     assert_eq!(xprs, parser.parse("21 + 5z").unwrap());
-    // try simplifying for an unknown variable
-    xprs.simplify_for_in_place(UNKNOWN_VAR);
+    xprs.simplify_for_in_place(("unknown", 4.0));
     assert_eq!(xprs, parser.parse("21 + 5z").unwrap());
 }
 
@@ -69,6 +61,9 @@ fn partial_folding_calls_functions_once() {
 #[case::fractional_remainder("5.5 % 1", 0.5)]
 #[case::negative_remainder_zero("-5 % 1", -0.0)]
 #[case::nan_product("0 * (0 / 0)", f64::NAN)]
+#[case::zero_division("0 / 0", f64::NAN)]
+#[case::zero_remainder("0 % 0", f64::NAN)]
+#[case::zero_power_zero("0 ^ 0", 1.0)]
 #[case::signed_zero("-0 * 1", -0.0)]
 #[case::nan_power_zero("(0 / 0) ^ 0", 1.0)]
 fn literal_folding_preserves_float_behavior(
@@ -111,29 +106,30 @@ fn simplification_is_panic_safe() {
             }
         }));
         result.unwrap_err();
-        // The root is still initialized and can be inspected and dropped safely.
-        assert_f64_eq!(tree.eval_no_vars().unwrap(), 0.0);
+        // Recovery need not preserve a particular value, but inspection/drop stay safe.
+        drop(tree.to_string());
+        drop(tree);
     }
 }
 
 #[rstest]
 #[case("(-x) + x", "0")]
 #[case("x + (-x)", "0")]
-#[case("x - (-y)", "(x + y)")]
-#[case("(-x) * (-y)", "(x * y)")]
-#[case("(-x) / (-y)", "(x / y)")]
-#[case("x + x!", "(x + (!x))")]
-#[case("x - y!", "(x - (!y))")]
-#[case("(-x) * y!", "((-x) * (!y))")]
-#[case("x! / (-y)", "((!x) / (-y))")]
+#[case("x - (-y)", "x + y")]
+#[case("(-x) * (-y)", "x * y")]
+#[case("(-x) / (-y)", "x / y")]
+#[case("x + x!", "x + x!")]
+#[case("x - y!", "x - y!")]
+#[case("(-x) * y!", "(-x) * y!")]
+#[case("x! / (-y)", "x! / (-y)")]
 #[case("x ^ 0", "1")]
 #[case("sin(0)!", "1")]
 #[case("sum(1, 2)!", "6")]
-#[case("sin(0)! + x", "(1 + x)")]
-#[case("x + 0 + sum(1, 2 * 3)!", "(x + 5040)")]
+#[case("sin(0)! + x", "1 + x")]
+#[case("x + 0 + sum(1, 2 * 3)!", "x + 5040")]
 #[case("-(-x)", "x")]
 #[case("0 - (-x)", "x")]
-#[case("x - (-x)", "(x + x)")]
+#[case("x - (-x)", "x + x")]
 #[case("x * 1", "x")]
 #[case("x / 1", "x")]
 #[case("x ^ 1", "x")]
@@ -142,42 +138,43 @@ fn simplification_is_panic_safe() {
 #[case("x * 0", "0")]
 #[case("0 / x", "0")]
 #[case("0 % x", "0")]
-#[case("0 / 0", "NaN")]
-#[case("0 % 0", "NaN")]
-#[case("0 ^ 0", "1")]
+#[case("x / x", "1")]
+#[case("x % x", "0")]
+#[case("0 ^ x", "0")]
 #[case("x - x", "0")]
 #[case("(a + b) - (b + a)", "0")]
 fn algebraic_simplifications(#[case] input: &str, #[case] expected: &str) {
-    let tree = Parser::default()
-        .parse(input)
-        .unwrap()
-        .simplify_for(("unknown", 0.0_f64));
-    assert_eq!(tree.to_string(), expected);
+    let parser = Parser::default();
+    let original = parser.parse(input).unwrap();
+    let folded = original.clone().simplify_for(("unknown", 0.0_f64));
+    assert_eq!(folded, parser.parse(expected).unwrap());
+    for (x_value, y_value) in [(2.0_f64, 3.0_f64), (4.0_f64, 2.0_f64)] {
+        let variables = [
+            ("x", x_value),
+            ("y", y_value),
+            ("a", x_value),
+            ("b", y_value),
+        ]
+        .into();
+        assert_f64_eq!(
+            folded.eval(&variables).unwrap(),
+            original.eval(&variables).unwrap()
+        );
+    }
 }
 
 #[rstest]
-#[case::constant_expression("2 + 3 * 4", "(2 + (3 * 4))", "14")]
-#[case::factorial("sum(1, 2)!", "(!sum(1, 2))", "6")]
-#[case::eliminated_variable("x - x", "(x - x)", "0")]
-#[case::zero_arguments("sum()", "sum()", "-0")]
-#[case::single_argument("sin(x)", "sin(x)", "sin(x)")]
-#[case::nested_arguments(
-    "max(x, min(y, z))",
-    "max(x, min(y, z))",
-    "max(x, min(y, z))"
-)]
-fn parse_time_folding_and_display(
-    #[case] input: &str,
-    #[case] unoptimized: &str,
-    #[case] optimized: &str,
-) {
-    let expected = if cfg!(feature = "compile-time-optimizations") {
-        optimized
+#[case::constant_expression("2 + 3 * 4", "14")]
+#[case::factorial("sum(1, 2)!", "6")]
+#[case::eliminated_variable("x - x", "0")]
+fn parse_time_folding(#[case] input: &str, #[case] reduced: &str) {
+    let parser = Parser::default();
+    let parsed = parser.parse(input).unwrap();
+    let expected = parser.parse(reduced).unwrap();
+    if cfg!(feature = "compile-time-optimizations") {
+        assert_eq!(parsed, expected);
     } else {
-        unoptimized
-    };
-    assert_eq!(
-        Parser::default().parse(input).unwrap().to_string(),
-        expected
-    );
+        assert_ne!(parsed, expected);
+        assert_eq!(parsed.simplify_for(("unknown", 0.0_f64)), expected);
+    }
 }

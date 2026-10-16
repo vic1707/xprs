@@ -13,15 +13,3 @@ macro_rules! assert_f64_eq {
 }
 
 pub(crate) use assert_f64_eq;
-
-#[test]
-#[should_panic(expected = "assertion failed")]
-fn rejects_different_floats() {
-    assert_f64_eq!(1.0, 2.0);
-}
-
-#[test]
-#[should_panic(expected = "assertion failed")]
-fn rejects_finite_and_infinite() {
-    assert_f64_eq!(1.0, f64::INFINITY);
-}

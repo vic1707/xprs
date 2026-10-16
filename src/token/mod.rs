@@ -9,6 +9,3 @@ mod operator;
 pub use function::Function;
 pub use identifier::Identifier;
 pub use operator::Operator;
-
-#[cfg(test)]
-pub use function::FnPointer;

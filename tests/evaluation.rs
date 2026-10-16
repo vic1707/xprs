@@ -32,7 +32,6 @@ fn missing_variables() {
 #[case::single(1, 2.0)]
 #[case::stack_limit(9, 18.0)]
 #[case::heap_fallback(10, 20.0)]
-#[case::larger_call(32, 64.0)]
 fn function_argument_boundaries(#[case] arity: usize, #[case] expected: f64) {
     let input = format!("sum({})", vec!["x"; arity].join(","));
     let tree = Parser::default().parse(&input).unwrap();

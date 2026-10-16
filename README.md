@@ -38,7 +38,12 @@ the experimental `f64::gamma` API; stable builds use the system `tgamma` functio
 
   Enable optimization and evaluation during parsing.
   This feature will automagically transform expressions like `1 + 2 * 3` into `7` during parsing allowing for faster evaluation.
-  It also works on functions (e.g. `sin(0)` will be transformed into `0`) and "logical" result like `(x - x) * (....)` will be transformed into `0` since `x - x` is `0` no matter what `x` is.
+  It also folds constant function calls (e.g. `sin(0)` becomes `0`) and applies symbolic identities such as `x - x` becoming `0`.
+
+  Symbolic rewrites follow ordinary algebra, not strict IEEE-754 equivalence:
+  NaN, infinity, signed zero, overflow, or singularities can change results
+  (for example, `0 / x` becomes `0` even if `x` is later supplied as zero).
+  Fully literal arithmetic is evaluated with `f64` semantics before these identities.
 
   The same optimizations are available on stable and nightly Rust.
 
