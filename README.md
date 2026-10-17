@@ -168,10 +168,49 @@ Function definitions capture automatically by move; no `dyn` keyword or manual a
 Their bodies return `f64`, and captures follow the existing `Send + Sync + 'static` requirements.
 Functions use the existing shared closure storage (one `Arc` allocation at context creation).
 Use `name(args: &[f64]): expression` for variadics, and `name(): expression` for zero-argument functions.
+Use `name(args: xprs::Args<'_>): expression` for a lazy, fallible streaming variadic:
+
+```rust
+use xprs::{context, Parser};
+
+let parser = Parser::new_with_ctx(context! {
+    total(args: xprs::Args<'_>): args.sum::<Result<f64, _>>(),
+    first(args: xprs::Args<'_>): args.next().unwrap_or(Ok(0.0)),
+});
+assert_eq!(parser.parse("total(1, 2, 3)")?.eval_no_vars()?, 6.0);
+assert_eq!(parser.parse("first(x, missing)")?.eval(&[("x", 4.0)].into())?, 4.0);
+# Ok::<(), Box<dyn std::error::Error>>(())
+```
+
+`Function::new_stream` accepts a static streaming callback; `new_dyn_stream`
+also accepts captures. Both return `Result<f64, EvalError>` and consume `Args`
+once, without an argument-value buffer. Slice callbacks keep eager evaluation:
+all arguments succeed before the callback runs. Streaming callbacks evaluate
+only consumed arguments and must propagate any consumed errors themselves.
+`sum`, `mean`, `min`, and `max` use streaming and consume all their arguments.
+
+Skipping arguments does not bypass arity checks: `sin(2, 3, 4)` is a parse error.
+For direct `Function::call`, a declared `nb_args: Some(n)` is checked against
+the iterator's length before any argument is evaluated. A mismatch returns
+`EvalError::InvalidArgumentCount { function, expected, actual }`; missing variables
+return `EvalError::MissingVariable(name)`. `None` declares a
+variadic function, which may intentionally consume only a prefix.
+
+Use `xprs_fn!(static sin(value): value.sin())` for a const-safe static definition
+with inferred arity, or `xprs_fn!(static total(args: xprs::Args<'_>): args.sum())`
+for a static streaming variadic. These use function pointers rather than `Arc`.
+
+Variable binding and allowed-variable checks still use the expression's recorded
+variable set, including names in unconsumed streaming arguments. Constant folding can run callbacks
+during parsing, including constant calls nested in skipped arguments; disable
+`compile-time-optimizations` when those parse-time effects are unwanted.
+To invoke a `Function` directly, use `function.call(iterator_of_results)`;
+its `func` field no longer dereferences to an infallible slice callback.
+
 Trailing commas and empty contexts are supported; entries are evaluated once and later keys replace earlier ones.
 Value keys can be identifiers (`x: 2`) or strings (`"x'": 2`). Functions always use `name(args): expression`.
 
-Functions need to have a signature of `fn(&[f64]) -> f64` so they all have the same signature and can be called the same way.
+Eager functions use the signature `fn(&[f64]) -> f64`; streaming functions use `fn(Args<'_>) -> Result<f64, EvalError>`.
 Standalone definitions can use the same inferred-arity notation:
 
 ```rust

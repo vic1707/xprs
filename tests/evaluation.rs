@@ -1,7 +1,7 @@
 //! Checked evaluation and fixed/runtime variable bindings.
 use crate::common::assert_f64_eq;
 use rstest::rstest;
-use xprs::{BindError, Parser};
+use xprs::{BindError, Context, EvalError, Parser, xprs_fn};
 
 #[rstest]
 #[case::fractional_remainder("x % 1", "x", 2.5, 0.5)]
@@ -22,7 +22,9 @@ fn variable_evaluation(
 #[test]
 fn missing_variables() {
     let tree = Parser::default().parse("2 * x + 3y + 4x + 5").unwrap();
-    tree.eval(&[("x", 2.0_f64)].into()).unwrap_err();
+    let error = tree.eval(&[("x", 2.0_f64)].into()).unwrap_err();
+    assert_eq!(error, EvalError::MissingVariable("y".to_owned()));
+    assert_eq!(error.to_string(), "Evaluation error: 'y' was not provided");
     tree.eval_no_vars().unwrap_err();
     assert!(tree.bind("x").is_err());
 }
@@ -34,7 +36,11 @@ fn missing_variables() {
 #[case::heap_fallback(10, 20.0)]
 fn function_argument_boundaries(#[case] arity: usize, #[case] expected: f64) {
     let input = format!("sum({})", vec!["x"; arity].join(","));
-    let tree = Parser::default().parse(&input).unwrap();
+    let parser = Parser::new_with_ctx(
+        Context::default()
+            .with_fn(xprs_fn!("sum", |values| values.iter().sum::<f64>())),
+    );
+    let tree = parser.parse(&input).unwrap();
     let variables = [("x", 2.0_f64)].into();
     if arity > 0 {
         tree.eval(&[].into()).unwrap_err();

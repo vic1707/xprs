@@ -27,7 +27,7 @@ mod tests;
 /* Exports */
 pub use crate::context::{Context, Symbol};
 pub use crate::parser::{ErrorKind, ParseError, Parser};
-pub use crate::token::Function;
+pub use crate::token::{Args, Function};
 pub use crate::xprs::{BindError, EvalError, Xprs};
 
 /* Feature safety */

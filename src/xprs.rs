@@ -4,7 +4,7 @@
     reason = "HashMap and HashSet require std"
 )]
 /* Built-in imports */
-use core::{convert::Infallible, fmt, mem};
+use core::{fmt, mem};
 use std::collections::{HashMap, HashSet};
 /* Crate imports */
 use crate::{
@@ -45,7 +45,8 @@ impl Xprs<'_> {
     ///
     /// # Errors
     ///
-    /// An [`EvalError`] is returned if a variable is not provided.
+    /// An [`EvalError`] is returned if an evaluated variable is not provided or a
+    /// streaming callback returns an error. Unconsumed streaming arguments are skipped.
     ///
     /// # Example
     ///
@@ -82,7 +83,8 @@ impl Xprs<'_> {
     ///
     /// # Panic
     ///
-    /// Use with caution, as it may panic if variable(s) are missing.
+    /// Use with caution, as it may panic if evaluated variables are missing or
+    /// a streaming callback returns an error.
     ///
     /// # Example
     ///
@@ -147,22 +149,24 @@ impl Xprs<'_> {
     }
 
     /// Simple wrapper around [`Xprs::eval`] that doesn't require any variables.
-    /// This will obviously fail if the expression contains variables.
+    /// This fails if evaluation consumes a variable, including inside a callback.
     ///
     /// # Errors
     ///
-    /// An [`EvalError`] is returned if the expression contains variables.
+    /// An [`EvalError`] is returned if an evaluated variable is missing or a
+    /// streaming callback returns an error.
     #[inline]
     pub fn eval_no_vars(&self) -> Result<f64, EvalError> {
         self.eval(&[].into())
     }
 
     /// Simple wrapper around [`Xprs::eval_unchecked`] that doesn't require any variables.
-    /// This will obviously fail if the expression contains variables.
+    /// This fails if evaluation consumes a variable, including inside a callback.
     ///
     /// # Panic
     ///
-    /// Use with caution, as it may panic if the expression contains variables.
+    /// Use with caution, as it may panic if evaluated variables are missing or
+    /// a streaming callback returns an error.
     #[inline]
     #[must_use]
     pub fn eval_no_vars_unchecked(&self) -> f64 {
@@ -274,23 +278,25 @@ impl Xprs<'_> {
         indices: Option<&HashMap<&str, usize>>,
     ) -> Result<f64, EvalError> {
         // A short runtime slice must use the last *supplied* duplicate, not the last name.
-        let lookup = indices.filter(|_| values.len() >= names.len());
-        XprsImpl::new(|name: &str| {
-            lookup.map_or_else(
-                || {
+        indices.filter(|_| values.len() >= names.len()).map_or_else(
+            || {
+                XprsImpl::new(|name: &str| {
                     names.iter().zip(values).rev().find_map(
                         |(&bound, &value)| (bound == name).then_some(value),
                     )
-                },
-                |positions| {
+                })
+                .eval_element(&self.root)
+            },
+            |positions| {
+                XprsImpl::new(|name: &str| {
                     positions
                         .get(name)
                         .and_then(|&index| values.get(index))
                         .copied()
-                },
-            )
-        })
-        .eval_element(&self.root)
+                })
+                .eval_element(&self.root)
+            },
+        )
     }
 
     /// Evaluates fixed bindings whose names and value count were validated.
@@ -332,7 +338,7 @@ where
             Element::Number(n) => n,
             Element::Variable(name) => (self.lookup)(name).ok_or_else(
                 #[cold]
-                || EvalError(name.to_owned()),
+                || EvalError::MissingVariable(name.to_owned()),
             )?,
             Element::UnOp(ref unop) => {
                 let operand = self.eval_element(&unop.operand)?;
@@ -393,8 +399,12 @@ where
                 let right = self.eval_element_unchecked(&binop.rhs);
                 binop.op.eval_binary(left, right)
             },
+            #[expect(
+                clippy::unwrap_used,
+                reason = "unchecked evaluation propagates callback failures as panics"
+            )]
             Element::Function(ref func) => func
-                .call::<Infallible>(
+                .call(
                     func.args
                         .iter()
                         .map(|arg| Ok(self.eval_element_unchecked(arg))),
@@ -404,12 +414,28 @@ where
     }
 }
 
-/// Represents an error that occurs during expression evaluation, indicating that a variable was not provided.
+/// An error produced while evaluating an expression or calling a function.
 #[derive(
     Debug, Eq, PartialEq, thiserror::Error, Clone, Hash, Ord, PartialOrd,
 )]
-#[error("Evaluation error: '{0}' was not provided")]
-pub struct EvalError(String);
+#[non_exhaustive]
+pub enum EvalError {
+    /// An evaluated variable has no supplied value.
+    #[error("Evaluation error: '{0}' was not provided")]
+    MissingVariable(String),
+    /// A function was called with a different number of arguments than declared.
+    #[error(
+        "Evaluation error: function '{function}' expected {expected} arguments, got {actual}"
+    )]
+    InvalidArgumentCount {
+        /// The function's declared name.
+        function: &'static str,
+        /// The declared fixed arity.
+        expected: u8,
+        /// The number of supplied arguments.
+        actual: usize,
+    },
+}
 
 //////////////////////////////////////////////////////////////////////////////
 //  TODO: replace this with variadic generics when it's available & stable  //

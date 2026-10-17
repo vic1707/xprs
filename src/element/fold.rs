@@ -252,13 +252,19 @@ impl<'expr> Fold<'expr> for Box<FunctionCall<'expr>> {
         {
             return Element::Function(self);
         }
-        self.call(self.args.iter().map(|arg| {
-            if let &Element::Number(num) = arg {
-                Ok(num)
-            } else {
-                Err(())
-            }
-        }))
-        .map_or_else(|()| Element::Function(self), Element::Number)
+        self.call(self.args.iter().map(
+            #[expect(
+                clippy::unreachable,
+                reason = "all arguments were checked to be numeric literals"
+            )]
+            |arg| match *arg {
+                Element::Number(num) => Ok(num),
+                Element::Variable(_)
+                | Element::UnOp(_)
+                | Element::BinOp(_)
+                | Element::Function(_) => unreachable!(),
+            },
+        ))
+        .map_or_else(|_error| Element::Function(self), Element::Number)
     }
 }

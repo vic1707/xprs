@@ -129,6 +129,9 @@ fn variables(#[case] input: &str, #[case] expected: &[&str]) {
 #[case::illegal_character("?", ErrorKind::IllegalCharacter('?'))]
 #[case::too_few_arguments("sin()", ErrorKind::TooFewArguments(1, 0))]
 #[case::too_many_arguments("sin(1, 2)", ErrorKind::TooManyArguments(1, 2))]
+#[case::reported_sin_arity("sin(2, 3, 4)", ErrorKind::TooManyArguments(1, 3))]
+#[case::binary_too_few("atan2(x)", ErrorKind::TooFewArguments(2, 1))]
+#[case::binary_too_many("atan2(x, y, z)", ErrorKind::TooManyArguments(2, 3))]
 #[case::extra_comma("sum(1,,2)", ErrorKind::IllegalCharacter(','))]
 #[case::missing_argument("sum(1,)", ErrorKind::MissingArgument)]
 fn errors(#[case] input: &str, #[case] expected: ErrorKind) {

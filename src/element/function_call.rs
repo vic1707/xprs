@@ -1,7 +1,7 @@
 /* Built-in imports */
 use core::fmt;
 /* Crate imports */
-use crate::{element::Element, token::Function};
+use crate::{EvalError, element::Element, token::Function};
 
 /// Represents a function call in the abstract syntax tree (AST).
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
@@ -30,24 +30,11 @@ impl<'expr> FunctionCall<'expr> {
     }
 
     /// Calls the function from fallible argument values, preserving their order.
-    pub(crate) fn call<Error>(
+    pub(crate) fn call(
         &self,
-        args: impl ExactSizeIterator<Item = Result<f64, Error>>,
-    ) -> Result<f64, Error> {
-        // ponytail: stack space covers fixed arities 0..=9; larger variadics use Vec.
-        let mut small = [0.0_f64; 9];
-        if let Some(values) = small.get_mut(..args.len()) {
-            for (value, arg) in values.iter_mut().zip(args) {
-                *value = arg?;
-            }
-            Ok((self.desc.func)(values))
-        } else {
-            let mut values = Vec::with_capacity(args.len());
-            for arg in args {
-                values.push(arg?);
-            }
-            Ok((self.desc.func)(&values))
-        }
+        args: impl ExactSizeIterator<Item = Result<f64, EvalError>>,
+    ) -> Result<f64, EvalError> {
+        self.desc.call(args)
     }
 }
 

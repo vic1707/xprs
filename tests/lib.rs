@@ -11,6 +11,7 @@ mod evaluation;
 mod folding;
 mod numbers;
 mod parsing;
+mod streaming;
 mod thread_safety;
 
 #[test]

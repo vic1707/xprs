@@ -142,6 +142,7 @@ impl<'names> Context<'names> {
 /// therefore satisfy its `Send + Sync + 'static` bounds; no `dyn` keyword is needed.
 /// Entries are evaluated once, in order, and later entries replace earlier ones.
 /// Values accept either identifier keys (`x: 2`) or quoted keys (`"x'": 2`).
+/// Use `name(args: xprs::Args<'_>): fallible_expression` for a lazy streaming variadic.
 ///
 /// # Example
 ///
@@ -180,6 +181,11 @@ macro_rules! context {
     (@entries $ctx:expr; $name:ident($arg:ident: &[f64]): $body:expr $(, $($rest:tt)*)?) => {
         $crate::context!(@entries ($ctx).with_fn(
             $crate::xprs_fn!($name($arg: &[f64]): $body)
+        ); $($($rest)*)?)
+    };
+    (@entries $ctx:expr; $name:ident($arg:ident: $args:ty): $body:expr $(, $($rest:tt)*)?) => {
+        $crate::context!(@entries ($ctx).with_fn(
+            $crate::xprs_fn!($name($arg: $args): $body)
         ); $($($rest)*)?)
     };
     (@entries $ctx:expr; $name:ident($($arg:ident),* $(,)?): $body:expr $(, $($rest:tt)*)?) => {
