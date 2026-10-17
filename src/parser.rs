@@ -277,7 +277,8 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
             Identifier::Constant(val) => Element::Number(val),
             Identifier::Variable(var) => Element::Variable(var),
             Identifier::Function(func) if self.consume_if_eq(b'(') => {
-                let args = self.parse_arguments()?;
+                let args =
+                    self.parse_arguments(func.nb_args.map_or(0, usize::from))?;
                 self.assert_eq_consume(b')')?;
                 if let Some(nb_args) = func.nb_args {
                     use core::cmp::Ordering::{Equal, Greater, Less};
@@ -464,8 +465,11 @@ impl<'input, 'ctx> ParserImpl<'input, 'ctx> {
     }
 
     /// Parses a list of arguments in a function call.
-    fn parse_arguments(&mut self) -> Result<Vec<Element<'input>>, ParseError> {
-        let mut args = Vec::new();
+    fn parse_arguments(
+        &mut self,
+        capacity: usize,
+    ) -> Result<Vec<Element<'input>>, ParseError> {
+        let mut args = Vec::with_capacity(capacity);
         if self.next_trim() == Some(&b')') {
             return Ok(args);
         }

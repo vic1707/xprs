@@ -9,13 +9,16 @@ pub struct FunctionCall<'expr> {
     /// The function being called.
     pub(crate) desc: Function,
     /// The arguments of the function call.
-    pub(crate) args: Vec<Element<'expr>>,
+    pub(crate) args: Box<[Element<'expr>]>,
 }
 
 impl<'expr> FunctionCall<'expr> {
     /// Creates a new [`FunctionCall`] from the function call components.
-    const fn new(desc: Function, args: Vec<Element<'expr>>) -> Self {
-        Self { desc, args }
+    fn new(desc: Function, args: Vec<Element<'expr>>) -> Self {
+        Self {
+            desc,
+            args: args.into_boxed_slice(),
+        }
     }
 
     /// Creates a new `Element::Function` from the function call components.
@@ -39,7 +42,10 @@ impl<'expr> FunctionCall<'expr> {
             }
             Ok((self.desc.func)(values))
         } else {
-            let values = args.collect::<Result<Vec<_>, _>>()?;
+            let mut values = Vec::with_capacity(args.len());
+            for arg in args {
+                values.push(arg?);
+            }
             Ok((self.desc.func)(&values))
         }
     }

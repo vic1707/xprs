@@ -8,10 +8,8 @@ use core::{convert::Infallible, fmt, mem};
 use std::collections::{HashMap, HashSet};
 /* Crate imports */
 use crate::{
-    element::Element,
-    element::Fold as _,
-    token::Operator,
-    utils::{factorial::factorial, hidden_macros::yeet},
+    element::Element, element::Fold as _, token::Operator,
+    utils::factorial::factorial,
 };
 
 /// Represents a mathematical expression and its variables.
@@ -253,25 +251,46 @@ impl Xprs<'_> {
         self
     }
 
-    /// Evaluates bound arguments without constructing a map for small bindings.
+    /// Validates coverage using small slices or the already-prepared large index.
+    fn validate_bindings(
+        &self,
+        names: &[&str],
+        indices: Option<&HashMap<&str, usize>>,
+    ) -> Result<(), BindError> {
+        let missing = self.vars.iter().copied().filter(|name| {
+            indices.map_or_else(
+                || !names.contains(name),
+                |positions| !positions.contains_key(name),
+            )
+        });
+        BindError::from_missing(missing).map_or(Ok(()), Err)
+    }
+
+    /// Evaluates bindings using cached indices for large, fully supplied calls.
     fn eval_bound(
         &self,
         names: &[&str],
         values: &[f64],
+        indices: Option<&HashMap<&str, usize>>,
     ) -> Result<f64, EvalError> {
-        // ponytail: linear lookup covers the fixed bind APIs; large bindings keep hashing.
-        if names.len() <= 9 {
-            XprsImpl::new(|name: &str| {
-                names.iter().zip(values).rev().find_map(|(&bound, &value)| {
-                    (bound == name).then_some(value)
-                })
-            })
-            .eval_element(&self.root)
-        } else {
-            self.eval(
-                &names.iter().copied().zip(values.iter().copied()).collect(),
+        // A short runtime slice must use the last *supplied* duplicate, not the last name.
+        let lookup = indices.filter(|_| values.len() >= names.len());
+        XprsImpl::new(|name: &str| {
+            lookup.map_or_else(
+                || {
+                    names.iter().zip(values).rev().find_map(
+                        |(&bound, &value)| (bound == name).then_some(value),
+                    )
+                },
+                |positions| {
+                    positions
+                        .get(name)
+                        .and_then(|&index| values.get(index))
+                        .copied()
+                },
             )
-        }
+        })
+        .eval_element(&self.root)
     }
 
     /// Evaluates fixed bindings whose names and value count were validated.
@@ -279,8 +298,13 @@ impl Xprs<'_> {
         clippy::unwrap_used,
         reason = "fixed binding constructors validate coverage and their argument counts are static"
     )]
-    fn eval_bound_unchecked(&self, names: &[&str], values: &[f64]) -> f64 {
-        self.eval_bound(names, values).unwrap()
+    fn eval_bound_unchecked(
+        &self,
+        names: &[&str],
+        values: &[f64],
+        indices: Option<&HashMap<&str, usize>>,
+    ) -> f64 {
+        self.eval_bound(names, values, indices).unwrap()
     }
 }
 
@@ -416,12 +440,8 @@ impl<'expr> Xprs<'expr> {
     /// ```
     #[inline]
     pub fn bind(self, var: &'expr str) -> Result<impl Fn(f64) -> f64 + 'expr, BindError> {
-        let variables: HashSet<&str> = HashSet::from([var]);
-        let missing_vars = self.vars.difference(&variables);
-        if let Some(bind_error) = BindError::from_diff(missing_vars) {
-            yeet!(bind_error);
-        }
-        Ok(move |val| self.eval_bound_unchecked(&[var], &[val]))
+        self.validate_bindings(&[var], None)?;
+        Ok(move |val| self.eval_bound_unchecked(&[var], &[val], None))
     }
 
     /// Creates a function of two [`f64`] based on this [`Xprs`] instance.
@@ -447,12 +467,8 @@ impl<'expr> Xprs<'expr> {
     /// ```
     #[inline]
     pub fn bind2(self, var1: &'expr str, var2: &'expr str) -> Result<impl Fn(f64, f64) -> f64 + 'expr, BindError> {
-        let variables: HashSet<&str> = HashSet::from([var1, var2]);
-        let missing_vars = self.vars.difference(&variables);
-        if let Some(bind_error) = BindError::from_diff(missing_vars) {
-            yeet!(bind_error);
-        }
-        Ok(move |val1, val2| self.eval_bound_unchecked(&[var1, var2], &[val1, val2]))
+        self.validate_bindings(&[var1, var2], None)?;
+        Ok(move |val1, val2| self.eval_bound_unchecked(&[var1, var2], &[val1, val2], None))
     }
 
     /// Creates a function of three [`f64`] based on this [`Xprs`] instance.
@@ -478,12 +494,8 @@ impl<'expr> Xprs<'expr> {
     /// ```
     #[inline]
     pub fn bind3(self, var1: &'expr str, var2: &'expr str, var3: &'expr str) -> Result<impl Fn(f64, f64, f64) -> f64 + 'expr, BindError> {
-        let variables: HashSet<&str> = HashSet::from([var1, var2, var3]);
-        let missing_vars = self.vars.difference(&variables);
-        if let Some(bind_error) = BindError::from_diff(missing_vars) {
-            yeet!(bind_error);
-        }
-        Ok(move |val1, val2, val3| self.eval_bound_unchecked(&[var1, var2, var3], &[val1, val2, val3]))
+        self.validate_bindings(&[var1, var2, var3], None)?;
+        Ok(move |val1, val2, val3| self.eval_bound_unchecked(&[var1, var2, var3], &[val1, val2, val3], None))
     }
 
     /// Creates a function of four [`f64`] based on this [`Xprs`] instance.
@@ -509,12 +521,8 @@ impl<'expr> Xprs<'expr> {
     /// ```
     #[inline]
     pub fn bind4(self, var1: &'expr str, var2: &'expr str, var3: &'expr str, var4: &'expr str) -> Result<impl Fn(f64, f64, f64, f64) -> f64 + 'expr, BindError> {
-        let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4]);
-        let missing_vars = self.vars.difference(&variables);
-        if let Some(bind_error) = BindError::from_diff(missing_vars) {
-            yeet!(bind_error);
-        }
-        Ok(move |val1, val2, val3, val4| self.eval_bound_unchecked(&[var1, var2, var3, var4], &[val1, val2, val3, val4]))
+        self.validate_bindings(&[var1, var2, var3, var4], None)?;
+        Ok(move |val1, val2, val3, val4| self.eval_bound_unchecked(&[var1, var2, var3, var4], &[val1, val2, val3, val4], None))
     }
 
     /// Creates a function of five [`f64`] based on this [`Xprs`] instance.
@@ -540,12 +548,8 @@ impl<'expr> Xprs<'expr> {
     /// ```
     #[inline]
     pub fn bind5(self, var1: &'expr str, var2: &'expr str, var3: &'expr str, var4: &'expr str, var5: &'expr str) -> Result<impl Fn(f64, f64, f64, f64, f64) -> f64 + 'expr, BindError> {
-        let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5]);
-        let missing_vars = self.vars.difference(&variables);
-        if let Some(bind_error) = BindError::from_diff(missing_vars) {
-            yeet!(bind_error);
-        }
-        Ok(move |val1, val2, val3, val4, val5| self.eval_bound_unchecked(&[var1, var2, var3, var4, var5], &[val1, val2, val3, val4, val5]))
+        self.validate_bindings(&[var1, var2, var3, var4, var5], None)?;
+        Ok(move |val1, val2, val3, val4, val5| self.eval_bound_unchecked(&[var1, var2, var3, var4, var5], &[val1, val2, val3, val4, val5], None))
     }
 
     /// Creates a function of six [`f64`] based on this [`Xprs`] instance.
@@ -571,12 +575,8 @@ impl<'expr> Xprs<'expr> {
     /// ```
     #[inline]
     pub fn bind6(self, var1: &'expr str, var2: &'expr str, var3: &'expr str, var4: &'expr str, var5: &'expr str, var6: &'expr str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64) -> f64 + 'expr, BindError> {
-        let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6]);
-        let missing_vars = self.vars.difference(&variables);
-        if let Some(bind_error) = BindError::from_diff(missing_vars) {
-            yeet!(bind_error);
-        }
-        Ok(move |val1, val2, val3, val4, val5, val6| self.eval_bound_unchecked(&[var1, var2, var3, var4, var5, var6], &[val1, val2, val3, val4, val5, val6]))
+        self.validate_bindings(&[var1, var2, var3, var4, var5, var6], None)?;
+        Ok(move |val1, val2, val3, val4, val5, val6| self.eval_bound_unchecked(&[var1, var2, var3, var4, var5, var6], &[val1, val2, val3, val4, val5, val6], None))
     }
 
     /// Creates a function of seven [`f64`] based on this [`Xprs`] instance.
@@ -602,12 +602,8 @@ impl<'expr> Xprs<'expr> {
     /// ```
     #[inline]
     pub fn bind7(self, var1: &'expr str, var2: &'expr str, var3: &'expr str, var4: &'expr str, var5: &'expr str, var6: &'expr str, var7: &'expr str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64, f64) -> f64 + 'expr, BindError> {
-        let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6, var7]);
-        let missing_vars = self.vars.difference(&variables);
-        if let Some(bind_error) = BindError::from_diff(missing_vars) {
-            yeet!(bind_error);
-        }
-        Ok(move |val1, val2, val3, val4, val5, val6, val7| self.eval_bound_unchecked(&[var1, var2, var3, var4, var5, var6, var7], &[val1, val2, val3, val4, val5, val6, val7]))
+        self.validate_bindings(&[var1, var2, var3, var4, var5, var6, var7], None)?;
+        Ok(move |val1, val2, val3, val4, val5, val6, val7| self.eval_bound_unchecked(&[var1, var2, var3, var4, var5, var6, var7], &[val1, val2, val3, val4, val5, val6, val7], None))
     }
 
     /// Creates a function of eight [`f64`] based on this [`Xprs`] instance.
@@ -633,12 +629,8 @@ impl<'expr> Xprs<'expr> {
     /// ```
     #[inline]
     pub fn bind8(self, var1: &'expr str, var2: &'expr str, var3: &'expr str, var4: &'expr str, var5: &'expr str, var6: &'expr str, var7: &'expr str, var8: &'expr str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64, f64, f64) -> f64 + 'expr, BindError> {
-        let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6, var7, var8]);
-        let missing_vars = self.vars.difference(&variables);
-        if let Some(bind_error) = BindError::from_diff(missing_vars) {
-            yeet!(bind_error);
-        }
-        Ok(move |val1, val2, val3, val4, val5, val6, val7, val8| self.eval_bound_unchecked(&[var1, var2, var3, var4, var5, var6, var7, var8], &[val1, val2, val3, val4, val5, val6, val7, val8]))
+        self.validate_bindings(&[var1, var2, var3, var4, var5, var6, var7, var8], None)?;
+        Ok(move |val1, val2, val3, val4, val5, val6, val7, val8| self.eval_bound_unchecked(&[var1, var2, var3, var4, var5, var6, var7, var8], &[val1, val2, val3, val4, val5, val6, val7, val8], None))
     }
 
     /// Creates a function of nine [`f64`] based on this [`Xprs`] instance.
@@ -664,12 +656,8 @@ impl<'expr> Xprs<'expr> {
     /// ```
     #[inline]
     pub fn bind9(self, var1: &'expr str, var2: &'expr str, var3: &'expr str, var4: &'expr str, var5: &'expr str, var6: &'expr str, var7: &'expr str, var8: &'expr str, var9: &'expr str) -> Result<impl Fn(f64, f64, f64, f64, f64, f64, f64, f64, f64) -> f64 + 'expr, BindError> {
-        let variables: HashSet<&str> = HashSet::from([var1, var2, var3, var4, var5, var6, var7, var8, var9]);
-        let missing_vars = self.vars.difference(&variables);
-        if let Some(bind_error) = BindError::from_diff(missing_vars) {
-            yeet!(bind_error);
-        }
-        Ok(move |val1, val2, val3, val4, val5, val6, val7, val8, val9| self.eval_bound_unchecked(&[var1, var2, var3, var4, var5, var6, var7, var8, var9], &[val1, val2, val3, val4, val5, val6, val7, val8, val9]))
+        self.validate_bindings(&[var1, var2, var3, var4, var5, var6, var7, var8, var9], None)?;
+        Ok(move |val1, val2, val3, val4, val5, val6, val7, val8, val9| self.eval_bound_unchecked(&[var1, var2, var3, var4, var5, var6, var7, var8, var9], &[val1, val2, val3, val4, val5, val6, val7, val8, val9], None))
     }
 
     // NOTE: Too lazy to implement this for more than 9 variables even with Copilot
@@ -701,12 +689,9 @@ impl<'expr> Xprs<'expr> {
     /// ```
     #[inline]
     pub fn bind_n<const T: usize>(self, vars: [&'expr str; T]) -> Result<impl Fn([f64; T]) -> f64 + 'expr, BindError> {
-        let variables: HashSet<&str> = HashSet::from(vars);
-        let missing_vars = self.vars.difference(&variables);
-        if let Some(bind_error) = BindError::from_diff(missing_vars) {
-            yeet!(bind_error);
-        }
-        Ok(move |values: [f64; T]| self.eval_bound_unchecked(&vars, &values))
+        let indices = (T > 9).then(|| vars.iter().copied().enumerate().map(|(index, name)| (name, index)).collect());
+        self.validate_bindings(&vars, indices.as_ref())?;
+        Ok(move |values: [f64; T]| self.eval_bound_unchecked(&vars, &values, indices.as_ref()))
     }
 
     /// Creates a function of any number of [`f64`] based on this [`Xprs`] instance.
@@ -735,15 +720,12 @@ impl<'expr> Xprs<'expr> {
     /// ```
     #[inline]
     pub fn bind_n_runtime(self, vars: &'expr [&'expr str]) -> Result<impl Fn(&[f64]) -> Result<f64, EvalError> + 'expr, BindError> {
-        let variables: HashSet<&str> = vars.iter().copied().collect();
-        let missing_vars = self.vars.difference(&variables);
-        if let Some(bind_error) = BindError::from_diff(missing_vars) {
-            yeet!(bind_error);
-        }
+        let indices = (vars.len() > 9).then(|| vars.iter().copied().enumerate().map(|(index, name)| (name, index)).collect());
+        self.validate_bindings(vars, indices.as_ref())?;
         // can't drop the closure from returning a result because we can't use the unchecked version
         // because we don't know the length of the slice at compile time
         // it could be different from the length of the slice of variables names
-        Ok(move |values: &[f64]| self.eval_bound(vars, values))
+        Ok(move |values: &[f64]| self.eval_bound(vars, values, indices.as_ref()))
     }
 }
 
@@ -759,26 +741,23 @@ pub enum BindError {
     MultipleVariables(String),
 }
 
-use std::collections::{hash_map::RandomState, hash_set::Difference};
 impl BindError {
-    /// Converts a [`Difference`] iterator of missing variables into a [`BindError`].
-    fn from_diff(
-        missing_vars: Difference<'_, &str, RandomState>,
+    /// Formats missing variable names without allocating on successful bindings.
+    fn from_missing<'name>(
+        mut missing_vars: impl Iterator<Item = &'name str>,
     ) -> Option<Self> {
-        let mut peekable = missing_vars.peekable();
-        let mut count: u8 = 0;
-        let mut missing_vars_str = String::new();
-        while let Some(missing_var) = peekable.next() {
-            count += 1;
+        let first = missing_vars.next()?;
+        let mut remaining = missing_vars.peekable();
+        let multiple = remaining.peek().is_some();
+        let mut missing_vars_str = first.to_owned();
+        for missing_var in remaining {
+            missing_vars_str.push_str(", ");
             missing_vars_str.push_str(missing_var);
-            if peekable.peek().is_some() {
-                missing_vars_str.push_str(", ");
-            }
         }
-        match count {
-            0 => None,
-            1 => Some(Self::OneVariable(missing_vars_str)),
-            _ => Some(Self::MultipleVariables(missing_vars_str)),
-        }
+        Some(if multiple {
+            Self::MultipleVariables(missing_vars_str)
+        } else {
+            Self::OneVariable(missing_vars_str)
+        })
     }
 }

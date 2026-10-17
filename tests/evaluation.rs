@@ -1,7 +1,7 @@
 //! Checked evaluation and fixed/runtime variable bindings.
 use crate::common::assert_f64_eq;
 use rstest::rstest;
-use xprs::Parser;
+use xprs::{BindError, Parser};
 
 #[rstest]
 #[case::fractional_remainder("x % 1", "x", 2.5, 0.5)]
@@ -74,5 +74,45 @@ fn bindings_preserve_order_duplicates_and_missing_values() {
             1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0
         ]),
         11.0
+    );
+}
+
+#[test]
+fn cached_bindings_preserve_partial_duplicate_values() {
+    const NAMES: [&str; 10] =
+        ["x", "a", "b", "c", "d", "e", "f", "g", "h", "x"];
+    assert!(
+        matches!(Parser::default().parse("missing").unwrap().bind_n(NAMES), Err(BindError::OneVariable(name)) if name == "missing")
+    );
+    let evaluate = Parser::default()
+        .parse("x")
+        .unwrap()
+        .bind_n_runtime(&NAMES)
+        .unwrap();
+    evaluate(&[]).unwrap_err();
+    assert_f64_eq!(evaluate(&[1.0]).unwrap(), 1.0);
+    assert_f64_eq!(
+        evaluate(&[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]).unwrap(),
+        1.0
+    );
+    assert_f64_eq!(
+        evaluate(&[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]).unwrap(),
+        10.0
+    );
+    assert_f64_eq!(
+        evaluate(&[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 99.0])
+            .unwrap(),
+        10.0
+    );
+}
+
+#[test]
+fn missing_binding_errors_preserve_names() {
+    let parser = Parser::default();
+    assert!(
+        matches!(parser.parse("x + y").unwrap().bind("x"), Err(BindError::OneVariable(name)) if name == "y")
+    );
+    assert!(
+        matches!(parser.parse("x + y").unwrap().bind_n([]), Err(BindError::MultipleVariables(names)) if matches!(names.as_str(), "x, y" | "y, x"))
     );
 }
