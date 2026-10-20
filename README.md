@@ -14,7 +14,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-xprs = "0.1.0"
+xprs = "0.2.0"
 ```
 
 or run this command in your terminal:
@@ -84,7 +84,7 @@ The default build has no `miette` dependency. Parse errors implement
 Enable `miette` for its `Diagnostic` implementation and rich REPL errors:
 
 ```toml
-xprs = { version = "0.1.0", features = ["miette"] }
+xprs = { version = "0.2.0", features = ["miette"] }
 ```
 
 ### Simple examples
